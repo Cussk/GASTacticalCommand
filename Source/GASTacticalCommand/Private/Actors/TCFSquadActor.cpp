@@ -8,6 +8,8 @@
 #include "Data/TCFSquadDefinition.h"
 #include "GAS/TCFSquadAttributeSet.h"
 #include "GameplayEffect.h"
+#include "Components/TCFSquadSelectionComponent.h"
+#include "GASTacticalCommand/GASTacticalCommand.h"
 
 ATCFSquadActor::ATCFSquadActor()
 {
@@ -28,11 +30,20 @@ ATCFSquadActor::ATCFSquadActor()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	SquadAttributeSet = CreateDefaultSubobject<UTCFSquadAttributeSet>(TEXT("SquadAttributeSet"));
+	
+	SquadSelectionComponent = CreateDefaultSubobject<UTCFSquadSelectionComponent>(TEXT("SquadSelectionComponent"));
+	
+	SquadVisual->SetCustomDepthStencilValue(CUSTOM_DEPTH_GREEN);
 }
 
 UAbilitySystemComponent* ATCFSquadActor::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+UTCFSquadSelectionComponent* ATCFSquadActor::GetSquadSelectionComponent() const
+{
+	return SquadSelectionComponent;
 }
 
 const UTCFSquadDefinition* ATCFSquadActor::GetSquadDefinition() const

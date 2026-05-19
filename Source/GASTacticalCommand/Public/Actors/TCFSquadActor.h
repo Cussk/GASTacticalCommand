@@ -6,9 +6,9 @@
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
-#include "Types/TCFSquadTypes.h"
 #include "TCFSquadActor.generated.h"
 
+class UTCFSquadSelectionComponent;
 class UAbilitySystemComponent;
 class UGameplayEffect;
 class USceneComponent;
@@ -25,6 +25,9 @@ public:
 	ATCFSquadActor();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Squad")
+	UTCFSquadSelectionComponent* GetSquadSelectionComponent() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Squad")
 	const UTCFSquadDefinition* GetSquadDefinition() const;
@@ -62,6 +65,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFSquadSelectionComponent> SquadSelectionComponent;
 
 	UPROPERTY()
 	TObjectPtr<UTCFSquadAttributeSet> SquadAttributeSet;

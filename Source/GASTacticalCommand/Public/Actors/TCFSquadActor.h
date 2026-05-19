@@ -46,13 +46,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Squad")
 	bool IsInitialized() const;
-	
-	/* Tests */
-	UFUNCTION(BlueprintCallable, Category = "TCF|Debug")
-	void LogSquadState() const;
-	
-	UFUNCTION(BlueprintCallable, Category = "TCF|Debug")
-	bool HasSquadTag(FGameplayTag Tag) const;
 
 protected:
 	virtual void BeginPlay() override;

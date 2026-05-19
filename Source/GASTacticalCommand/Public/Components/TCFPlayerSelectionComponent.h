@@ -31,18 +31,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
 	UAbilitySystemComponent* GetSelectedSquadAbilitySystem() const;
 
-	UFUNCTION(BlueprintCallable, Category = "TCF|Debug")
-	void LogSelectedSquadState() const;
-
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Selection")
 	FOnTCFSelectedSquadChanged OnSelectedSquadChanged;
 
 private:
 	UPROPERTY(VisibleInstanceOnly, Category = "TCF|Selection")
 	TObjectPtr<ATCFSquadActor> SelectedSquad;
-
-	UPROPERTY(EditAnywhere, Category = "TCF|Debug")
-	bool bLogSelectionChanges = true;
 
 	void SetSquadSelectedState(ATCFSquadActor* Squad, bool bSelected) const;
 };

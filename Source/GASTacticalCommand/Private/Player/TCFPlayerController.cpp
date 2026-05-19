@@ -6,6 +6,7 @@
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Engine/HitResult.h"
 #include "InputCoreTypes.h"
+#include "Debug/TCFSquadDebugComponent.h"
 
 ATCFPlayerController::ATCFPlayerController()
 {
@@ -14,6 +15,7 @@ ATCFPlayerController::ATCFPlayerController()
 	bEnableMouseOverEvents = true;
 
 	PlayerSelectionComponent = CreateDefaultSubobject<UTCFPlayerSelectionComponent>(TEXT("PlayerSelectionComponent"));
+	SquadDebugComponent = CreateDefaultSubobject<UTCFSquadDebugComponent>(TEXT("SquadDebugComponent"));
 }
 
 UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const

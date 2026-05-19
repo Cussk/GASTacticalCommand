@@ -76,38 +76,11 @@ bool ATCFSquadActor::IsInitialized() const
 	return bInitialized;
 }
 
-void ATCFSquadActor::LogSquadState() const
-{
-	if (!SquadAttributeSet)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("TCF Squad '%s' has no AttributeSet."), *GetName());
-		return;
-	}
-
-	UE_LOG(LogTemp, Log,
-		TEXT("TCF Squad '%s' | Morale=%.2f Suppression=%.2f Cohesion=%.2f Stamina=%.2f Accuracy=%.2f Defense=%.2f MoveSpeed=%.2f CapturePower=%.2f"),
-		*GetName(),
-		SquadAttributeSet->GetMorale(),
-		SquadAttributeSet->GetSuppression(),
-		SquadAttributeSet->GetCohesion(),
-		SquadAttributeSet->GetStamina(),
-		SquadAttributeSet->GetAccuracy(),
-		SquadAttributeSet->GetDefense(),
-		SquadAttributeSet->GetMovementSpeed(),
-		SquadAttributeSet->GetCapturePower());
-}
-
-bool ATCFSquadActor::HasSquadTag(FGameplayTag Tag) const
-{
-	return AbilitySystemComponent && Tag.IsValid() && AbilitySystemComponent->HasMatchingGameplayTag(Tag);
-}
-
 void ATCFSquadActor::BeginPlay()
 {
 	Super::BeginPlay();
 
 	InitializeFromDefinition();
-	LogSquadState();
 }
 
 void ATCFSquadActor::InitializeFromDefinition()

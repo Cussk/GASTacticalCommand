@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TCFPlayerController.generated.h"
 
+class UTCFSquadDebugComponent;
 class ATCFSquadActor;
 class UTCFPlayerSelectionComponent;
 
@@ -26,6 +27,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFPlayerSelectionComponent> PlayerSelectionComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFSquadDebugComponent> SquadDebugComponent;
 
 private:
 	void HandleSelectPressed();

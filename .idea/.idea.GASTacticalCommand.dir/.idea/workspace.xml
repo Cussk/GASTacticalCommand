@@ -13,11 +13,16 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b5a70005-d5c6-4264-85a8-a15902daa007" name="Changes" comment="" />
+    <list default="true" id="b5a70005-d5c6-4264-85a8-a15902daa007" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.GASTacticalCommand.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.GASTacticalCommand.dir/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
     <option name="cachedIndexableFilesCount" value="2099" />
@@ -26,15 +31,28 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="cidr-memory-view://10" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/CoreUObject/Public/UObject/ObjectPtr.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Actors/TCFSquadActor.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Data/TCFOrderDefinition.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/GAS/TCFSquadAttributeSet.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/TCFGameplayTags.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Types/TCFOrderTypes.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Types/TCFSquadTypes.h" root0="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8,
-  "fromUser": false
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8,
+  &quot;fromUser&quot;: false
+}</component>
   <component name="ProjectId" id="3DucmoDwxheFMlxZSnMB2RAc4vy" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -47,6 +65,7 @@
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Uproject.GASTacticalCommand.executor": "Debug",
     "cidr.known.project.marker": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "main",

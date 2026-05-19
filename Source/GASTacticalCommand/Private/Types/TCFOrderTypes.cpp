@@ -1,1 +1,3 @@
-﻿#include "Types/TCFOrderTypes.h"
+﻿//Copyright Kyle Cuss and Cuss Programming 2026.
+
+#include "Types/TCFOrderTypes.h"

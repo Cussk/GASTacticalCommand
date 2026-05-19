@@ -1,1 +1,3 @@
-﻿#include "Types/TCFSquadTypes.h"
+﻿//Copyright Kyle Cuss and Cuss Programming 2026.
+
+#include "Types/TCFSquadTypes.h"

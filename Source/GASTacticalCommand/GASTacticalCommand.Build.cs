@@ -14,6 +14,7 @@ public class GASTacticalCommand : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"InputCore",
+			"EnhancedInput",
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks"

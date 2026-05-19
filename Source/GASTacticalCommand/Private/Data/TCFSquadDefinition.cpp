@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//Copyright Kyle Cuss and Cuss Programming 2026.
 
 
 #include "Data/TCFSquadDefinition.h"

@@ -7,6 +7,7 @@
 #include "Data/TCFOrderDefinition.h"
 #include "Settings/TCFOrderSettings.h"
 #include "TCFGameplayTags.h"
+#include "GAS/TCFOrderPayload.h"
 
 void UTCFOrderSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -25,8 +26,9 @@ FTCFOrderResult UTCFOrderSubsystem::SubmitOrder(const FTCFSquadOrderRequest& Req
 		return ValidationResult;
 	}
 
-	// Phase 3 stops here. Phase 5 will activate the mapped GameplayAbility.
-	return FTCFOrderResult::Success(TCFGameplayTags::Order_Result_Success);
+	check(OrderDefinition);
+
+	return ExecuteValidatedOrder(Request, *OrderDefinition);
 }
 
 const UTCFOrderDefinition* UTCFOrderSubsystem::GetOrderDefinition(FGameplayTag OrderTag) const
@@ -168,6 +170,93 @@ FTCFOrderResult UTCFOrderSubsystem::ValidateTarget(
 		return FTCFOrderResult::Failure(
 			TCFGameplayTags::Order_Result_Failed_OutOfRange,
 			NSLOCTEXT("TCFOrders", "OrderTargetOutOfRange", "Order target is out of range."));
+	}
+
+	return FTCFOrderResult::Success(TCFGameplayTags::Order_Result_Success);
+}
+
+FTCFOrderResult UTCFOrderSubsystem::ExecuteValidatedOrder(
+	const FTCFSquadOrderRequest& Request,
+	const UTCFOrderDefinition& OrderDefinition) const
+{
+	ATCFSquadActor* SourceSquad = Cast<ATCFSquadActor>(Request.SourceActor);
+	if (!IsValid(SourceSquad))
+	{
+		return FTCFOrderResult::Failure(
+			TCFGameplayTags::Order_Result_Failed_InvalidSource,
+			NSLOCTEXT("TCFOrders", "ExecutionInvalidSourceSquad", "Order execution source is not a valid squad actor."));
+	}
+
+	if (!SourceSquad->HasAuthority())
+	{
+		return FTCFOrderResult::Failure(
+			TCFGameplayTags::Order_Result_Failed_NoAuthority,
+			NSLOCTEXT("TCFOrders", "OrderExecutionNoAuthority", "Only the authority can execute squad orders."));
+	}
+
+	return TriggerOrderAbility(*SourceSquad, OrderDefinition, Request);
+}
+
+FTCFOrderResult UTCFOrderSubsystem::TriggerOrderAbility(
+	const ATCFSquadActor& SourceSquad,
+	const UTCFOrderDefinition& OrderDefinition,
+	const FTCFSquadOrderRequest& Request) const
+{
+	if (!OrderDefinition.HasAbilityClass())
+	{
+		return FTCFOrderResult::Failure(
+			TCFGameplayTags::Order_Result_Failed_MissingAbility,
+			NSLOCTEXT("TCFOrders", "OrderDefinitionMissingAbility", "Order definition does not have an ability class assigned."));
+	}
+
+	UAbilitySystemComponent* AbilitySystem = SourceSquad.GetAbilitySystemComponent();
+	if (!AbilitySystem)
+	{
+		return FTCFOrderResult::Failure(
+			TCFGameplayTags::Order_Result_Failed_InvalidSource,
+			NSLOCTEXT("TCFOrders", "OrderExecutionMissingASC", "Source squad has no Ability System Component."));
+	}
+
+	FGameplayAbilitySpec* AbilitySpec = AbilitySystem->FindAbilitySpecFromClass(OrderDefinition.AbilityClass);
+	if (!AbilitySpec)
+	{
+		return FTCFOrderResult::Failure(
+			TCFGameplayTags::Order_Result_Failed_MissingAbility,
+			NSLOCTEXT("TCFOrders", "OrderAbilityNotGranted", "Source squad has not been granted the ability required by this order."));
+	}
+
+	FGameplayAbilityActorInfo* ActorInfo = AbilitySystem->AbilityActorInfo.Get();
+	if (!ActorInfo)
+	{
+		return FTCFOrderResult::Failure(
+			TCFGameplayTags::Order_Result_Failed_InvalidSource,
+			NSLOCTEXT("TCFOrders", "OrderExecutionMissingActorInfo", "Source squad Ability System Component has no actor info."));
+	}
+
+	UTCFOrderPayload* Payload = NewObject<UTCFOrderPayload>(AbilitySystem);
+
+	// Order definitions are authored data assets. The payload stores a non-const UObject pointer for reflection/Blueprint access only.
+	Payload->Initialize(Request, const_cast<UTCFOrderDefinition*>(&OrderDefinition));
+
+	FGameplayEventData EventData;
+	EventData.EventTag = OrderDefinition.OrderTag;
+	EventData.Instigator = Request.SourceActor;
+	EventData.Target = Request.Target.HasActorTarget() ? Request.Target.TargetActor : Request.SourceActor;
+	EventData.OptionalObject = Payload;
+	EventData.EventMagnitude = static_cast<float>(Request.OrderSequence);
+
+	const bool bActivated = AbilitySystem->TriggerAbilityFromGameplayEvent(
+		AbilitySpec->Handle,
+		ActorInfo,
+		OrderDefinition.OrderTag,
+		&EventData,
+		*AbilitySystem);
+
+	if (!bActivated)
+	{
+		return FTCFOrderResult::Failure(
+			TCFGameplayTags::Order_Result_Failed_ActivationFailed,
+			NSLOCTEXT("TCFOrders", "OrderAbilityActivationFailed", "GAS failed to activate the ability for this order."));
 	}
 
 	return FTCFOrderResult::Success(TCFGameplayTags::Order_Result_Success);

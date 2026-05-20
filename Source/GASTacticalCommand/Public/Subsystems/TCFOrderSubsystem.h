@@ -36,6 +36,9 @@ private:
 	FTCFOrderResult ValidateSourceTags(const ATCFSquadActor& SourceSquad, const UTCFOrderDefinition& OrderDefinition) const;
 	FTCFOrderResult ValidateTarget(const AActor& SourceActor, const FTCFOrderTarget& Target, const UTCFOrderDefinition& OrderDefinition) const;
 
+	FTCFOrderResult ExecuteValidatedOrder(const FTCFSquadOrderRequest& Request, const UTCFOrderDefinition& OrderDefinition) const;
+	FTCFOrderResult TriggerOrderAbility(const ATCFSquadActor& SourceSquad, const UTCFOrderDefinition& OrderDefinition, const FTCFSquadOrderRequest& Request) const;
+	
 	static bool DoesSourceHaveRequiredTags(const FGameplayTagContainer& OwnedTags, const FGameplayTagContainer& RequiredTags, FGameplayTagContainer& OutMissingTags);
 	static bool DoesSourceHaveBlockedTags(const FGameplayTagContainer& OwnedTags, const FGameplayTagContainer& BlockedTags, FGameplayTagContainer& OutBlockingTags);
 

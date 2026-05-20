@@ -46,11 +46,14 @@ namespace TCFGameplayTags
 	// Order Result
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Success, "Order.Result.Success");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_InvalidSource, "Order.Result.Failed.InvalidSource");
+	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_NoAuthority, "Order.Result.Failed.NoAuthority");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_MissingDefinition, "Order.Result.Failed.MissingDefinition");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_MissingRequirements, "Order.Result.Failed.MissingRequirements");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_BlockedByTags, "Order.Result.Failed.BlockedByTags");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_InvalidTarget, "Order.Result.Failed.InvalidTarget");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_OutOfRange, "Order.Result.Failed.OutOfRange");
+	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_MissingAbility, "Order.Result.Failed.MissingAbility");
+	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_ActivationFailed, "Order.Result.Failed.ActivationFailed");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_Cooldown, "Order.Result.Failed.Cooldown");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_Cost, "Order.Result.Failed.Cost");
 }

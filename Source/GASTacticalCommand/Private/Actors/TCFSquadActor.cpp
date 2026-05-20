@@ -8,6 +8,7 @@
 #include "Data/TCFSquadDefinition.h"
 #include "GAS/TCFSquadAttributeSet.h"
 #include "GameplayEffect.h"
+#include "Components/TCFAffiliationComponent.h"
 #include "Components/TCFSquadSelectionComponent.h"
 #include "GASTacticalCommand/GASTacticalCommand.h"
 #include "Subsystems/TCFSquadQuerySubsystem.h"
@@ -33,6 +34,7 @@ ATCFSquadActor::ATCFSquadActor()
 	SquadAttributeSet = CreateDefaultSubobject<UTCFSquadAttributeSet>(TEXT("SquadAttributeSet"));
 	
 	SquadSelectionComponent = CreateDefaultSubobject<UTCFSquadSelectionComponent>(TEXT("SquadSelectionComponent"));
+	AffiliationComponent = CreateDefaultSubobject<UTCFAffiliationComponent>(TEXT("AffiliationComponent"));
 	
 	SquadVisual->SetCustomDepthStencilValue(CUSTOM_DEPTH_GREEN);
 }
@@ -45,6 +47,11 @@ UAbilitySystemComponent* ATCFSquadActor::GetAbilitySystemComponent() const
 UTCFSquadSelectionComponent* ATCFSquadActor::GetSquadSelectionComponent() const
 {
 	return SquadSelectionComponent;
+}
+
+UTCFAffiliationComponent* ATCFSquadActor::GetAffiliationComponent() const
+{
+	return AffiliationComponent;
 }
 
 const UTCFSquadDefinition* ATCFSquadActor::GetSquadDefinition() const

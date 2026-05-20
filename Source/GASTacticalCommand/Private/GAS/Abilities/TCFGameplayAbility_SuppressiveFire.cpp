@@ -47,7 +47,8 @@ void UTCFGameplayAbility_SuppressiveFire::HandleOrderActivated()
 	}
 
 	TArray<ATCFSquadActor*> TargetSquads;
-	SquadQuerySubsystem->GetSquadsInRadius(AreaLocation, AreaRadius, SourceSquad, TargetSquads);
+	const FTCFSquadQueryRelationshipFilter RelationshipFilter = FTCFSquadQueryRelationshipFilter::EnemyOnly();
+	SquadQuerySubsystem->GetSquadsInRadiusByRelationship(AreaLocation, AreaRadius, SourceSquad, RelationshipFilter, TargetSquads);
 
 	ApplySourceFireEffects();
 	ApplyTargetSuppressionEffects(TargetSquads);

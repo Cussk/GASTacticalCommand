@@ -3,6 +3,7 @@
 #include "Subsystems/TCFSquadQuerySubsystem.h"
 
 #include "Actors/TCFSquadActor.h"
+#include "Subsystems/TCFRelationshipSubsystem.h"
 
 void UTCFSquadQuerySubsystem::RegisterSquad(ATCFSquadActor* Squad)
 {
@@ -54,6 +55,58 @@ void UTCFSquadQuerySubsystem::GetSquadsInRadius(
 		{
 			OutSquads.Add(Squad);
 		}
+	}
+}
+
+void UTCFSquadQuerySubsystem::GetSquadsInRadiusByRelationship(
+	FVector Origin,
+	float Radius,
+	const AActor* SourceActor,
+	const FTCFSquadQueryRelationshipFilter& RelationshipFilter,
+	TArray<ATCFSquadActor*>& OutSquads)
+{
+	OutSquads.Reset();
+
+	if (!IsValid(SourceActor) || Radius <= 0.0f)
+	{
+		return;
+	}
+
+	const UWorld* World = GetWorld();
+	const UTCFRelationshipSubsystem* RelationshipSubsystem = World
+		? World->GetSubsystem<UTCFRelationshipSubsystem>()
+		: nullptr;
+
+	if (!RelationshipSubsystem)
+	{
+		return;
+	}
+
+	CompactInvalidSquads();
+
+	const float RadiusSquared = FMath::Square(Radius);
+
+	for (const TWeakObjectPtr<ATCFSquadActor>& SquadPtr : RegisteredSquads)
+	{
+		ATCFSquadActor* Squad = SquadPtr.Get();
+		if (!IsValid(Squad))
+		{
+			continue;
+		}
+
+		const float DistanceSquared = FVector::DistSquared(Origin, Squad->GetActorLocation());
+		if (DistanceSquared > RadiusSquared)
+		{
+			continue;
+		}
+
+		const ETCFSquadRelationship Relationship = RelationshipSubsystem->GetActorRelationship(SourceActor, Squad);
+		if (!RelationshipFilter.AllowsRelationship(Relationship))
+		{
+			continue;
+		}
+
+		OutSquads.Add(Squad);
 	}
 }
 

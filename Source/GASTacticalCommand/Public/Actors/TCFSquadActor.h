@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 #include "TCFSquadActor.generated.h"
 
+class UTCFAffiliationComponent;
 class UTCFSquadSelectionComponent;
 class UAbilitySystemComponent;
 class UGameplayEffect;
@@ -28,6 +29,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Squad")
 	UTCFSquadSelectionComponent* GetSquadSelectionComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
+	UTCFAffiliationComponent* GetAffiliationComponent() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Squad")
 	const UTCFSquadDefinition* GetSquadDefinition() const;
@@ -62,6 +66,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFSquadSelectionComponent> SquadSelectionComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFAffiliationComponent> AffiliationComponent;
 
 	UPROPERTY()
 	TObjectPtr<UTCFSquadAttributeSet> SquadAttributeSet;

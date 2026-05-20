@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "Types/TCFAffiliationTypes.h"
 #include "TCFSquadQuerySubsystem.generated.h"
 
 class ATCFSquadActor;
@@ -25,6 +26,14 @@ public:
 		FVector Origin,
 		float Radius,
 		const ATCFSquadActor* IgnoredSquad,
+		TArray<ATCFSquadActor*>& OutSquads);
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Squads")
+	void GetSquadsInRadiusByRelationship(
+		FVector Origin,
+		float Radius,
+		const AActor* SourceActor,
+		const FTCFSquadQueryRelationshipFilter& RelationshipFilter,
 		TArray<ATCFSquadActor*>& OutSquads);
 
 private:

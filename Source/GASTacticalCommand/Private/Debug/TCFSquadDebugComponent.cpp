@@ -4,6 +4,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "Actors/TCFSquadActor.h"
+#include "Components/TCFPlayerOrderComponent.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "GAS/TCFSquadAttributeSet.h"
 #include "GameFramework/Actor.h"
@@ -20,13 +21,24 @@ void UTCFSquadDebugComponent::BeginPlay()
 	Super::BeginPlay();
 
 	ObservedSelectionComponent = FindSelectionComponent();
-	if (!ObservedSelectionComponent)
+	if (ObservedSelectionComponent)
+	{
+		ObservedSelectionComponent->OnSelectedSquadChanged.AddDynamic(this, &UTCFSquadDebugComponent::HandleSelectedSquadChanged);
+	}
+	else
 	{
 		UE_LOG(LogTCF, Warning, TEXT("TCF Debug: '%s' could not find a PlayerSelectionComponent to observe."), *GetName());
-		return;
 	}
 
-	ObservedSelectionComponent->OnSelectedSquadChanged.AddDynamic(this, &UTCFSquadDebugComponent::HandleSelectedSquadChanged);
+	ObservedOrderComponent = FindOrderComponent();
+	if (ObservedOrderComponent)
+	{
+		ObservedOrderComponent->OnOrderSubmitted.AddDynamic(this, &UTCFSquadDebugComponent::HandleOrderSubmitted);
+	}
+	else
+	{
+		UE_LOG(LogTCF, Warning, TEXT("TCF Debug: '%s' could not find a PlayerOrderComponent to observe."), *GetName());
+	}
 }
 
 void UTCFSquadDebugComponent::LogSelectedSquadState() const
@@ -82,6 +94,24 @@ void UTCFSquadDebugComponent::LogSquadState(const ATCFSquadActor* Squad) const
 		AttributeSet->GetCapturePower());
 }
 
+void UTCFSquadDebugComponent::LogOrderSubmission(const FTCFSquadOrderRequest& Request, const FTCFOrderResult& Result) const
+{
+	const AActor* SourceActor = Request.SourceActor;
+	const ATCFSquadActor* SourceSquad = Cast<ATCFSquadActor>(SourceActor);
+
+	const FString SourceName = SourceSquad ? SourceSquad->GetName() : GetNameSafe(SourceActor);
+	const FString TargetString = BuildOrderTargetDebugString(Request.Target);
+	const FString ResultString = BuildOrderResultDebugString(Result);
+
+	UE_LOG(LogTCF, Log,
+		TEXT("TCF Debug Order: Seq=%d | Order=%s | Source=%s | Target=%s | %s"),
+		Request.OrderSequence,
+		*Request.OrderTag.ToString(),
+		*SourceName,
+		*TargetString,
+		*ResultString);
+}
+
 void UTCFSquadDebugComponent::HandleSelectedSquadChanged(ATCFSquadActor* SelectedSquad)
 {
 	if (!bLogSelectionChanges)
@@ -90,6 +120,16 @@ void UTCFSquadDebugComponent::HandleSelectedSquadChanged(ATCFSquadActor* Selecte
 	}
 
 	LogSquadState(SelectedSquad);
+}
+
+void UTCFSquadDebugComponent::HandleOrderSubmitted(FTCFSquadOrderRequest Request, FTCFOrderResult Result)
+{
+	if (!bLogOrderSubmissions)
+	{
+		return;
+	}
+
+	LogOrderSubmission(Request, Result);
 }
 
 UTCFPlayerSelectionComponent* UTCFSquadDebugComponent::FindSelectionComponent() const
@@ -101,4 +141,70 @@ UTCFPlayerSelectionComponent* UTCFSquadDebugComponent::FindSelectionComponent() 
 	}
 
 	return Owner->FindComponentByClass<UTCFPlayerSelectionComponent>();
+}
+
+UTCFPlayerOrderComponent* UTCFSquadDebugComponent::FindOrderComponent() const
+{
+	const AActor* Owner = GetOwner();
+	if (!Owner)
+	{
+		return nullptr;
+	}
+
+	return Owner->FindComponentByClass<UTCFPlayerOrderComponent>();
+}
+
+FString UTCFSquadDebugComponent::BuildOrderTargetDebugString(const FTCFOrderTarget& Target)
+{
+	switch (Target.TargetType)
+	{
+	case ETCFOrderTargetType::None:
+		return TEXT("None");
+
+	case ETCFOrderTargetType::Self:
+		return TEXT("Self");
+
+	case ETCFOrderTargetType::Actor:
+		return FString::Printf(
+			TEXT("Actor=%s"),
+			*GetNameSafe(Target.TargetActor));
+
+	case ETCFOrderTargetType::Location:
+		return FString::Printf(
+			TEXT("Location=%s"),
+			*Target.TargetLocation.ToCompactString());
+
+	case ETCFOrderTargetType::Direction:
+		return FString::Printf(
+			TEXT("Direction=%s"),
+			*Target.TargetDirection.ToCompactString());
+
+	case ETCFOrderTargetType::Area:
+		return FString::Printf(
+			TEXT("Area Location=%s Radius=%.2f Cone=%.2f"),
+			*Target.TargetLocation.ToCompactString(),
+			Target.Radius,
+			Target.ConeAngleDegrees);
+
+	default:
+		return TEXT("Unknown");
+	}
+}
+
+FString UTCFSquadDebugComponent::BuildOrderResultDebugString(const FTCFOrderResult& Result)
+{
+	const FString BlockingTagsString = Result.BlockingTags.IsEmpty()
+		? TEXT("None")
+		: Result.BlockingTags.ToStringSimple();
+
+	const FString FailureReasonString = Result.FailureReason.IsEmpty()
+		? TEXT("None")
+		: Result.FailureReason.ToString();
+
+	return FString::Printf(
+		TEXT("Success=%s | Result=%s | BlockingTags=%s | Reason=%s"),
+		Result.bSuccess ? TEXT("true") : TEXT("false"),
+		*Result.ResultTag.ToString(),
+		*BlockingTagsString,
+		*FailureReasonString);
 }

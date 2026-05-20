@@ -14,7 +14,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b5a70005-d5c6-4264-85a8-a15902daa007" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Components/TCFPlayerOrderComponent.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Settings/TCFOrderSettings.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Subsystems/TCFOrderSubsystem.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Components/TCFPlayerOrderComponent.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Settings/TCFOrderSettings.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Subsystems/TCFOrderSubsystem.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.GASTacticalCommand.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.GASTacticalCommand.dir/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultGame.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultGame.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprints/Player/BP_TCFPlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/Player/BP_TCFPlayerController.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_FortifyPosition.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_FortifyPosition.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_Rally.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_Rally.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_SuppressiveFire.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_SuppressiveFire.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/GASTacticalCommand.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/GASTacticalCommand.Build.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Player/TCFPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Player/TCFPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/TCFGameplayTags.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/TCFGameplayTags.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Data/TCFOrderDefinition.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Data/TCFOrderDefinition.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Player/TCFPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Player/TCFPlayerController.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/TCFGameplayTags.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/TCFGameplayTags.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,19 +42,30 @@
     <option name="firstShow" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="2099" />
+    <option name="cachedIndexableFilesCount" value="11955" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="cidr-memory-view://10" root0="FORCE_HIGHLIGHTING" />
+    <setting file="cidr-memory-view://0" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Plugins/Runtime/OpenCV/Source/ThirdParty/OpenCV/include/opencv2/core/quaternion.hpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/Core/Public/UObject/ScriptDelegates.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/CoreUObject/Public/UObject/ObjectPtr.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/Engine/Private/Components/PrimitiveComponent.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Actors/TCFSquadActor.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Components/TCFPlayerOrderComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Components/TCFPlayerSelectionComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Components/TCFSquadSelectionComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Data/TCFOrderDefinition.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Debug/TCFSquadDebugComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/GAS/TCFSquadAttributeSet.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Player/TCFPlayerController.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Settings/TCFOrderSettings.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Subsystems/TCFOrderSubsystem.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/TCFGameplayTags.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/TCFLogChannels.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Types/TCFOrderTypes.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Types/TCFSquadTypes.h" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -63,6 +91,7 @@
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "Uproject.GASTacticalCommand.executor": "Debug",
@@ -160,6 +189,7 @@
       <option name="presentableId" value="Default" />
       <updated>1779135556530</updated>
       <workItem from="1779135559201" duration="1552000" />
+      <workItem from="1779269876349" duration="2102000" />
     </task>
     <servers />
   </component>

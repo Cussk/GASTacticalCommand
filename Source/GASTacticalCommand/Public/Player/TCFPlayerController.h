@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TCFPlayerController.generated.h"
 
+class UTCFPlayerOrderComponent;
 class UTCFSquadDebugComponent;
 class ATCFSquadActor;
 class UTCFPlayerSelectionComponent;
@@ -20,6 +21,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
 	UTCFPlayerSelectionComponent* GetPlayerSelectionComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Orders")
+	UTCFPlayerOrderComponent* GetPlayerOrderComponent() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -27,6 +31,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFPlayerSelectionComponent> PlayerSelectionComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFPlayerOrderComponent> PlayerOrderComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFSquadDebugComponent> SquadDebugComponent;

@@ -72,6 +72,11 @@ public:
 
 	bool IsValidDefinition() const
 	{
-		return !OrderId.IsNone() && OrderTag.IsValid() && AbilityClass != nullptr;
+		return !OrderId.IsNone() && OrderTag.IsValid();
+	}
+
+	bool HasAbilityClass() const
+	{
+		return AbilityClass != nullptr;
 	}
 };

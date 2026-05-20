@@ -46,9 +46,13 @@ namespace TCFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Terrain_Cover_Heavy);
 
 	// Order Result
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Success);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_BlockedByTags);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_InvalidTarget);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_Cooldown);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_Cost);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Success);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_InvalidSource);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_MissingDefinition);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_MissingRequirements);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_BlockedByTags);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_InvalidTarget);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_OutOfRange);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_Cooldown);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_Cost);
 }

@@ -25,78 +25,99 @@ TSharedRef<SWidget> UTCFDebugHUDWidget::RebuildWidget()
 	const FSlateColor SectionColor(FLinearColor(0.75f, 0.85f, 1.0f, 1.0f));
 	const FSlateColor BodyColor(FLinearColor(0.88f, 0.90f, 0.92f, 1.0f));
 
-	return SNew(SBorder)
-		.Padding(10.0f)
-		.BorderBackgroundColor(FSlateColor(FLinearColor(0.015f, 0.018f, 0.025f, 0.90f)))
+	return SNew(SOverlay)
+
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Left)
+		.VAlign(VAlign_Top)
+		.Padding(16.0f)
 		[
 			SNew(SBox)
-			.WidthOverride(520.0f)
-			.MaxDesiredHeight(760.0f)
+			.WidthOverride(460.0f)
+			.MaxDesiredHeight(620.0f)
 			[
-				SNew(SScrollBox)
-
-				+ SScrollBox::Slot()
-				.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+				SNew(SBorder)
+				.Padding(2.0f)
+				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+				.BorderBackgroundColor(FSlateColor(FLinearColor(0.10f, 0.45f, 0.75f, 0.85f)))
 				[
-					SAssignNew(HeaderText, STextBlock)
-					.Text(FText::FromString(TEXT("TCF DEBUG HUD")))
-					.ColorAndOpacity(HeaderColor)
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 18))
-				]
+					SNew(SBorder)
+					.Padding(10.0f)
+					.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+					.BorderBackgroundColor(FSlateColor(FLinearColor(0.01f, 0.012f, 0.018f, 0.92f)))
+					[
+						SNew(SScrollBox)
 
-				+ SScrollBox::Slot()
-				.Padding(0.0f, 0.0f, 0.0f, 10.0f)
-				[
-					SAssignNew(SquadText, STextBlock)
-					.Text(FText::FromString(TEXT("Selected Squad\nNone")))
-					.ColorAndOpacity(BodyColor)
-					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
-					.AutoWrapText(true)
-				]
+						+ SScrollBox::Slot()
+						.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+						[
+							SAssignNew(HeaderText, STextBlock)
+							.Text(FText::FromString(TEXT("TCF DEBUG HUD")))
+							.ColorAndOpacity(HeaderColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Bold", 18))
+						]
 
-				+ SScrollBox::Slot()
-				.Padding(0.0f, 0.0f, 0.0f, 10.0f)
-				[
-					SAssignNew(AttributeText, STextBlock)
-					.ColorAndOpacity(BodyColor)
-					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
-					.AutoWrapText(true)
-				]
+						+ SScrollBox::Slot()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+						[
+							SAssignNew(SquadText, STextBlock)
+							.Text(FText::FromString(TEXT("Selected Squad\nNone")))
+							.ColorAndOpacity(BodyColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
+							.AutoWrapText(true)
+							.WrapTextAt(430.0f)
+						]
 
-				+ SScrollBox::Slot()
-				.Padding(0.0f, 0.0f, 0.0f, 10.0f)
-				[
-					SAssignNew(TagText, STextBlock)
-					.ColorAndOpacity(SectionColor)
-					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 10))
-					.AutoWrapText(true)
-				]
+						+ SScrollBox::Slot()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+						[
+							SAssignNew(AttributeText, STextBlock)
+							.ColorAndOpacity(BodyColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
+							.AutoWrapText(true)
+							.WrapTextAt(430.0f)
+						]
 
-				+ SScrollBox::Slot()
-				.Padding(0.0f, 0.0f, 0.0f, 10.0f)
-				[
-					SAssignNew(AbilityText, STextBlock)
-					.ColorAndOpacity(BodyColor)
-					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 10))
-					.AutoWrapText(true)
-				]
+						+ SScrollBox::Slot()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+						[
+							SAssignNew(TagText, STextBlock)
+							.ColorAndOpacity(SectionColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 10))
+							.AutoWrapText(true)
+							.WrapTextAt(430.0f)
+						]
 
-				+ SScrollBox::Slot()
-				.Padding(0.0f, 0.0f, 0.0f, 10.0f)
-				[
-					SAssignNew(EffectText, STextBlock)
-					.ColorAndOpacity(BodyColor)
-					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 10))
-					.AutoWrapText(true)
-				]
+						+ SScrollBox::Slot()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+						[
+							SAssignNew(AbilityText, STextBlock)
+							.ColorAndOpacity(BodyColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 10))
+							.AutoWrapText(true)
+							.WrapTextAt(430.0f)
+						]
 
-				+ SScrollBox::Slot()
-				.Padding(0.0f)
-				[
-					SAssignNew(OrderText, STextBlock)
-					.ColorAndOpacity(BodyColor)
-					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
-					.AutoWrapText(true)
+						+ SScrollBox::Slot()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+						[
+							SAssignNew(EffectText, STextBlock)
+							.ColorAndOpacity(BodyColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 10))
+							.AutoWrapText(true)
+							.WrapTextAt(430.0f)
+						]
+
+						+ SScrollBox::Slot()
+						.Padding(0.0f)
+						[
+							SAssignNew(OrderText, STextBlock)
+							.ColorAndOpacity(BodyColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
+							.AutoWrapText(true)
+							.WrapTextAt(430.0f)
+						]
+					]
 				]
 			]
 		];

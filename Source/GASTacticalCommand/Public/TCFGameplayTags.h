@@ -34,6 +34,7 @@ namespace TCFGameplayTags
 	
 	// Order Cooldown
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_Rally);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_SuppressiveFire);
 
 	// Order Blocking
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Blocked_Suppressed);

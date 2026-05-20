@@ -32,6 +32,7 @@ namespace TCFGameplayTags
 	
 	// Order Cooldown
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_Rally, "Order.Cooldown.Rally");
+	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_SuppressiveFire, "Order.Cooldown.SuppressiveFire");
 
 	// Order Blocking
 	UE_DEFINE_GAMEPLAY_TAG(Order_Blocked_Suppressed, "Order.Blocked.Suppressed");

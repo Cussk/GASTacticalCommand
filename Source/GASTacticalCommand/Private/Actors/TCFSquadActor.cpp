@@ -10,6 +10,7 @@
 #include "GameplayEffect.h"
 #include "Components/TCFSquadSelectionComponent.h"
 #include "GASTacticalCommand/GASTacticalCommand.h"
+#include "Subsystems/TCFSquadQuerySubsystem.h"
 
 ATCFSquadActor::ATCFSquadActor()
 {
@@ -81,6 +82,30 @@ void ATCFSquadActor::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeFromDefinition();
+
+	if (bInitialized)
+	{
+		if (const UWorld* World = GetWorld())
+		{
+			if (UTCFSquadQuerySubsystem* SquadQuerySubsystem = World->GetSubsystem<UTCFSquadQuerySubsystem>())
+			{
+				SquadQuerySubsystem->RegisterSquad(this);
+			}
+		}
+	}
+}
+
+void ATCFSquadActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (const UWorld* World = GetWorld())
+	{
+		if (UTCFSquadQuerySubsystem* SquadQuerySubsystem = World->GetSubsystem<UTCFSquadQuerySubsystem>())
+		{
+			SquadQuerySubsystem->UnregisterSquad(this);
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void ATCFSquadActor::InitializeFromDefinition()

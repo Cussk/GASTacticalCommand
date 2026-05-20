@@ -71,6 +71,16 @@ TSharedRef<SWidget> UTCFDebugHUDWidget::RebuildWidget()
 						+ SScrollBox::Slot()
 						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
 						[
+							SAssignNew(AffiliationText, STextBlock)
+							.ColorAndOpacity(BodyColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
+							.AutoWrapText(true)
+							.WrapTextAt(430.0f)
+						]
+
+						+ SScrollBox::Slot()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+						[
 							SAssignNew(AttributeText, STextBlock)
 							.ColorAndOpacity(BodyColor)
 							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
@@ -109,6 +119,16 @@ TSharedRef<SWidget> UTCFDebugHUDWidget::RebuildWidget()
 						]
 
 						+ SScrollBox::Slot()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+						[
+							SAssignNew(RelationshipText, STextBlock)
+							.ColorAndOpacity(SectionColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 10))
+							.AutoWrapText(true)
+							.WrapTextAt(430.0f)
+						]
+
+						+ SScrollBox::Slot()
 						.Padding(0.0f)
 						[
 							SAssignNew(OrderText, STextBlock)
@@ -134,6 +154,8 @@ void UTCFDebugHUDWidget::ReleaseSlateResources(bool bReleaseChildren)
 	AbilityText.Reset();
 	EffectText.Reset();
 	OrderText.Reset();
+	AffiliationText.Reset();
+	RelationshipText.Reset();
 }
 
 void UTCFDebugHUDWidget::RefreshText() const
@@ -161,6 +183,16 @@ void UTCFDebugHUDWidget::RefreshText() const
 	if (EffectText)
 	{
 		EffectText->SetText(BuildEffectText());
+	}
+	
+	if (AffiliationText)
+	{
+		AffiliationText->SetText(BuildAffiliationText());
+	}
+
+	if (RelationshipText)
+	{
+		RelationshipText->SetText(BuildRelationshipText());
 	}
 
 	if (OrderText)
@@ -254,6 +286,36 @@ FText UTCFDebugHUDWidget::BuildOrderText() const
 		*Snapshot.LastOrder.ResultTag.ToString(),
 		*BlockingTags,
 		*Reason));
+}
+
+FText UTCFDebugHUDWidget::BuildAffiliationText() const
+{
+	if (!Snapshot.bHasSelectedSquad)
+	{
+		return FText::FromString(TEXT("━━ AFFILIATION ━━\nNone"));
+	}
+
+	if (!Snapshot.bHasAffiliation)
+	{
+		return FText::FromString(TEXT("━━ AFFILIATION ━━\nNo Affiliation Component"));
+	}
+
+	const FString FactionString = Snapshot.FactionTag.IsValid()
+		? Snapshot.FactionTag.ToString()
+		: TEXT("None");
+
+	return FText::FromString(FString::Printf(
+		TEXT("━━ AFFILIATION ━━\nOwnerId: %d\nTeamId: %d\nFaction: %s"),
+		Snapshot.OwnerId,
+		Snapshot.TeamId,
+		*FactionString));
+}
+
+FText UTCFDebugHUDWidget::BuildRelationshipText() const
+{
+	return FText::FromString(FString::Printf(
+		TEXT("━━ NEARBY RELATIONSHIPS ━━\n%s"),
+		*JoinLines(Snapshot.RelationshipLines)));
 }
 
 FString UTCFDebugHUDWidget::JoinLines(const TArray<FString>& Lines)

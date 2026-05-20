@@ -59,6 +59,21 @@ struct FTCFDebugSquadSnapshot
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
 	FGameplayTag RoleTag;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bHasAffiliation = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 OwnerId = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 TeamId = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FGameplayTag FactionTag;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	TArray<FString> RelationshipLines;
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
 	FString OwnedTags;

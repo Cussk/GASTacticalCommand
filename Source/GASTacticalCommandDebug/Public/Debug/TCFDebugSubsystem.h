@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/LocalPlayerSubsystem.h"
 #include "Debug/TCFDebugTypes.h"
+#include "Types/TCFAffiliationTypes.h"
 #include "TCFDebugSubsystem.generated.h"
 
 class ATCFSquadActor;
@@ -76,7 +77,11 @@ private:
 	FTCFDebugOrderSnapshot BuildOrderSnapshot(const FTCFSquadOrderRequest& Request, const FTCFOrderResult& Result) const;
 
 	static FString BuildTargetSummary(const FTCFOrderTarget& Target);
+	static FString RelationshipToString(ETCFSquadRelationship Relationship);
+
+	static void AddAffiliationData(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot);
 	static void AddAttributeLines(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot);
 	static void AddAbilityLines(const UAbilitySystemComponent& AbilitySystem, FTCFDebugSquadSnapshot& Snapshot);
 	void AddActiveEffectLines(const UAbilitySystemComponent& AbilitySystem, FTCFDebugSquadSnapshot& Snapshot) const;
+	void AddRelationshipLines(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot) const;
 };

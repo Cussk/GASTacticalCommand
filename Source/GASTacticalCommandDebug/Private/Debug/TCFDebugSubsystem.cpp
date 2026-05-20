@@ -9,6 +9,10 @@
 #include "GAS/TCFSquadAttributeSet.h"
 #include "GameplayEffect.h"
 #include "TimerManager.h"
+#include "Components/TCFAffiliationComponent.h"
+#include "Subsystems/TCFRelationshipSubsystem.h"
+#include "Subsystems/TCFSquadQuerySubsystem.h"
+#include "Types/TCFAffiliationTypes.h"
 #include "UI/TCFDebugHUDWidget.h"
 
 void UTCFDebugSubsystem::RegisterPlayerController(APlayerController* PlayerController, float InRefreshInterval)
@@ -197,6 +201,9 @@ FTCFDebugSquadSnapshot UTCFDebugSubsystem::BuildSnapshot() const
 	Snapshot.DisplayName = SelectedSquad->GetDisplayName();
 	Snapshot.bInitialized = SelectedSquad->IsInitialized();
 	Snapshot.RoleTag = SelectedSquad->GetRoleTag();
+	
+	AddAffiliationData(*SelectedSquad, Snapshot);
+	AddRelationshipLines(*SelectedSquad, Snapshot);
 
 	const UAbilitySystemComponent* AbilitySystem = SelectedSquad->GetAbilitySystemComponent();
 	if (AbilitySystem)
@@ -334,5 +341,87 @@ void UTCFDebugSubsystem::AddActiveEffectLines(const UAbilitySystemComponent& Abi
 				TEXT("%s | Infinite/Instant"),
 				*EffectName));
 		}
+	}
+}
+
+FString UTCFDebugSubsystem::RelationshipToString(ETCFSquadRelationship Relationship)
+{
+	switch (Relationship)
+	{
+	case ETCFSquadRelationship::Own:
+		return TEXT("Own");
+
+	case ETCFSquadRelationship::Friendly:
+		return TEXT("Friendly");
+
+	case ETCFSquadRelationship::Neutral:
+		return TEXT("Neutral");
+
+	case ETCFSquadRelationship::Enemy:
+		return TEXT("Enemy");
+
+	default:
+		return TEXT("Unknown");
+	}
+}
+
+void UTCFDebugSubsystem::AddAffiliationData(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot)
+{
+	const UTCFAffiliationComponent* AffiliationComponent = Squad.GetAffiliationComponent();
+	if (!AffiliationComponent)
+	{
+		Snapshot.bHasAffiliation = false;
+		return;
+	}
+
+	const FTCFAffiliationData& Affiliation = AffiliationComponent->GetAffiliation();
+
+	Snapshot.bHasAffiliation = true;
+	Snapshot.OwnerId = Affiliation.OwnerId;
+	Snapshot.TeamId = Affiliation.TeamId;
+	Snapshot.FactionTag = Affiliation.FactionTag;
+}
+
+void UTCFDebugSubsystem::AddRelationshipLines(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot) const
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	UTCFSquadQuerySubsystem* SquadQuerySubsystem = World->GetSubsystem<UTCFSquadQuerySubsystem>();
+	const UTCFRelationshipSubsystem* RelationshipSubsystem = World->GetSubsystem<UTCFRelationshipSubsystem>();
+	if (!SquadQuerySubsystem || !RelationshipSubsystem)
+	{
+		return;
+	}
+
+	TArray<ATCFSquadActor*> NearbySquads;
+	SquadQuerySubsystem->GetSquadsInRadius(
+		Squad.GetActorLocation(),
+		2500.0f,
+		&Squad,
+		NearbySquads);
+
+	if (NearbySquads.IsEmpty())
+	{
+		Snapshot.RelationshipLines.Add(TEXT("No nearby registered squads."));
+		return;
+	}
+
+	for (const ATCFSquadActor* OtherSquad : NearbySquads)
+	{
+		if (!IsValid(OtherSquad))
+		{
+			continue;
+		}
+
+		const ETCFSquadRelationship Relationship = RelationshipSubsystem->GetActorRelationship(&Squad, OtherSquad);
+
+		Snapshot.RelationshipLines.Add(FString::Printf(
+			TEXT("%s: %s"),
+			*OtherSquad->GetName(),
+			*RelationshipToString(Relationship)));
 	}
 }

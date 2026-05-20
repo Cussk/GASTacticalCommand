@@ -37,6 +37,8 @@ private:
 	TSharedPtr<STextBlock> AbilityText;
 	TSharedPtr<STextBlock> EffectText;
 	TSharedPtr<STextBlock> OrderText;
+	TSharedPtr<STextBlock> AffiliationText;
+	TSharedPtr<STextBlock> RelationshipText;
 
 	void RefreshText() const;
 
@@ -46,6 +48,8 @@ private:
 	FText BuildAbilityText() const;
 	FText BuildEffectText() const;
 	FText BuildOrderText() const;
+	FText BuildAffiliationText() const;
+	FText BuildRelationshipText() const;
 
 	static FString JoinLines(const TArray<FString>& Lines);
 };

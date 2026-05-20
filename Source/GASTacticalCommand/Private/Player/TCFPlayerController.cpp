@@ -7,7 +7,6 @@
 #include "Engine/HitResult.h"
 #include "InputCoreTypes.h"
 #include "Components/TCFPlayerOrderComponent.h"
-#include "Debug/TCFSquadDebugComponent.h"
 
 ATCFPlayerController::ATCFPlayerController()
 {
@@ -17,7 +16,6 @@ ATCFPlayerController::ATCFPlayerController()
 
 	PlayerSelectionComponent = CreateDefaultSubobject<UTCFPlayerSelectionComponent>(TEXT("PlayerSelectionComponent"));
 	PlayerOrderComponent = CreateDefaultSubobject<UTCFPlayerOrderComponent>(TEXT("PlayerOrderComponent"));
-	SquadDebugComponent = CreateDefaultSubobject<UTCFSquadDebugComponent>(TEXT("SquadDebugComponent"));
 }
 
 UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const

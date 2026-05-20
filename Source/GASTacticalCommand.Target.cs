@@ -11,5 +11,11 @@ public class GASTacticalCommandTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V6;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_7;
 		ExtraModuleNames.Add("GASTacticalCommand");
+		RegisterModulesCreatedByRider();
+	}
+
+	void RegisterModulesCreatedByRider()
+	{
+		ExtraModuleNames.AddRange(new string[] { "GASTacticalCommandDebug" });
 	}
 }

@@ -133,21 +133,6 @@ struct FTCFOrderResult
 };
 
 USTRUCT(BlueprintType)
-struct FTCFOrderCostConfig
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Cost", meta = (ClampMin = "0.0"))
-	float StaminaCost = 0.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Cost", meta = (ClampMin = "0.0"))
-	float MoraleCost = 0.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Cost", meta = (ClampMin = "0.0"))
-	float CohesionCost = 0.0f;
-};
-
-USTRUCT(BlueprintType)
 struct FTCFOrderTargetingConfig
 {
 	GENERATED_BODY()

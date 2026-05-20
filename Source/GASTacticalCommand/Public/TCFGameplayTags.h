@@ -31,6 +31,9 @@ namespace TCFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_Rally);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_FortifyPosition);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_TacticalRetreat);
+	
+	// Order Cooldown
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_Rally);
 
 	// Order Blocking
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Blocked_Suppressed);

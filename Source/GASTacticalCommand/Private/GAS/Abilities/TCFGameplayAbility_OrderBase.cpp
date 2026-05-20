@@ -1,6 +1,6 @@
 ﻿//Copyright Kyle Cuss and Cuss Programming 2026.
 
-#include "GAS/TCFGameplayAbility_OrderBase.h"
+#include "GAS/Abilities/TCFGameplayAbility_OrderBase.h"
 
 #include "Actors/TCFSquadActor.h"
 #include "Data/TCFOrderDefinition.h"

@@ -2,12 +2,13 @@
 
 #include "Subsystems/TCFOrderSubsystem.h"
 
+#include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "Actors/TCFSquadActor.h"
 #include "Data/TCFOrderDefinition.h"
+#include "GAS/TCFOrderPayload.h"
 #include "Settings/TCFOrderSettings.h"
 #include "TCFGameplayTags.h"
-#include "GAS/TCFOrderPayload.h"
 
 void UTCFOrderSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -100,12 +101,6 @@ FTCFOrderResult UTCFOrderSubsystem::ValidateOrderRequest(
 			NSLOCTEXT("TCFOrders", "UninitializedSourceSquad", "Order source squad is not initialized."));
 	}
 
-	const FTCFOrderResult SourceTagResult = ValidateSourceTags(*SourceSquad, *OrderDefinition);
-	if (!SourceTagResult.bSuccess)
-	{
-		return SourceTagResult;
-	}
-
 	const FTCFOrderResult TargetResult = ValidateTarget(*Request.SourceActor, Request.Target, *OrderDefinition);
 	if (!TargetResult.bSuccess)
 	{
@@ -113,42 +108,6 @@ FTCFOrderResult UTCFOrderSubsystem::ValidateOrderRequest(
 	}
 
 	OutOrderDefinition = OrderDefinition;
-
-	return FTCFOrderResult::Success(TCFGameplayTags::Order_Result_Success);
-}
-
-FTCFOrderResult UTCFOrderSubsystem::ValidateSourceTags(
-	const ATCFSquadActor& SourceSquad,
-	const UTCFOrderDefinition& OrderDefinition) const
-{
-	const UAbilitySystemComponent* AbilitySystem = SourceSquad.GetAbilitySystemComponent();
-	if (!AbilitySystem)
-	{
-		return FTCFOrderResult::Failure(
-			TCFGameplayTags::Order_Result_Failed_InvalidSource,
-			NSLOCTEXT("TCFOrders", "MissingSourceASC", "Source squad has no Ability System Component."));
-	}
-
-	FGameplayTagContainer OwnedTags;
-	AbilitySystem->GetOwnedGameplayTags(OwnedTags);
-
-	FGameplayTagContainer MissingTags;
-	if (!DoesSourceHaveRequiredTags(OwnedTags, OrderDefinition.RequiredSourceTags, MissingTags))
-	{
-		return FTCFOrderResult::FailureWithBlockingTags(
-			TCFGameplayTags::Order_Result_Failed_MissingRequirements,
-			MissingTags,
-			NSLOCTEXT("TCFOrders", "MissingRequiredSourceTags", "Source squad is missing required tags for this order."));
-	}
-
-	FGameplayTagContainer BlockingTags;
-	if (DoesSourceHaveBlockedTags(OwnedTags, OrderDefinition.BlockedSourceTags, BlockingTags))
-	{
-		return FTCFOrderResult::FailureWithBlockingTags(
-			TCFGameplayTags::Order_Result_Failed_BlockedByTags,
-			BlockingTags,
-			NSLOCTEXT("TCFOrders", "BlockedSourceTags", "Source squad has tags that block this order."));
-	}
 
 	return FTCFOrderResult::Success(TCFGameplayTags::Order_Result_Success);
 }
@@ -179,7 +138,7 @@ FTCFOrderResult UTCFOrderSubsystem::ExecuteValidatedOrder(
 	const FTCFSquadOrderRequest& Request,
 	const UTCFOrderDefinition& OrderDefinition) const
 {
-	ATCFSquadActor* SourceSquad = Cast<ATCFSquadActor>(Request.SourceActor);
+	const ATCFSquadActor* SourceSquad = Cast<ATCFSquadActor>(Request.SourceActor);
 	if (!IsValid(SourceSquad))
 	{
 		return FTCFOrderResult::Failure(
@@ -202,13 +161,6 @@ FTCFOrderResult UTCFOrderSubsystem::TriggerOrderAbility(
 	const UTCFOrderDefinition& OrderDefinition,
 	const FTCFSquadOrderRequest& Request) const
 {
-	if (!OrderDefinition.HasAbilityClass())
-	{
-		return FTCFOrderResult::Failure(
-			TCFGameplayTags::Order_Result_Failed_MissingAbility,
-			NSLOCTEXT("TCFOrders", "OrderDefinitionMissingAbility", "Order definition does not have an ability class assigned."));
-	}
-
 	UAbilitySystemComponent* AbilitySystem = SourceSquad.GetAbilitySystemComponent();
 	if (!AbilitySystem)
 	{
@@ -217,12 +169,21 @@ FTCFOrderResult UTCFOrderSubsystem::TriggerOrderAbility(
 			NSLOCTEXT("TCFOrders", "OrderExecutionMissingASC", "Source squad has no Ability System Component."));
 	}
 
-	FGameplayAbilitySpec* AbilitySpec = AbilitySystem->FindAbilitySpecFromClass(OrderDefinition.AbilityClass);
+	FGameplayAbilitySpec* AbilitySpec = FindGrantedOrderAbilitySpec(*AbilitySystem, OrderDefinition.OrderTag);
 	if (!AbilitySpec)
 	{
 		return FTCFOrderResult::Failure(
 			TCFGameplayTags::Order_Result_Failed_MissingAbility,
-			NSLOCTEXT("TCFOrders", "OrderAbilityNotGranted", "Source squad has not been granted the ability required by this order."));
+			NSLOCTEXT("TCFOrders", "OrderAbilityNotGranted", "Source squad has not been granted an ability matching this order tag."));
+	}
+
+	FGameplayTagContainer FailureTags;
+	if (!CanActivateGrantedAbility(*AbilitySystem, *AbilitySpec, FailureTags))
+	{
+		return FTCFOrderResult::FailureWithBlockingTags(
+			TCFGameplayTags::Order_Result_Failed_ActivationFailed,
+			FailureTags,
+			NSLOCTEXT("TCFOrders", "OrderAbilityCannotActivate", "GAS rejected activation for the granted order ability."));
 	}
 
 	FGameplayAbilityActorInfo* ActorInfo = AbilitySystem->AbilityActorInfo.Get();
@@ -234,8 +195,6 @@ FTCFOrderResult UTCFOrderSubsystem::TriggerOrderAbility(
 	}
 
 	UTCFOrderPayload* Payload = NewObject<UTCFOrderPayload>(AbilitySystem);
-
-	// Order definitions are authored data assets. The payload stores a non-const UObject pointer for reflection/Blueprint access only.
 	Payload->Initialize(Request, const_cast<UTCFOrderDefinition*>(&OrderDefinition));
 
 	FGameplayEventData EventData;
@@ -262,40 +221,50 @@ FTCFOrderResult UTCFOrderSubsystem::TriggerOrderAbility(
 	return FTCFOrderResult::Success(TCFGameplayTags::Order_Result_Success);
 }
 
-bool UTCFOrderSubsystem::DoesSourceHaveRequiredTags(
-	const FGameplayTagContainer& OwnedTags,
-	const FGameplayTagContainer& RequiredTags,
-	FGameplayTagContainer& OutMissingTags)
+FGameplayAbilitySpec* UTCFOrderSubsystem::FindGrantedOrderAbilitySpec(
+	UAbilitySystemComponent& AbilitySystem,
+	FGameplayTag OrderTag)
 {
-	OutMissingTags.Reset();
-
-	for (const FGameplayTag& RequiredTag : RequiredTags)
+	if (!OrderTag.IsValid())
 	{
-		if (!OwnedTags.HasTag(RequiredTag))
+		return nullptr;
+	}
+
+	for (FGameplayAbilitySpec& AbilitySpec : AbilitySystem.GetActivatableAbilities())
+	{
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(OrderTag))
 		{
-			OutMissingTags.AddTag(RequiredTag);
+			return &AbilitySpec;
 		}
 	}
 
-	return OutMissingTags.IsEmpty();
+	return nullptr;
 }
 
-bool UTCFOrderSubsystem::DoesSourceHaveBlockedTags(
-	const FGameplayTagContainer& OwnedTags,
-	const FGameplayTagContainer& BlockedTags,
-	FGameplayTagContainer& OutBlockingTags)
+bool UTCFOrderSubsystem::CanActivateGrantedAbility(
+	const UAbilitySystemComponent& AbilitySystem,
+	const FGameplayAbilitySpec& AbilitySpec,
+	FGameplayTagContainer& OutFailureTags)
 {
-	OutBlockingTags.Reset();
+	OutFailureTags.Reset();
 
-	for (const FGameplayTag& BlockedTag : BlockedTags)
+	if (!AbilitySpec.Ability)
 	{
-		if (OwnedTags.HasTag(BlockedTag))
-		{
-			OutBlockingTags.AddTag(BlockedTag);
-		}
+		return false;
 	}
 
-	return !OutBlockingTags.IsEmpty();
+	const FGameplayAbilityActorInfo* ActorInfo = AbilitySystem.AbilityActorInfo.Get();
+	if (!ActorInfo)
+	{
+		return false;
+	}
+
+	return AbilitySpec.Ability->CanActivateAbility(
+		AbilitySpec.Handle,
+		ActorInfo,
+		nullptr,
+		nullptr,
+		&OutFailureTags);
 }
 
 bool UTCFOrderSubsystem::IsTargetTypeValid(const FTCFOrderTarget& Target, const UTCFOrderDefinition& OrderDefinition)

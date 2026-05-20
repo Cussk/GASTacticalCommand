@@ -8,7 +8,9 @@
 #include "TCFOrderSubsystem.generated.h"
 
 class ATCFSquadActor;
+struct FGameplayAbilitySpec;
 class UTCFOrderDefinition;
+class UAbilitySystemComponent;
 
 UCLASS()
 class GASTACTICALCOMMAND_API UTCFOrderSubsystem : public UWorldSubsystem
@@ -32,15 +34,13 @@ private:
 	TMap<FGameplayTag, TObjectPtr<UTCFOrderDefinition>> OrderDefinitionsByTag;
 
 	FTCFOrderResult ValidateOrderRequest(const FTCFSquadOrderRequest& Request, const UTCFOrderDefinition*& OutOrderDefinition) const;
-
-	FTCFOrderResult ValidateSourceTags(const ATCFSquadActor& SourceSquad, const UTCFOrderDefinition& OrderDefinition) const;
 	FTCFOrderResult ValidateTarget(const AActor& SourceActor, const FTCFOrderTarget& Target, const UTCFOrderDefinition& OrderDefinition) const;
 
 	FTCFOrderResult ExecuteValidatedOrder(const FTCFSquadOrderRequest& Request, const UTCFOrderDefinition& OrderDefinition) const;
 	FTCFOrderResult TriggerOrderAbility(const ATCFSquadActor& SourceSquad, const UTCFOrderDefinition& OrderDefinition, const FTCFSquadOrderRequest& Request) const;
-	
-	static bool DoesSourceHaveRequiredTags(const FGameplayTagContainer& OwnedTags, const FGameplayTagContainer& RequiredTags, FGameplayTagContainer& OutMissingTags);
-	static bool DoesSourceHaveBlockedTags(const FGameplayTagContainer& OwnedTags, const FGameplayTagContainer& BlockedTags, FGameplayTagContainer& OutBlockingTags);
+
+	static FGameplayAbilitySpec* FindGrantedOrderAbilitySpec(UAbilitySystemComponent& AbilitySystem, FGameplayTag OrderTag);
+	static bool CanActivateGrantedAbility(const UAbilitySystemComponent& AbilitySystem, const FGameplayAbilitySpec& AbilitySpec, FGameplayTagContainer& OutFailureTags);
 
 	static bool IsTargetTypeValid(const FTCFOrderTarget& Target, const UTCFOrderDefinition& OrderDefinition);
 	static bool IsTargetWithinRange(const AActor& SourceActor, const FTCFOrderTarget& Target, const UTCFOrderDefinition& OrderDefinition);

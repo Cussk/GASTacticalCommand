@@ -14,24 +14,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b5a70005-d5c6-4264-85a8-a15902daa007" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Components/TCFPlayerOrderComponent.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Settings/TCFOrderSettings.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Subsystems/TCFOrderSubsystem.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Components/TCFPlayerOrderComponent.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Settings/TCFOrderSettings.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Subsystems/TCFOrderSubsystem.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.GASTacticalCommand.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.GASTacticalCommand.dir/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultGame.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultGame.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Blueprints/Player/BP_TCFPlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/Player/BP_TCFPlayerController.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_FortifyPosition.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_FortifyPosition.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_Rally.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_Rally.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_SuppressiveFire.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Orders/DA_Order_SuppressiveFire.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/GASTacticalCommand.Build.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/GASTacticalCommand.Build.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Player/TCFPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/Player/TCFPlayerController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/TCFGameplayTags.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Private/TCFGameplayTags.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Data/TCFOrderDefinition.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Data/TCFOrderDefinition.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Player/TCFPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/Player/TCFPlayerController.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/TCFGameplayTags.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/GASTacticalCommand/Public/TCFGameplayTags.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,36 +25,109 @@
     <option name="firstShow" value="false" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="11955" />
+    <option name="cachedIndexableFilesCount" value="11959" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="cidr-memory-view://0" root0="FORCE_HIGHLIGHTING" />
+    <setting file="cidr-memory-view://1" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Plugins/Runtime/GameplayAbilities/Intermediate/Build/Win64/UnrealEditor/Inc/GameplayAbilities/UHT/GameplayAbilitySpec.generated.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Plugins/Runtime/OpenCV/Source/ThirdParty/OpenCV/include/opencv2/core/quaternion.hpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/Core/Public/UObject/ScriptDelegates.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/CoreUObject/Public/UObject/ObjectPtr.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/Engine/Private/Components/PrimitiveComponent.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Source/Runtime/EngineMessages/Public/EngineServiceMessages.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Actors/TCFSquadActor.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Components/TCFAffiliationComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Components/TCFPlayerOrderComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Components/TCFPlayerSelectionComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Components/TCFSquadSelectionComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Data/TCFOrderDefinition.h" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Debug/TCFSquadDebugComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/GAS/Abilities/TCFGameplayAbility_FortifyPosition.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/GAS/Abilities/TCFGameplayAbility_Rally.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/GAS/Abilities/TCFGameplayAbility_TacticalRetreat.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/GAS/TCFOrderPayload.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/GAS/TCFSquadAttributeSet.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Player/TCFPlayerController.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Settings/TCFOrderSettings.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Subsystems/TCFOrderSubsystem.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Subsystems/TCFRelationshipSubsystem.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Subsystems/TCFSquadQuerySubsystem.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/TCFGameplayTags.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/TCFLogChannels.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Types/TCFAffiliationTypes.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Types/TCFOrderTypes.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommand/Public/Types/TCFSquadTypes.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommandDebug/GASTacticalCommandDebug.Build.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommandDebug/Public/Debug/TCFDebugBridgeComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommandDebug/Public/Debug/TCFDebugSubsystem.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommandDebug/Public/Debug/TCFDebugTypes.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/GASTacticalCommandDebug/Public/UI/TCFDebugHUDWidget.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0" />
+      <entry key="S30" value="1.0" />
+      <entry key="S60" value="1.0" />
+      <entry key="M2" value="1.0000000012619377" />
+      <entry key="M5" value="1.000532944857289" />
+      <entry key="M10" value="1.0399854425091803" />
+      <entry key="M15" value="1.1686737666979414" />
+      <entry key="M30" value="1.7219515998812716" />
+      <entry key="H1" value="2.7129521232479235" />
+      <entry key="H2" value="4.488571064344215" />
+      <entry key="H4" value="6.971148480604804" />
+      <entry key="D1" value="11.562506640095503" />
+      <entry key="W1" value="12.78009399422705" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="3.763636056552075E-115" />
+      <entry key="MS500" value="1.5575432436162534E-23" />
+      <entry key="S2" value="3.494431841126067E-6" />
+      <entry key="S5" value="0.012079909290436133" />
+      <entry key="S10" value="0.18847982304014244" />
+      <entry key="S30" value="1.1898153772945532" />
+      <entry key="S60" value="1.8887267118089883" />
+      <entry key="M2" value="2.380192738498305" />
+      <entry key="M5" value="2.734699670820272" />
+      <entry key="M10" value="2.864271070719844" />
+      <entry key="M15" value="2.9088156746275735" />
+      <entry key="M30" value="2.954226513755526" />
+      <entry key="H1" value="2.9994431351682844" />
+      <entry key="H2" value="3.2477382803362036" />
+      <entry key="H4" value="3.8757162475007134" />
+      <entry key="D1" value="5.4449339949328115" />
+      <entry key="W1" value="5.913606704984238" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="2.445049875308507E-114" />
+      <entry key="MS500" value="2.217784229779993E-23" />
+      <entry key="S2" value="4.490379940829891E-6" />
+      <entry key="S5" value="0.015760839166698768" />
+      <entry key="S10" value="0.2481677146796822" />
+      <entry key="S30" value="1.579068974750289" />
+      <entry key="S60" value="2.5123051290309393" />
+      <entry key="M2" value="3.169759003248477" />
+      <entry key="M5" value="3.6450217807667697" />
+      <entry key="M10" value="3.8580085244354017" />
+      <entry key="M15" value="4.046258485823316" />
+      <entry key="M30" value="4.660105862198284" />
+      <entry key="H1" value="5.704040670759148" />
+      <entry key="H2" value="7.731867185499208" />
+      <entry key="H4" value="10.844448973764099" />
+      <entry key="D1" value="17.00697388186305" />
+      <entry key="W1" value="18.693631502969424" />
+    </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8,
@@ -85,27 +141,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "Uproject.GASTacticalCommand.executor": "Debug",
-    "cidr.known.project.marker": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "main",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Uproject.GASTacticalCommand.executor&quot;: &quot;Debug&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="GASTacticalCommand" type="Uproject" factoryName="rider.uproject">
       <configuration_1 setup="1">
@@ -189,7 +245,10 @@
       <option name="presentableId" value="Default" />
       <updated>1779135556530</updated>
       <workItem from="1779135559201" duration="1552000" />
-      <workItem from="1779269876349" duration="2102000" />
+      <workItem from="1779269876349" duration="3412000" />
+      <workItem from="1779273586109" duration="20591000" />
+      <workItem from="1779356896949" duration="736000" />
+      <workItem from="1779359789358" duration="5163000" />
     </task>
     <servers />
   </component>
@@ -215,6 +274,11 @@
           <properties exception="System.Threading.ThreadAbortException" breakIfHandledByOtherCode="false" displayValue="System.Threading.ThreadAbortException" />
           <option name="timeStamp" value="3" />
         </breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/../../../../../../Program Files/Epic Games/UE_5.7/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/GameplayEffectComponents/TargetTagsGameplayEffectComponent.cpp</url>
+          <line>73</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>

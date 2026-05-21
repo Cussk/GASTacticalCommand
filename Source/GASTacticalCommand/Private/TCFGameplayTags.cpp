@@ -34,6 +34,7 @@ namespace TCFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_Rally, "Order.Cooldown.Rally");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_SuppressiveFire, "Order.Cooldown.SuppressiveFire");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_FortifyPosition, "Order.Cooldown.FortifyPosition");
+	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_TacticalRetreat, "Order.Cooldown.TacticalRetreat");
 
 	// Order Blocking
 	UE_DEFINE_GAMEPLAY_TAG(Order_Blocked_Suppressed, "Order.Blocked.Suppressed");

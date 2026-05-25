@@ -58,6 +58,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Capture")
+	ETCFCaptureOwnershipPolicy OwnershipPolicy = ETCFCaptureOwnershipPolicy::Team;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Capture", meta = (ClampMin = "1.0"))
 	float CaptureRadius = 500.0f;
@@ -111,6 +114,8 @@ private:
 	void RefreshOwnerSideFromAffiliation();
 	void SetCaptureState(ETCFCapturePointState NewState);
 	void SetCaptureProgress(float NewProgress);
+	
+	FTCFAffiliationData BuildOwnerAffiliationForCapturedSide(const FTCFCaptureSideScore& CapturingSide) const;
 
 	UTCFAffiliationComponent* GetAffiliationComponent() const;
 };

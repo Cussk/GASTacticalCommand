@@ -25,6 +25,14 @@ enum class ETCFCaptureSideType : uint8
 	Faction
 };
 
+UENUM(BlueprintType)
+enum class ETCFCaptureOwnershipPolicy : uint8
+{
+	Team,
+	Owner,
+	Faction
+};
+
 USTRUCT(BlueprintType)
 struct FTCFCaptureSideKey
 {
@@ -100,33 +108,89 @@ struct FTCFCaptureSideKey
 		}
 	}
 
-	static FTCFCaptureSideKey FromAffiliation(const FTCFAffiliationData& Affiliation)
+	static FTCFCaptureSideKey FromAffiliation(
+	const FTCFAffiliationData& Affiliation,
+	ETCFCaptureOwnershipPolicy OwnershipPolicy = ETCFCaptureOwnershipPolicy::Team)
 	{
 		FTCFCaptureSideKey Key;
 
-		// Team-first for V1 RTS-style ownership. Same-team squads contribute together.
-		if (Affiliation.HasTeam())
+		switch (OwnershipPolicy)
 		{
-			Key.SideType = ETCFCaptureSideType::Team;
-			Key.NumericId = Affiliation.TeamId;
+		case ETCFCaptureOwnershipPolicy::Team:
+			if (Affiliation.HasTeam())
+			{
+				Key.SideType = ETCFCaptureSideType::Team;
+				Key.NumericId = Affiliation.TeamId;
+				return Key;
+			}
+
+			if (Affiliation.HasOwner())
+			{
+				Key.SideType = ETCFCaptureSideType::Owner;
+				Key.NumericId = Affiliation.OwnerId;
+				return Key;
+			}
+
+			if (Affiliation.HasFaction())
+			{
+				Key.SideType = ETCFCaptureSideType::Faction;
+				Key.FactionTag = Affiliation.FactionTag;
+				return Key;
+			}
+
+			return Key;
+
+		case ETCFCaptureOwnershipPolicy::Owner:
+			if (Affiliation.HasOwner())
+			{
+				Key.SideType = ETCFCaptureSideType::Owner;
+				Key.NumericId = Affiliation.OwnerId;
+				return Key;
+			}
+
+			if (Affiliation.HasTeam())
+			{
+				Key.SideType = ETCFCaptureSideType::Team;
+				Key.NumericId = Affiliation.TeamId;
+				return Key;
+			}
+
+			if (Affiliation.HasFaction())
+			{
+				Key.SideType = ETCFCaptureSideType::Faction;
+				Key.FactionTag = Affiliation.FactionTag;
+				return Key;
+			}
+
+			return Key;
+
+		case ETCFCaptureOwnershipPolicy::Faction:
+			if (Affiliation.HasFaction())
+			{
+				Key.SideType = ETCFCaptureSideType::Faction;
+				Key.FactionTag = Affiliation.FactionTag;
+				return Key;
+			}
+
+			if (Affiliation.HasTeam())
+			{
+				Key.SideType = ETCFCaptureSideType::Team;
+				Key.NumericId = Affiliation.TeamId;
+				return Key;
+			}
+
+			if (Affiliation.HasOwner())
+			{
+				Key.SideType = ETCFCaptureSideType::Owner;
+				Key.NumericId = Affiliation.OwnerId;
+				return Key;
+			}
+
+			return Key;
+
+		default:
 			return Key;
 		}
-
-		if (Affiliation.HasOwner())
-		{
-			Key.SideType = ETCFCaptureSideType::Owner;
-			Key.NumericId = Affiliation.OwnerId;
-			return Key;
-		}
-
-		if (Affiliation.HasFaction())
-		{
-			Key.SideType = ETCFCaptureSideType::Faction;
-			Key.FactionTag = Affiliation.FactionTag;
-			return Key;
-		}
-
-		return Key;
 	}
 };
 

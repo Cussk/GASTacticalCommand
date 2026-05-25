@@ -196,7 +196,7 @@ void UTCFCapturePointComponent::GatherCaptureScores(TArray<FTCFCaptureSideScore>
 		}
 
 		const FTCFAffiliationData& SquadAffiliation = SquadAffiliationComponent->GetAffiliation();
-		const FTCFCaptureSideKey SideKey = FTCFCaptureSideKey::FromAffiliation(SquadAffiliation);
+		const FTCFCaptureSideKey SideKey = FTCFCaptureSideKey::FromAffiliation(SquadAffiliation, OwnershipPolicy);
 		if (!SideKey.IsValid())
 		{
 			continue;
@@ -323,7 +323,7 @@ void UTCFCapturePointComponent::CompleteCapture(const FTCFCaptureSideScore& Capt
 		return;
 	}
 
-	OwnerAffiliationComponent->SetAffiliation(CapturingSide.RepresentativeAffiliation);
+	OwnerAffiliationComponent->SetAffiliation(BuildOwnerAffiliationForCapturedSide(CapturingSide));
 
 	OwnerSide = CapturingSide.SideKey;
 	PendingCaptureSide = FTCFCaptureSideKey();
@@ -346,7 +346,7 @@ void UTCFCapturePointComponent::RefreshOwnerSideFromAffiliation()
 		return;
 	}
 
-	OwnerSide = FTCFCaptureSideKey::FromAffiliation(OwnerAffiliationComponent->GetAffiliation());
+	OwnerSide = FTCFCaptureSideKey::FromAffiliation(OwnerAffiliationComponent->GetAffiliation(), OwnershipPolicy);
 }
 
 void UTCFCapturePointComponent::SetCaptureState(ETCFCapturePointState NewState)
@@ -370,6 +370,31 @@ void UTCFCapturePointComponent::SetCaptureProgress(float NewProgress)
 
 	CaptureProgress = ClampedProgress;
 	OnCaptureProgressChanged.Broadcast(CaptureProgress, CaptureThreshold);
+}
+
+FTCFAffiliationData UTCFCapturePointComponent::BuildOwnerAffiliationForCapturedSide(
+	const FTCFCaptureSideScore& CapturingSide) const
+{
+	FTCFAffiliationData OwnerAffiliation;
+
+	switch (CapturingSide.SideKey.SideType)
+	{
+	case ETCFCaptureSideType::Team:
+		OwnerAffiliation.TeamId = CapturingSide.SideKey.NumericId;
+		return OwnerAffiliation;
+
+	case ETCFCaptureSideType::Owner:
+		OwnerAffiliation.OwnerId = CapturingSide.SideKey.NumericId;
+		return OwnerAffiliation;
+
+	case ETCFCaptureSideType::Faction:
+		OwnerAffiliation.FactionTag = CapturingSide.SideKey.FactionTag;
+		return OwnerAffiliation;
+
+	case ETCFCaptureSideType::None:
+	default:
+		return OwnerAffiliation;
+	}
 }
 
 UTCFAffiliationComponent* UTCFCapturePointComponent::GetAffiliationComponent() const

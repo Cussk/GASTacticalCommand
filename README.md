@@ -416,20 +416,27 @@ Recommended flow:
 3. Pass an explicit relationship filter such as enemy-only or own-and-friendly.
 4. Keep relationship rules out of abilities.
 
-## Portfolio Framing
+## V1 Status
 
-This project can be presented as:
+V1 is complete as a tactical command framework prototype.
 
-> A focused Unreal Engine GAS prototype exploring squad-level RTS command abilities, tactical states, and GameplayTag-driven battlefield rules.
+Implemented:
 
-Key points:
+- Data-driven squad definitions
+- Rifle, Engineer, and Heavy Weapons squad types
+- Squad selection
+- Minimal squad-level movement
+- GAS-routed order activation
+- Rally
+- Suppressive Fire
+- Fortify Position
+- Tactical Retreat
+- GAS-owned cost, cooldown, state tags, and stat effects
+- Affiliation component for owner/team/faction identity
+- Relationship subsystem for Own/Friendly/Neutral/Enemy resolution
+- Relationship-filtered tactical queries
+- Affiliation-based capture points
+- Native debug HUD
+- Squad, ability, effect, relationship, and capture point debug display
 
-- GAS used outside a standard RPG/shooter ability setup
-- Squad-level ASC architecture
-- RTS-focused attributes and tactical state
-- Gameplay Effects for morale, suppression, fortification, and retreat behavior
-- Gameplay Tags for readable activation rules and battlefield state
-- Relationship-aware tactical querying
-- Clean separation between GAS rules and RTS simulation systems
-- Debug-first design with a dedicated debug module
-- Expandable path toward capture objectives, buildings, economy, upgrades, and multiplayer authority testing
+V1 intentionally does not include production buildings, economy, advanced RTS pathfinding, enemy AI, match scoring, fog of war, or multiplayer replication polish. Those belong to V2 planning.

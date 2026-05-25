@@ -6,6 +6,7 @@
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Engine/HitResult.h"
 #include "InputCoreTypes.h"
+#include "Components/TCFPlayerMovementCommandComponent.h"
 #include "Components/TCFPlayerOrderComponent.h"
 
 ATCFPlayerController::ATCFPlayerController()
@@ -15,12 +16,18 @@ ATCFPlayerController::ATCFPlayerController()
 	bEnableMouseOverEvents = true;
 
 	PlayerSelectionComponent = CreateDefaultSubobject<UTCFPlayerSelectionComponent>(TEXT("PlayerSelectionComponent"));
+	PlayerMovementCommandComponent = CreateDefaultSubobject<UTCFPlayerMovementCommandComponent>(TEXT("PlayerMovementCommandComponent"));
 	PlayerOrderComponent = CreateDefaultSubobject<UTCFPlayerOrderComponent>(TEXT("PlayerOrderComponent"));
 }
 
 UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const
 {
 	return PlayerSelectionComponent;
+}
+
+UTCFPlayerMovementCommandComponent* ATCFPlayerController::GetPlayerMovementCommandComponent() const
+{
+	return PlayerMovementCommandComponent;
 }
 
 UTCFPlayerOrderComponent* ATCFPlayerController::GetPlayerOrderComponent() const

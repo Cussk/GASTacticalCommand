@@ -1,4 +1,4 @@
-﻿#include "GASTacticalCommandDebug.h"
+#include "GASTacticalCommandDebug.h"
 
 #define LOCTEXT_NAMESPACE "FGASTacticalCommandDebugModule"
 

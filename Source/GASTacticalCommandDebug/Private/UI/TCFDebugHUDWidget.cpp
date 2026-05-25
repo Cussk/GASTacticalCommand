@@ -129,6 +129,16 @@ TSharedRef<SWidget> UTCFDebugHUDWidget::RebuildWidget()
 						]
 
 						+ SScrollBox::Slot()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+						[
+							SAssignNew(CapturePointText, STextBlock)
+							.ColorAndOpacity(BodyColor)
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 10))
+							.AutoWrapText(true)
+							.WrapTextAt(430.0f)
+						]
+
+						+ SScrollBox::Slot()
 						.Padding(0.0f)
 						[
 							SAssignNew(OrderText, STextBlock)
@@ -156,6 +166,7 @@ void UTCFDebugHUDWidget::ReleaseSlateResources(bool bReleaseChildren)
 	OrderText.Reset();
 	AffiliationText.Reset();
 	RelationshipText.Reset();
+	CapturePointText.Reset();
 }
 
 void UTCFDebugHUDWidget::RefreshText() const
@@ -193,6 +204,11 @@ void UTCFDebugHUDWidget::RefreshText() const
 	if (RelationshipText)
 	{
 		RelationshipText->SetText(BuildRelationshipText());
+	}
+	
+	if (CapturePointText)
+	{
+		CapturePointText->SetText(BuildCapturePointText());
 	}
 
 	if (OrderText)
@@ -316,6 +332,37 @@ FText UTCFDebugHUDWidget::BuildRelationshipText() const
 	return FText::FromString(FString::Printf(
 		TEXT("━━ NEARBY RELATIONSHIPS ━━\n%s"),
 		*JoinLines(Snapshot.RelationshipLines)));
+}
+
+FText UTCFDebugHUDWidget::BuildCapturePointText() const
+{
+	const FTCFDebugCapturePointSnapshot& CapturePoint = Snapshot.NearestCapturePoint;
+
+	if (!Snapshot.bHasSelectedSquad)
+	{
+		return FText::FromString(TEXT("━━ NEAREST CAPTURE POINT ━━\nNone"));
+	}
+
+	if (!CapturePoint.bHasCapturePoint)
+	{
+		return FText::FromString(TEXT("━━ NEAREST CAPTURE POINT ━━\nNo capture point found."));
+	}
+
+	const FString ProgressString = FString::Printf(
+		TEXT("%.1f / %.1f"),
+		CapturePoint.CaptureProgress,
+		CapturePoint.CaptureThreshold);
+
+	return FText::FromString(FString::Printf(
+		TEXT("━━ NEAREST CAPTURE POINT ━━\nActor: %s\nState: %s\nOwner: %s\nPending: %s\nProgress: %s\nOccupying Squads: %d\nRadius: %.0f\nDistance: %.0f"),
+		*CapturePoint.ActorName,
+		*CapturePoint.State,
+		*CapturePoint.OwnerSide,
+		*CapturePoint.PendingSide,
+		*ProgressString,
+		CapturePoint.OccupyingSquadCount,
+		CapturePoint.CaptureRadius,
+		CapturePoint.DistanceFromSelectedSquad));
 }
 
 FString UTCFDebugHUDWidget::JoinLines(const TArray<FString>& Lines)

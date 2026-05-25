@@ -41,6 +41,42 @@ struct FTCFDebugOrderSnapshot
 };
 
 USTRUCT(BlueprintType)
+struct FTCFDebugCapturePointSnapshot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bHasCapturePoint = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString ActorName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString State;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString OwnerSide;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString PendingSide;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float CaptureProgress = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float CaptureThreshold = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float CaptureRadius = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float DistanceFromSelectedSquad = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 OccupyingSquadCount = 0;
+};
+
+USTRUCT(BlueprintType)
 struct FTCFDebugSquadSnapshot
 {
 	GENERATED_BODY()
@@ -74,6 +110,9 @@ struct FTCFDebugSquadSnapshot
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
 	TArray<FString> RelationshipLines;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FTCFDebugCapturePointSnapshot NearestCapturePoint;
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
 	FString OwnedTags;

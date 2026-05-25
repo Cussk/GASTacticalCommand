@@ -8,6 +8,7 @@
 #include "Types/TCFAffiliationTypes.h"
 #include "TCFDebugSubsystem.generated.h"
 
+enum class ETCFCapturePointState : uint8;
 class ATCFSquadActor;
 class UAbilitySystemComponent;
 class UTCFDebugHUDWidget;
@@ -78,10 +79,12 @@ private:
 
 	static FString BuildTargetSummary(const FTCFOrderTarget& Target);
 	static FString RelationshipToString(ETCFSquadRelationship Relationship);
+	static FString CaptureStateToString(ETCFCapturePointState State);
 
 	static void AddAffiliationData(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot);
 	static void AddAttributeLines(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot);
 	static void AddAbilityLines(const UAbilitySystemComponent& AbilitySystem, FTCFDebugSquadSnapshot& Snapshot);
 	void AddActiveEffectLines(const UAbilitySystemComponent& AbilitySystem, FTCFDebugSquadSnapshot& Snapshot) const;
 	void AddRelationshipLines(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot) const;
+	void AddNearestCapturePointData(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot) const;
 };

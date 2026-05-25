@@ -3,16 +3,20 @@
 #include "Debug/TCFDebugSubsystem.h"
 
 #include "AbilitySystemComponent.h"
+#include "EngineUtils.h"
 #include "Actors/TCFSquadActor.h"
 #include "Components/TCFPlayerOrderComponent.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "GAS/TCFSquadAttributeSet.h"
 #include "GameplayEffect.h"
 #include "TimerManager.h"
+#include "Actors/TCFCapturePointActor.h"
 #include "Components/TCFAffiliationComponent.h"
+#include "Components/TCFCapturePointComponent.h"
 #include "Subsystems/TCFRelationshipSubsystem.h"
 #include "Subsystems/TCFSquadQuerySubsystem.h"
 #include "Types/TCFAffiliationTypes.h"
+#include "Types/TCFCaptureTypes.h"
 #include "UI/TCFDebugHUDWidget.h"
 
 void UTCFDebugSubsystem::RegisterPlayerController(APlayerController* PlayerController, float InRefreshInterval)
@@ -204,6 +208,7 @@ FTCFDebugSquadSnapshot UTCFDebugSubsystem::BuildSnapshot() const
 	
 	AddAffiliationData(*SelectedSquad, Snapshot);
 	AddRelationshipLines(*SelectedSquad, Snapshot);
+	AddNearestCapturePointData(*SelectedSquad, Snapshot);
 
 	const UAbilitySystemComponent* AbilitySystem = SelectedSquad->GetAbilitySystemComponent();
 	if (AbilitySystem)
@@ -365,6 +370,27 @@ FString UTCFDebugSubsystem::RelationshipToString(ETCFSquadRelationship Relations
 	}
 }
 
+FString UTCFDebugSubsystem::CaptureStateToString(ETCFCapturePointState State)
+{
+	switch (State)
+	{
+	case ETCFCapturePointState::Neutral:
+		return TEXT("Neutral");
+
+	case ETCFCapturePointState::Owned:
+		return TEXT("Owned");
+
+	case ETCFCapturePointState::Capturing:
+		return TEXT("Capturing");
+
+	case ETCFCapturePointState::Contested:
+		return TEXT("Contested");
+
+	default:
+		return TEXT("Unknown");
+	}
+}
+
 void UTCFDebugSubsystem::AddAffiliationData(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot)
 {
 	const UTCFAffiliationComponent* AffiliationComponent = Squad.GetAffiliationComponent();
@@ -424,4 +450,58 @@ void UTCFDebugSubsystem::AddRelationshipLines(const ATCFSquadActor& Squad, FTCFD
 			*OtherSquad->GetName(),
 			*RelationshipToString(Relationship)));
 	}
+}
+
+void UTCFDebugSubsystem::AddNearestCapturePointData(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot) const
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	ATCFCapturePointActor* NearestPoint = nullptr;
+	float BestDistanceSquared = TNumericLimits<float>::Max();
+
+	const FVector SquadLocation = Squad.GetActorLocation();
+
+	for (TActorIterator<ATCFCapturePointActor> It(World); It; ++It)
+	{
+		ATCFCapturePointActor* CapturePoint = *It;
+		if (!IsValid(CapturePoint))
+		{
+			continue;
+		}
+
+		const float DistanceSquared = FVector::DistSquared(SquadLocation, CapturePoint->GetActorLocation());
+		if (DistanceSquared < BestDistanceSquared)
+		{
+			BestDistanceSquared = DistanceSquared;
+			NearestPoint = CapturePoint;
+		}
+	}
+
+	if (!IsValid(NearestPoint))
+	{
+		Snapshot.NearestCapturePoint.bHasCapturePoint = false;
+		return;
+	}
+
+	const UTCFCapturePointComponent* CaptureComponent = NearestPoint->GetCapturePointComponent();
+	if (!CaptureComponent)
+	{
+		Snapshot.NearestCapturePoint.bHasCapturePoint = false;
+		return;
+	}
+
+	Snapshot.NearestCapturePoint.bHasCapturePoint = true;
+	Snapshot.NearestCapturePoint.ActorName = NearestPoint->GetName();
+	Snapshot.NearestCapturePoint.State = CaptureStateToString(CaptureComponent->GetCaptureState());
+	Snapshot.NearestCapturePoint.OwnerSide = CaptureComponent->GetOwnerSide().ToDebugString();
+	Snapshot.NearestCapturePoint.PendingSide = CaptureComponent->GetPendingCaptureSide().ToDebugString();
+	Snapshot.NearestCapturePoint.CaptureProgress = CaptureComponent->GetCaptureProgress();
+	Snapshot.NearestCapturePoint.CaptureThreshold = CaptureComponent->GetCaptureThreshold();
+	Snapshot.NearestCapturePoint.CaptureRadius = CaptureComponent->GetCaptureRadius();
+	Snapshot.NearestCapturePoint.OccupyingSquadCount = CaptureComponent->GetLastOccupyingSquadCount();
+	Snapshot.NearestCapturePoint.DistanceFromSelectedSquad = FMath::Sqrt(BestDistanceSquared);
 }

@@ -31,30 +31,19 @@ void UTCFSquadQuerySubsystem::GetSquadsInRadius(
 	const ATCFSquadActor* IgnoredSquad,
 	TArray<ATCFSquadActor*>& OutSquads)
 {
+	TArray<ATCFSquadActor*> Candidates;
+	GatherSquadsInRadius(Origin, Radius, Candidates);
+
 	OutSquads.Reset();
 
-	if (Radius <= 0.0f)
+	for (ATCFSquadActor* Squad : Candidates)
 	{
-		return;
-	}
-
-	CompactInvalidSquads();
-
-	const float RadiusSquared = FMath::Square(Radius);
-
-	for (const TWeakObjectPtr<ATCFSquadActor>& SquadPtr : RegisteredSquads)
-	{
-		ATCFSquadActor* Squad = SquadPtr.Get();
 		if (!IsValid(Squad) || Squad == IgnoredSquad)
 		{
 			continue;
 		}
 
-		const float DistanceSquared = FVector::DistSquared(Origin, Squad->GetActorLocation());
-		if (DistanceSquared <= RadiusSquared)
-		{
-			OutSquads.Add(Squad);
-		}
+		OutSquads.Add(Squad);
 	}
 }
 
@@ -67,7 +56,7 @@ void UTCFSquadQuerySubsystem::GetSquadsInRadiusByRelationship(
 {
 	OutSquads.Reset();
 
-	if (!IsValid(SourceActor) || Radius <= 0.0f)
+	if (!IsValid(SourceActor))
 	{
 		return;
 	}
@@ -78,6 +67,35 @@ void UTCFSquadQuerySubsystem::GetSquadsInRadiusByRelationship(
 		: nullptr;
 
 	if (!RelationshipSubsystem)
+	{
+		return;
+	}
+
+	TArray<ATCFSquadActor*> Candidates;
+	GatherSquadsInRadius(Origin, Radius, Candidates);
+
+	for (ATCFSquadActor* Squad : Candidates)
+	{
+		if (!IsValid(Squad))
+		{
+			continue;
+		}
+
+		const ETCFSquadRelationship Relationship = RelationshipSubsystem->GetActorRelationship(SourceActor, Squad);
+		if (!RelationshipFilter.AllowsRelationship(Relationship))
+		{
+			continue;
+		}
+
+		OutSquads.Add(Squad);
+	}
+}
+
+void UTCFSquadQuerySubsystem::GatherSquadsInRadius(const FVector& Origin, const float Radius, TArray<ATCFSquadActor*>& OutSquads)
+{
+	OutSquads.Reset();
+
+	if (Radius <= 0.0f)
 	{
 		return;
 	}
@@ -95,18 +113,10 @@ void UTCFSquadQuerySubsystem::GetSquadsInRadiusByRelationship(
 		}
 
 		const float DistanceSquared = FVector::DistSquared(Origin, Squad->GetActorLocation());
-		if (DistanceSquared > RadiusSquared)
+		if (DistanceSquared <= RadiusSquared)
 		{
-			continue;
+			OutSquads.Add(Squad);
 		}
-
-		const ETCFSquadRelationship Relationship = RelationshipSubsystem->GetActorRelationship(SourceActor, Squad);
-		if (!RelationshipFilter.AllowsRelationship(Relationship))
-		{
-			continue;
-		}
-
-		OutSquads.Add(Squad);
 	}
 }
 

@@ -38,6 +38,8 @@ public:
 
 private:
 	TSet<TWeakObjectPtr<ATCFSquadActor>> RegisteredSquads;
+	
+	void GatherSquadsInRadius(const FVector& Origin, float Radius, TArray<ATCFSquadActor*>& OutSquads);
 
 	void CompactInvalidSquads();
 };

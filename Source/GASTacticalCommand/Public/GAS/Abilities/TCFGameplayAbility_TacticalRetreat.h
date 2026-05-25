@@ -24,7 +24,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Tactical Retreat", meta = (ClampMin = "0.0"))
 	float RetreatEffectLevel = 1.0f;
-
-private:
-	void ApplyRetreatEffectsToSelf() const;
 };

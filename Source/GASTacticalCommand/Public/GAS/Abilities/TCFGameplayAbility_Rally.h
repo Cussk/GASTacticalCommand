@@ -24,7 +24,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Rally", meta = (ClampMin = "0.0"))
 	float RallyEffectLevel = 1.0f;
-
-private:
-	void ApplyRallyEffectsToSelf() const;
 };

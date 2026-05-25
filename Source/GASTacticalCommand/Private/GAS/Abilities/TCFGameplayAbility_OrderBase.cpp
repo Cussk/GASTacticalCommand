@@ -2,6 +2,7 @@
 
 #include "GAS/Abilities/TCFGameplayAbility_OrderBase.h"
 
+#include "AbilitySystemComponent.h"
 #include "Actors/TCFSquadActor.h"
 #include "Data/TCFOrderDefinition.h"
 #include "GAS/TCFOrderPayload.h"
@@ -63,6 +64,100 @@ void UTCFGameplayAbility_OrderBase::EndAbility(
 	ClearOrderData();
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+bool UTCFGameplayAbility_OrderBase::ApplyGameplayEffectClassToSelf(
+	TSubclassOf<UGameplayEffect> EffectClass,
+	float EffectLevel,
+	UObject* SourceObject) const
+{
+	UAbilitySystemComponent* AbilitySystem = GetAbilitySystemComponentFromActorInfo();
+	if (!AbilitySystem || !EffectClass)
+	{
+		return false;
+	}
+
+	FGameplayEffectContextHandle ContextHandle = AbilitySystem->MakeEffectContext();
+	ContextHandle.AddSourceObject(SourceObject ? SourceObject : const_cast<UTCFGameplayAbility_OrderBase*>(this));
+
+	const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(
+		EffectClass,
+		EffectLevel,
+		ContextHandle);
+
+	if (!SpecHandle.IsValid())
+	{
+		return false;
+	}
+
+	AbilitySystem->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	return true;
+}
+
+int32 UTCFGameplayAbility_OrderBase::ApplyGameplayEffectsToSelf(
+	const TArray<TSubclassOf<UGameplayEffect>>& EffectClasses,
+	float EffectLevel,
+	UObject* SourceObject) const
+{
+	int32 AppliedCount = 0;
+
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
+	{
+		if (ApplyGameplayEffectClassToSelf(EffectClass, EffectLevel, SourceObject))
+		{
+			AppliedCount++;
+		}
+	}
+
+	return AppliedCount;
+}
+
+bool UTCFGameplayAbility_OrderBase::ApplyGameplayEffectClassToTarget(
+	UAbilitySystemComponent* TargetAbilitySystem,
+	TSubclassOf<UGameplayEffect> EffectClass,
+	float EffectLevel,
+	UObject* SourceObject) const
+{
+	UAbilitySystemComponent* SourceAbilitySystem = GetAbilitySystemComponentFromActorInfo();
+	if (!SourceAbilitySystem || !TargetAbilitySystem || !EffectClass)
+	{
+		return false;
+	}
+
+	FGameplayEffectContextHandle ContextHandle = SourceAbilitySystem->MakeEffectContext();
+	ContextHandle.AddSourceObject(SourceObject ? SourceObject : const_cast<UTCFGameplayAbility_OrderBase*>(this));
+
+	const FGameplayEffectSpecHandle SpecHandle = SourceAbilitySystem->MakeOutgoingSpec(
+		EffectClass,
+		EffectLevel,
+		ContextHandle);
+
+	if (!SpecHandle.IsValid())
+	{
+		return false;
+	}
+
+	SourceAbilitySystem->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystem);
+	return true;
+}
+
+int32 UTCFGameplayAbility_OrderBase::ApplyGameplayEffectsToTarget(
+	UAbilitySystemComponent* TargetAbilitySystem,
+	const TArray<TSubclassOf<UGameplayEffect>>& EffectClasses,
+	float EffectLevel,
+	UObject* SourceObject) const
+{
+	int32 AppliedCount = 0;
+
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : EffectClasses)
+	{
+		if (ApplyGameplayEffectClassToTarget(TargetAbilitySystem, EffectClass, EffectLevel, SourceObject))
+		{
+			AppliedCount++;
+		}
+	}
+
+	return AppliedCount;
 }
 
 void UTCFGameplayAbility_OrderBase::HandleOrderActivated()

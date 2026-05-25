@@ -5,7 +5,6 @@
 #include "AbilitySystemComponent.h"
 #include "Actors/TCFSquadActor.h"
 #include "Data/TCFOrderDefinition.h"
-#include "GameplayEffect.h"
 #include "Subsystems/TCFSquadQuerySubsystem.h"
 
 UTCFGameplayAbility_SuppressiveFire::UTCFGameplayAbility_SuppressiveFire()
@@ -50,7 +49,7 @@ void UTCFGameplayAbility_SuppressiveFire::HandleOrderActivated()
 	const FTCFSquadQueryRelationshipFilter RelationshipFilter = FTCFSquadQueryRelationshipFilter::EnemyOnly();
 	SquadQuerySubsystem->GetSquadsInRadiusByRelationship(AreaLocation, AreaRadius, SourceSquad, RelationshipFilter, TargetSquads);
 
-	ApplySourceFireEffects();
+	ApplyGameplayEffectsToSelf(SourceFireEffects, SuppressiveFireEffectLevel, this);
 	ApplyTargetSuppressionEffects(TargetSquads);
 
 	Super::HandleOrderActivated();
@@ -81,36 +80,6 @@ bool UTCFGameplayAbility_SuppressiveFire::TryGetSuppressionArea(FVector& OutLoca
 	return OutRadius > 0.0f;
 }
 
-void UTCFGameplayAbility_SuppressiveFire::ApplySourceFireEffects() const
-{
-	UAbilitySystemComponent* SourceAbilitySystem = GetAbilitySystemComponentFromActorInfo();
-	if (!SourceAbilitySystem)
-	{
-		return;
-	}
-
-	for (const TSubclassOf<UGameplayEffect>& EffectClass : SourceFireEffects)
-	{
-		if (!EffectClass)
-		{
-			continue;
-		}
-
-		FGameplayEffectContextHandle ContextHandle = SourceAbilitySystem->MakeEffectContext();
-		ContextHandle.AddSourceObject(this);
-
-		const FGameplayEffectSpecHandle SpecHandle = SourceAbilitySystem->MakeOutgoingSpec(
-			EffectClass,
-			SuppressiveFireEffectLevel,
-			ContextHandle);
-
-		if (SpecHandle.IsValid())
-		{
-			SourceAbilitySystem->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-		}
-	}
-}
-
 void UTCFGameplayAbility_SuppressiveFire::ApplyTargetSuppressionEffects(const TArray<ATCFSquadActor*>& Targets) const
 {
 	UAbilitySystemComponent* SourceAbilitySystem = GetAbilitySystemComponentFromActorInfo();
@@ -132,25 +101,6 @@ void UTCFGameplayAbility_SuppressiveFire::ApplyTargetSuppressionEffects(const TA
 			continue;
 		}
 
-		for (const TSubclassOf<UGameplayEffect>& EffectClass : TargetSuppressionEffects)
-		{
-			if (!EffectClass)
-			{
-				continue;
-			}
-
-			FGameplayEffectContextHandle ContextHandle = SourceAbilitySystem->MakeEffectContext();
-			ContextHandle.AddSourceObject(this);
-
-			const FGameplayEffectSpecHandle SpecHandle = SourceAbilitySystem->MakeOutgoingSpec(
-				EffectClass,
-				SuppressiveFireEffectLevel,
-				ContextHandle);
-
-			if (SpecHandle.IsValid())
-			{
-				SourceAbilitySystem->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetAbilitySystem);
-			}
-		}
+		ApplyGameplayEffectsToTarget(TargetAbilitySystem, TargetSuppressionEffects,	SuppressiveFireEffectLevel, const_cast<UTCFGameplayAbility_SuppressiveFire*>(this));
 	}
 }

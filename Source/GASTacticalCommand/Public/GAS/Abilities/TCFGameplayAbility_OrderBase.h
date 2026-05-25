@@ -9,6 +9,8 @@
 
 class ATCFSquadActor;
 class UTCFOrderDefinition;
+class UAbilitySystemComponent;
+class UGameplayEffect;
 
 UCLASS(Abstract)
 class GASTACTICALCOMMAND_API UTCFGameplayAbility_OrderBase : public UGameplayAbility
@@ -40,6 +42,28 @@ protected:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool bReplicateEndAbility,
 		bool bWasCancelled) override;
+
+	bool ApplyGameplayEffectClassToSelf(
+		TSubclassOf<UGameplayEffect> EffectClass,
+		float EffectLevel,
+		UObject* SourceObject = nullptr) const;
+
+	int32 ApplyGameplayEffectsToSelf(
+		const TArray<TSubclassOf<UGameplayEffect>>& EffectClasses,
+		float EffectLevel,
+		UObject* SourceObject = nullptr) const;
+
+	bool ApplyGameplayEffectClassToTarget(
+		UAbilitySystemComponent* TargetAbilitySystem,
+		TSubclassOf<UGameplayEffect> EffectClass,
+		float EffectLevel,
+		UObject* SourceObject = nullptr) const;
+
+	int32 ApplyGameplayEffectsToTarget(
+		UAbilitySystemComponent* TargetAbilitySystem,
+		const TArray<TSubclassOf<UGameplayEffect>>& EffectClasses,
+		float EffectLevel,
+		UObject* SourceObject = nullptr) const;
 
 	virtual void HandleOrderActivated();
 

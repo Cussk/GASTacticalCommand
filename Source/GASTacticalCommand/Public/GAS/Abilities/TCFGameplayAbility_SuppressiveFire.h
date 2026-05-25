@@ -31,6 +31,5 @@ protected:
 
 private:
 	bool TryGetSuppressionArea(FVector& OutLocation, float& OutRadius) const;
-	void ApplySourceFireEffects() const;
 	void ApplyTargetSuppressionEffects(const TArray<ATCFSquadActor*>& Targets) const;
 };

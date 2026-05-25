@@ -24,7 +24,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Fortify", meta = (ClampMin = "0.0"))
 	float FortifyEffectLevel = 1.0f;
-
-private:
-	void ApplyFortifyEffectsToSelf() const;
 };

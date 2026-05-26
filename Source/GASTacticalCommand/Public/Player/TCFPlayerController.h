@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TCFPlayerController.generated.h"
 
+class UTCFRTSHoverContextComponent;
 class ATCFRTSCameraPawn;
 class UInputAction;
 class UInputMappingContext;
@@ -34,6 +35,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Orders")
 	UTCFPlayerOrderComponent* GetPlayerOrderComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Hover")
+	UTCFRTSHoverContextComponent* GetRTSHoverContextComponent() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -50,6 +54,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFPlayerOrderComponent> PlayerOrderComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFRTSHoverContextComponent> RTSHoverContextComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
 	TObjectPtr<UInputMappingContext> RTSInputMappingContext;

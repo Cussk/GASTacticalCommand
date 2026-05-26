@@ -11,6 +11,7 @@
 #include "Engine/HitResult.h"
 #include "InputAction.h"
 #include "InputActionValue.h"
+#include "Components/TCFRTSHoverContextComponent.h"
 #include "Player/TCFRTSCameraPawn.h"
 
 ATCFPlayerController::ATCFPlayerController()
@@ -23,6 +24,7 @@ ATCFPlayerController::ATCFPlayerController()
 	RTSSelectionBoxComponent = CreateDefaultSubobject<UTCFRTSSelectionBoxComponent>(TEXT("RTSSelectionBoxComponent"));
 	PlayerMovementCommandComponent = CreateDefaultSubobject<UTCFPlayerMovementCommandComponent>(TEXT("PlayerMovementCommandComponent"));
 	PlayerOrderComponent = CreateDefaultSubobject<UTCFPlayerOrderComponent>(TEXT("PlayerOrderComponent"));
+	RTSHoverContextComponent = CreateDefaultSubobject<UTCFRTSHoverContextComponent>(TEXT("RTSHoverContextComponent"));
 }
 
 UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const
@@ -43,6 +45,11 @@ UTCFPlayerMovementCommandComponent* ATCFPlayerController::GetPlayerMovementComma
 UTCFPlayerOrderComponent* ATCFPlayerController::GetPlayerOrderComponent() const
 {
 	return PlayerOrderComponent;
+}
+
+UTCFRTSHoverContextComponent* ATCFPlayerController::GetRTSHoverContextComponent() const
+{
+	return RTSHoverContextComponent;
 }
 
 void ATCFPlayerController::BeginPlay()

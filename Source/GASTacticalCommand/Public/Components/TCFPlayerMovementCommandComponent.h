@@ -21,14 +21,26 @@ public:
 	bool MoveSelectedSquadToLocation(FVector WorldLocation);
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Movement")
+	bool MoveSelectedSquadsToLocation(FVector WorldLocation);
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Movement")
 	void StopSelectedSquadMovement();
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Movement")
+	void StopSelectedSquadsMovement();
 
 protected:
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Movement", meta = (ClampMin = "0.0"))
+	float MultiMoveSpacing = 180.0f;
 
 private:
 	UPROPERTY()
 	TObjectPtr<UTCFPlayerSelectionComponent> SelectionComponent;
 
 	ATCFSquadActor* GetSelectedSquad() const;
+	void GetSelectedSquads(TArray<ATCFSquadActor*>& OutSelectedSquads) const;
+
+	FVector GetFormationOffset(int32 Index, int32 Count) const;
 };

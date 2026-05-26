@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TCFPlayerController.generated.h"
 
+class UTCFRTSSelectionBoxComponent;
 class UTCFPlayerMovementCommandComponent;
 class UTCFPlayerOrderComponent;
 class ATCFSquadActor;
@@ -22,6 +23,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
 	UTCFPlayerSelectionComponent* GetPlayerSelectionComponent() const;
 	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
+	UTCFRTSSelectionBoxComponent* GetRTSSelectionBoxComponent() const;
+	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Movement")
 	UTCFPlayerMovementCommandComponent* GetPlayerMovementCommandComponent() const;
 	
@@ -36,6 +40,9 @@ protected:
 	TObjectPtr<UTCFPlayerSelectionComponent> PlayerSelectionComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFRTSSelectionBoxComponent> RTSSelectionBoxComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFPlayerMovementCommandComponent> PlayerMovementCommandComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
@@ -43,5 +50,8 @@ protected:
 
 private:
 	void HandleSelectPressed();
-	ATCFSquadActor* GetSquadUnderCursor() const;
+	void HandleSelectReleased();
+	void HandleMovePressed();
+	
+	bool IsAppendSelectionModifierDown() const;
 };

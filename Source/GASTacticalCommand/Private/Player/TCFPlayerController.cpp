@@ -8,6 +8,7 @@
 #include "InputCoreTypes.h"
 #include "Components/TCFPlayerMovementCommandComponent.h"
 #include "Components/TCFPlayerOrderComponent.h"
+#include "Components/TCFRTSSelectionBoxComponent.h"
 
 ATCFPlayerController::ATCFPlayerController()
 {
@@ -18,11 +19,17 @@ ATCFPlayerController::ATCFPlayerController()
 	PlayerSelectionComponent = CreateDefaultSubobject<UTCFPlayerSelectionComponent>(TEXT("PlayerSelectionComponent"));
 	PlayerMovementCommandComponent = CreateDefaultSubobject<UTCFPlayerMovementCommandComponent>(TEXT("PlayerMovementCommandComponent"));
 	PlayerOrderComponent = CreateDefaultSubobject<UTCFPlayerOrderComponent>(TEXT("PlayerOrderComponent"));
+	RTSSelectionBoxComponent = CreateDefaultSubobject<UTCFRTSSelectionBoxComponent>(TEXT("RTSSelectionBoxComponent"));
 }
 
 UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const
 {
 	return PlayerSelectionComponent;
+}
+
+UTCFRTSSelectionBoxComponent* ATCFPlayerController::GetRTSSelectionBoxComponent() const
+{
+	return RTSSelectionBoxComponent;
 }
 
 UTCFPlayerMovementCommandComponent* ATCFPlayerController::GetPlayerMovementCommandComponent() const
@@ -53,32 +60,46 @@ void ATCFPlayerController::SetupInputComponent()
 	}
 
 	InputComponent->BindKey(EKeys::LeftMouseButton, IE_Pressed, this, &ATCFPlayerController::HandleSelectPressed);
+	InputComponent->BindKey(EKeys::LeftMouseButton, IE_Released, this, &ATCFPlayerController::HandleSelectReleased);
+	InputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ATCFPlayerController::HandleMovePressed);
 }
 
 void ATCFPlayerController::HandleSelectPressed()
 {
-	if (!PlayerSelectionComponent)
+	if (RTSSelectionBoxComponent)
 	{
-		return;
+		RTSSelectionBoxComponent->BeginSelection();
 	}
-
-	if (ATCFSquadActor* HitSquad = GetSquadUnderCursor())
-	{
-		PlayerSelectionComponent->TrySelectSquad(HitSquad);
-		return;
-	}
-
-	PlayerSelectionComponent->ClearSelection();
 }
 
-ATCFSquadActor* ATCFPlayerController::GetSquadUnderCursor() const
+void ATCFPlayerController::HandleSelectReleased()
 {
+	if (RTSSelectionBoxComponent)
+	{
+		RTSSelectionBoxComponent->EndSelection(IsAppendSelectionModifierDown());
+	}
+}
+
+void ATCFPlayerController::HandleMovePressed()
+{
+	if (!PlayerMovementCommandComponent)
+	{
+		return;
+	}
+
 	FHitResult HitResult;
 	if (!GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
 	{
-		return nullptr;
+		return;
 	}
 
-	AActor* HitActor = HitResult.GetActor();
-	return Cast<ATCFSquadActor>(HitActor);
+	PlayerMovementCommandComponent->MoveSelectedSquadsToLocation(HitResult.Location);
+}
+
+bool ATCFPlayerController::IsAppendSelectionModifierDown() const
+{
+	return IsInputKeyDown(EKeys::LeftShift)
+		|| IsInputKeyDown(EKeys::RightShift)
+		|| IsInputKeyDown(EKeys::LeftControl)
+		|| IsInputKeyDown(EKeys::RightControl);
 }

@@ -109,8 +109,8 @@ struct FTCFCaptureSideKey
 	}
 
 	static FTCFCaptureSideKey FromAffiliation(
-	const FTCFAffiliationData& Affiliation,
-	ETCFCaptureOwnershipPolicy OwnershipPolicy = ETCFCaptureOwnershipPolicy::Team)
+		const FTCFAffiliationData& Affiliation,
+		ETCFCaptureOwnershipPolicy OwnershipPolicy = ETCFCaptureOwnershipPolicy::Team)
 	{
 		FTCFCaptureSideKey Key;
 

@@ -82,13 +82,7 @@ bool UTCFGameplayAbility_SuppressiveFire::TryGetSuppressionArea(FVector& OutLoca
 
 void UTCFGameplayAbility_SuppressiveFire::ApplyTargetSuppressionEffects(const TArray<ATCFSquadActor*>& Targets) const
 {
-	UAbilitySystemComponent* SourceAbilitySystem = GetAbilitySystemComponentFromActorInfo();
-	if (!SourceAbilitySystem)
-	{
-		return;
-	}
-
-	for (ATCFSquadActor* TargetSquad : Targets)
+	for (const ATCFSquadActor* TargetSquad : Targets)
 	{
 		if (!IsValid(TargetSquad))
 		{

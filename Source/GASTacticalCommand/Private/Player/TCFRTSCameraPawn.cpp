@@ -4,6 +4,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/SceneComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 
 ATCFRTSCameraPawn::ATCFRTSCameraPawn()
@@ -42,6 +43,7 @@ void ATCFRTSCameraPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	UpdateEdgeScrollInput();
 	UpdatePan(DeltaSeconds);
 	UpdateZoom(DeltaSeconds);
 	ApplyCameraBounds();
@@ -49,12 +51,12 @@ void ATCFRTSCameraPawn::Tick(float DeltaSeconds)
 
 void ATCFRTSCameraPawn::SetPanInput(FVector2D NewPanInput)
 {
-	PanInput = NewPanInput.GetClampedToMaxSize(1.0f);
+	ManualPanInput = NewPanInput.GetClampedToMaxSize(1.0f);
 }
 
 void ATCFRTSCameraPawn::ClearPanInput()
 {
-	PanInput = FVector2D::ZeroVector;
+	ManualPanInput = FVector2D::ZeroVector;
 }
 
 void ATCFRTSCameraPawn::AddZoomInput(float ZoomInput)
@@ -75,9 +77,74 @@ float ATCFRTSCameraPawn::GetCurrentZoomDistance() const
 	return SpringArmComponent ? SpringArmComponent->TargetArmLength : 0.0f;
 }
 
+void ATCFRTSCameraPawn::UpdateEdgeScrollInput()
+{
+	EdgePanInput = FVector2D::ZeroVector;
+
+	if (!bEnableEdgeScrolling)
+	{
+		return;
+	}
+
+	const APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	int32 ViewportSizeX = 0;
+	int32 ViewportSizeY = 0;
+	PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+
+	if (ViewportSizeX <= 0 || ViewportSizeY <= 0)
+	{
+		return;
+	}
+
+	float MouseX = 0.0f;
+	float MouseY = 0.0f;
+	if (!PlayerController->GetMousePosition(MouseX, MouseY))
+	{
+		return;
+	}
+
+	if (MouseX < 0.0f || MouseY < 0.0f || MouseX > ViewportSizeX || MouseY > ViewportSizeY)
+	{
+		return;
+	}
+
+	const float Margin = FMath::Max(1.0f, EdgeScrollMarginPixels);
+
+	if (MouseX <= Margin)
+	{
+		EdgePanInput.X = -1.0f + MouseX / Margin;
+	}
+	else if (MouseX >= static_cast<float>(ViewportSizeX) - Margin)
+	{
+		EdgePanInput.X = (MouseX - (static_cast<float>(ViewportSizeX) - Margin)) / Margin;
+	}
+
+	if (MouseY <= Margin)
+	{
+		EdgePanInput.Y = 1.0f - MouseY / Margin;
+	}
+	else if (MouseY >= static_cast<float>(ViewportSizeY) - Margin)
+	{
+		EdgePanInput.Y = -((MouseY - (static_cast<float>(ViewportSizeY) - Margin)) / Margin);
+	}
+
+	EdgePanInput = EdgePanInput.GetClampedToMaxSize(1.0f) * EdgeScrollSpeedMultiplier;
+}
+
 void ATCFRTSCameraPawn::UpdatePan(float DeltaSeconds)
 {
-	if (PanInput.IsNearlyZero() || DeltaSeconds <= 0.0f)
+	if (DeltaSeconds <= 0.0f)
+	{
+		return;
+	}
+
+	const FVector2D CombinedPanInput = (ManualPanInput + EdgePanInput).GetClampedToMaxSize(1.0f);
+	if (CombinedPanInput.IsNearlyZero())
 	{
 		return;
 	}
@@ -86,9 +153,11 @@ void ATCFRTSCameraPawn::UpdatePan(float DeltaSeconds)
 	const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
+	const float EffectivePanSpeed = GetEffectivePanSpeed();
+
 	const FVector Movement =
-		Forward * PanInput.Y * PanSpeed * DeltaSeconds
-		+ Right * PanInput.X * PanSpeed * DeltaSeconds;
+		Forward * CombinedPanInput.Y * EffectivePanSpeed * DeltaSeconds
+		+ Right * CombinedPanInput.X * EffectivePanSpeed * DeltaSeconds;
 
 	AddActorWorldOffset(Movement, false);
 }
@@ -118,4 +187,35 @@ void ATCFRTSCameraPawn::ApplyCameraBounds()
 	Location.X = FMath::Clamp(Location.X, MinCameraBounds.X, MaxCameraBounds.X);
 	Location.Y = FMath::Clamp(Location.Y, MinCameraBounds.Y, MaxCameraBounds.Y);
 	SetActorLocation(Location, false);
+}
+
+float ATCFRTSCameraPawn::GetEffectivePanSpeed() const
+{
+	if (!bScalePanSpeedByZoom)
+	{
+		return PanSpeed;
+	}
+
+	const float ZoomAlpha = GetZoomAlpha();
+	const float SpeedMultiplier = FMath::Lerp(
+		MinZoomPanSpeedMultiplier,
+		MaxZoomPanSpeedMultiplier,
+		ZoomAlpha);
+
+	return PanSpeed * SpeedMultiplier;
+}
+
+float ATCFRTSCameraPawn::GetZoomAlpha() const
+{
+	const float CurrentZoomDistance = GetCurrentZoomDistance();
+
+	if (FMath::IsNearlyEqual(MinZoomDistance, MaxZoomDistance))
+	{
+		return 0.0f;
+	}
+
+	return FMath::Clamp(
+		(CurrentZoomDistance - MinZoomDistance) / (MaxZoomDistance - MinZoomDistance),
+		0.0f,
+		1.0f);
 }

@@ -4,7 +4,6 @@
 
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/TCFRTSSelectionBoxComponent.h"
-#include "Player/TCFPlayerController.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
 

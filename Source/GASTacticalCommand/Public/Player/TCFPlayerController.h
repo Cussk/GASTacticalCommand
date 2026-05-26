@@ -6,11 +6,14 @@
 #include "GameFramework/PlayerController.h"
 #include "TCFPlayerController.generated.h"
 
-class UTCFRTSSelectionBoxComponent;
+class ATCFRTSCameraPawn;
+class UInputAction;
+class UInputMappingContext;
 class UTCFPlayerMovementCommandComponent;
 class UTCFPlayerOrderComponent;
-class ATCFSquadActor;
 class UTCFPlayerSelectionComponent;
+class UTCFRTSSelectionBoxComponent;
+struct FInputActionValue;
 
 UCLASS()
 class GASTACTICALCOMMAND_API ATCFPlayerController : public APlayerController
@@ -22,13 +25,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
 	UTCFPlayerSelectionComponent* GetPlayerSelectionComponent() const;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
 	UTCFRTSSelectionBoxComponent* GetRTSSelectionBoxComponent() const;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "TCF|Movement")
 	UTCFPlayerMovementCommandComponent* GetPlayerMovementCommandComponent() const;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "TCF|Orders")
 	UTCFPlayerOrderComponent* GetPlayerOrderComponent() const;
 
@@ -38,20 +41,59 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFPlayerSelectionComponent> PlayerSelectionComponent;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFRTSSelectionBoxComponent> RTSSelectionBoxComponent;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFPlayerMovementCommandComponent> PlayerMovementCommandComponent;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFPlayerOrderComponent> PlayerOrderComponent;
 
-private:
-	void HandleSelectPressed();
-	void HandleSelectReleased();
-	void HandleMovePressed();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
+	TObjectPtr<UInputMappingContext> RTSInputMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
+	int32 RTSInputMappingPriority = 0;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
+	TObjectPtr<UInputAction> SelectAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
+	TObjectPtr<UInputAction> CommandAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
+	TObjectPtr<UInputAction> AppendSelectionAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
+	TObjectPtr<UInputAction> CameraPanAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
+	TObjectPtr<UInputAction> CameraZoomAction;
+
+private:	
+	UPROPERTY()
+	ATCFRTSCameraPawn* CameraPawn;
 	
-	bool IsAppendSelectionModifierDown() const;
+	bool bAppendSelectionInputActive = false;
+
+	void AddRTSInputMappingContext() const;
+	bool TryGetRTSCameraPawn();
+
+	void HandleSelectStarted(const FInputActionValue& Value);
+	void HandleSelectCompleted(const FInputActionValue& Value);
+
+	void HandleCommandStarted(const FInputActionValue& Value);
+
+	void HandleAppendSelectionStarted(const FInputActionValue& Value);
+	void HandleAppendSelectionTriggered(const FInputActionValue& Value);
+	void HandleAppendSelectionCompleted(const FInputActionValue& Value);
+
+	void HandleCameraPanTriggered(const FInputActionValue& Value);
+	void HandleCameraPanCompleted(const FInputActionValue& Value);
+
+	void HandleCameraZoomTriggered(const FInputActionValue& Value);
+
+	bool IsAppendSelectionActive() const;
 };

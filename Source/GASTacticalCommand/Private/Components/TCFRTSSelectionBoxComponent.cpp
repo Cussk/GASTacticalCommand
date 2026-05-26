@@ -6,11 +6,14 @@
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "UI/TCFRTSSelectionBoxWidget.h"
 
 UTCFRTSSelectionBoxComponent::UTCFRTSSelectionBoxComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(false);
+	
+	SelectionBoxWidgetClass = UTCFRTSSelectionBoxWidget::StaticClass();
 }
 
 void UTCFRTSSelectionBoxComponent::BeginPlay()
@@ -21,6 +24,8 @@ void UTCFRTSSelectionBoxComponent::BeginPlay()
 	SelectionComponent = GetOwner()
 		? GetOwner()->FindComponentByClass<UTCFPlayerSelectionComponent>()
 		: nullptr;
+	
+	CreateSelectionBoxWidget();
 }
 
 void UTCFRTSSelectionBoxComponent::BeginSelection()
@@ -204,4 +209,21 @@ bool UTCFRTSSelectionBoxComponent::IsSquadInsideSelectionBox(const ATCFSquadActo
 		&& SquadScreenPosition.X <= MaxScreenPosition.X
 		&& SquadScreenPosition.Y >= MinScreenPosition.Y
 		&& SquadScreenPosition.Y <= MaxScreenPosition.Y;
+}
+
+void UTCFRTSSelectionBoxComponent::CreateSelectionBoxWidget()
+{
+	if (SelectionBoxWidget || !SelectionBoxWidgetClass)
+	{
+		return;
+	}
+
+	APlayerController* OwningPlayerController = Cast<APlayerController>(GetOwner());
+	SelectionBoxWidget = CreateWidget<UTCFRTSSelectionBoxWidget>( OwningPlayerController, SelectionBoxWidgetClass);
+	if (!SelectionBoxWidget)
+	{
+		return;
+	}
+
+	SelectionBoxWidget->AddToViewport(10);
 }

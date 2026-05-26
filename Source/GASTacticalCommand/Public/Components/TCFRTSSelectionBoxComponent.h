@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "TCFRTSSelectionBoxComponent.generated.h"
 
+class UTCFRTSSelectionBoxWidget;
 class ATCFSquadActor;
 class APlayerController;
 class UTCFPlayerSelectionComponent;
@@ -35,6 +36,12 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|UI")
+	TSubclassOf<UTCFRTSSelectionBoxWidget> SelectionBoxWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UTCFRTSSelectionBoxWidget> SelectionBoxWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Selection", meta = (ClampMin = "1.0"))
 	float DragThresholdPixels = 8.0f;
@@ -57,4 +64,6 @@ private:
 	ATCFSquadActor* GetSquadUnderCursor() const;
 	void GetSquadsInsideSelectionBox(TArray<ATCFSquadActor*>& OutSquads) const;
 	bool IsSquadInsideSelectionBox(const ATCFSquadActor& Squad) const;
+	
+	void CreateSelectionBoxWidget();
 };

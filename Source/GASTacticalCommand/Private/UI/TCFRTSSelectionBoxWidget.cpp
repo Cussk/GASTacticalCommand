@@ -8,6 +8,11 @@
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
 
+void UTCFRTSSelectionBoxWidget::InitializeSelectionBoxComponent(UTCFRTSSelectionBoxComponent* InSelectionBoxComponent)
+{
+	CachedSelectionBoxComponent = InSelectionBoxComponent;
+}
+
 int32 UTCFRTSSelectionBoxWidget::NativePaint(
 	const FPaintArgs& Args,
 	const FGeometry& AllottedGeometry,
@@ -26,13 +31,7 @@ int32 UTCFRTSSelectionBoxWidget::NativePaint(
 		InWidgetStyle,
 		bParentEnabled);
 
-	const ATCFPlayerController* PlayerController = Cast<ATCFPlayerController>(GetOwningPlayer());
-	if (!PlayerController)
-	{
-		return ResultLayerId;
-	}
-
-	const UTCFRTSSelectionBoxComponent* SelectionBoxComponent = PlayerController->GetRTSSelectionBoxComponent();
+	const UTCFRTSSelectionBoxComponent* SelectionBoxComponent = CachedSelectionBoxComponent.Get();
 	if (!SelectionBoxComponent || !SelectionBoxComponent->IsDraggingSelection())
 	{
 		return ResultLayerId;

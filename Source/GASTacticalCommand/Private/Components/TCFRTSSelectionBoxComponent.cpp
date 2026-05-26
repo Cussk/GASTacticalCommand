@@ -225,5 +225,6 @@ void UTCFRTSSelectionBoxComponent::CreateSelectionBoxWidget()
 		return;
 	}
 
+	SelectionBoxWidget->InitializeSelectionBoxComponent(this);
 	SelectionBoxWidget->AddToViewport(10);
 }

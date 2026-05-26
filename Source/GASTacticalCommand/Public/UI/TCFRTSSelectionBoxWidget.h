@@ -6,10 +6,15 @@
 #include "Blueprint/UserWidget.h"
 #include "TCFRTSSelectionBoxWidget.generated.h"
 
+class UTCFRTSSelectionBoxComponent;
+
 UCLASS()
 class GASTACTICALCOMMAND_API UTCFRTSSelectionBoxWidget : public UUserWidget
 {
 	GENERATED_BODY()
+	
+public:
+	void InitializeSelectionBoxComponent(UTCFRTSSelectionBoxComponent* InSelectionBoxComponent);
 
 protected:
 	virtual int32 NativePaint(
@@ -42,4 +47,6 @@ private:
 		FVector2D ScreenEnd) const;
 
 	FVector2D ConvertScreenPositionToWidgetPosition(FVector2D ScreenPosition) const;
+	
+	TWeakObjectPtr<UTCFRTSSelectionBoxComponent> CachedSelectionBoxComponent;
 };

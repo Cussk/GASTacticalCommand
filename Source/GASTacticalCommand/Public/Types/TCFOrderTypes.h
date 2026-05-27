@@ -172,7 +172,7 @@ struct FTCFOrderTargetingDecalConfig
 	TSoftObjectPtr<UMaterialInterface> DecalMaterial;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
-	FVector DecalSize = FVector(48.0f, 256.0f, 256.0f);
+	FVector DecalSize = FVector(8.0f, 256.0f, 256.0f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
 	bool bScaleToOrderRadius = true;

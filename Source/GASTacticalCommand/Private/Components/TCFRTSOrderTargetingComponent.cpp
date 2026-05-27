@@ -9,6 +9,7 @@
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Data/TCFOrderDefinition.h"
 #include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInterface.h"
 
 UTCFRTSOrderTargetingComponent::UTCFRTSOrderTargetingComponent()
@@ -356,54 +357,45 @@ void UTCFRTSOrderTargetingComponent::CreateOrUpdateDecal()
 		return;
 	}
 
+	UMaterialInterface* DecalMaterial = ResolveDecalMaterial();
+	if (!DecalMaterial)
+	{
+		HideDecal();
+		return;
+	}
+
+	const FVector DecalNormal = HoverContext.WorldNormal.IsNearlyZero()
+		? FVector::UpVector
+		: HoverContext.WorldNormal.GetSafeNormal();
+
+	const FVector DecalLocation = HoverContext.WorldLocation + DecalNormal * 4.0f;
+	const FVector DecalSize = GetDecalSizeForPendingOrder();
+	const FRotator DecalRotation = FRotator(-90.0f, 0.0f, 0.0f);
+
 	if (!TargetingDecalComponent)
 	{
-		AActor* OwnerActor = GetOwner();
-		if (!OwnerActor)
-		{
-			return;
-		}
-
-		TargetingDecalComponent = NewObject<UDecalComponent>(
-			OwnerActor,
-			TEXT("OrderTargetingDecal"));
+		TargetingDecalComponent = UGameplayStatics::SpawnDecalAtLocation(
+			GetWorld(),
+			DecalMaterial,
+			DecalSize,
+			DecalLocation,
+			DecalRotation,
+			0.0f);
 
 		if (!TargetingDecalComponent)
 		{
 			return;
 		}
 
-		TargetingDecalComponent->CreationMethod = EComponentCreationMethod::Instance;
-		TargetingDecalComponent->SetAbsolute(true, true, true);
 		TargetingDecalComponent->SetFadeScreenSize(0.001f);
-		TargetingDecalComponent->SetHiddenInGame(false);
-		TargetingDecalComponent->SetVisibility(true);
-
-		OwnerActor->AddInstanceComponent(TargetingDecalComponent);
-		TargetingDecalComponent->RegisterComponent();
 	}
 
-	if (UMaterialInterface* DecalMaterial = ResolveDecalMaterial())
-	{
-		TargetingDecalComponent->SetDecalMaterial(DecalMaterial);
-	}
-
-	//TargetingDecalComponent->DecalSize = GetDecalSizeForPendingOrder();
-	TargetingDecalComponent->DecalSize = FVector(512.0f, 512.0f, 512.0f);
-	
-	const FVector DecalNormal = HoverContext.WorldNormal.IsNearlyZero()
-		? FVector::UpVector
-		: HoverContext.WorldNormal.GetSafeNormal();
-
-	TargetingDecalComponent->SetWorldLocation(HoverContext.WorldLocation + DecalNormal * 8.0f);
-
-	const FVector ProjectionDirection = -DecalNormal;
-	//TargetingDecalComponent->SetWorldRotation(FRotationMatrix::MakeFromX(ProjectionDirection).Rotator());
-	TargetingDecalComponent->SetWorldRotation(FRotator(-90.0f, 0.0f, 0.0f));
-
+	TargetingDecalComponent->SetDecalMaterial(DecalMaterial);
+	TargetingDecalComponent->DecalSize = DecalSize;
+	TargetingDecalComponent->SetWorldLocation(DecalLocation);
+	TargetingDecalComponent->SetWorldRotation(DecalRotation);
 	TargetingDecalComponent->SetHiddenInGame(false);
 	TargetingDecalComponent->SetVisibility(true);
-	TargetingDecalComponent->MarkRenderStateDirty();
 }
 
 void UTCFRTSOrderTargetingComponent::HideDecal() const

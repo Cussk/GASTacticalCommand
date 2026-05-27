@@ -210,8 +210,7 @@ FTCFDebugSquadSnapshot UTCFDebugSubsystem::BuildSnapshot() const
 	AddRelationshipLines(*SelectedSquad, Snapshot);
 	AddNearestCapturePointData(*SelectedSquad, Snapshot);
 
-	const UAbilitySystemComponent* AbilitySystem = SelectedSquad->GetAbilitySystemComponent();
-	if (AbilitySystem)
+	if (const UAbilitySystemComponent* AbilitySystem = SelectedSquad->GetAbilitySystemComponent())
 	{
 		FGameplayTagContainer OwnedTags;
 		AbilitySystem->GetOwnedGameplayTags(OwnedTags);
@@ -284,6 +283,7 @@ void UTCFDebugSubsystem::AddAttributeLines(const ATCFSquadActor& Squad, FTCFDebu
 		return;
 	}
 
+	Snapshot.AttributeLines.Add(FString::Printf(TEXT("Health: %.1f / %.1f"),AttributeSet->GetHealth(), AttributeSet->GetMaxHealth()));
 	Snapshot.AttributeLines.Add(FString::Printf(TEXT("Morale: %.1f"), AttributeSet->GetMorale()));
 	Snapshot.AttributeLines.Add(FString::Printf(TEXT("Suppression: %.1f"), AttributeSet->GetSuppression()));
 	Snapshot.AttributeLines.Add(FString::Printf(TEXT("Cohesion: %.1f"), AttributeSet->GetCohesion()));

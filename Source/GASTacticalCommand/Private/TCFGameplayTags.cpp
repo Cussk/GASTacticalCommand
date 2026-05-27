@@ -13,6 +13,7 @@ namespace TCFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Squad_State_Suppressing, "Squad.State.Suppressing");
 	UE_DEFINE_GAMEPLAY_TAG(Squad_State_Moving, "Squad.State.Moving");
 	UE_DEFINE_GAMEPLAY_TAG(Squad_State_Stationary, "Squad.State.Stationary");
+	UE_DEFINE_GAMEPLAY_TAG(Squad_State_Dead, "Squad.State.Dead");
 
 	// Squad Role
 	UE_DEFINE_GAMEPLAY_TAG(Squad_Role_Rifle, "Squad.Role.Rifle");

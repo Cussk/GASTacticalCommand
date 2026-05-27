@@ -9,6 +9,7 @@
 #include "GAS/TCFSquadAttributeSet.h"
 #include "GameplayEffect.h"
 #include "Components/TCFAffiliationComponent.h"
+#include "Components/TCFSquadIntegrityStateComponent.h"
 #include "Components/TCFSquadMovementComponent.h"
 #include "Components/TCFSquadSelectionComponent.h"
 #include "GASTacticalCommand/GASTacticalCommand.h"
@@ -37,6 +38,7 @@ ATCFSquadActor::ATCFSquadActor()
 	SquadAttributeSet = CreateDefaultSubobject<UTCFSquadAttributeSet>(TEXT("SquadAttributeSet"));
 	
 	SquadSelectionComponent = CreateDefaultSubobject<UTCFSquadSelectionComponent>(TEXT("SquadSelectionComponent"));
+	IntegrityStateComponent = CreateDefaultSubobject<UTCFSquadIntegrityStateComponent>(TEXT("IntegrityStateComponent"));
 	AffiliationComponent = CreateDefaultSubobject<UTCFAffiliationComponent>(TEXT("AffiliationComponent"));
 	
 	SquadVisual->SetCustomDepthStencilValue(CUSTOM_DEPTH_GREEN);
@@ -50,6 +52,11 @@ UAbilitySystemComponent* ATCFSquadActor::GetAbilitySystemComponent() const
 UTCFSquadMovementComponent* ATCFSquadActor::GetMovementComponent() const
 {
 	return MovementComponent;
+}
+
+UTCFSquadIntegrityStateComponent* ATCFSquadActor::GetIntegrityStateComponent() const
+{
+	return IntegrityStateComponent;
 }
 
 UTCFSquadSelectionComponent* ATCFSquadActor::GetSquadSelectionComponent() const
@@ -153,6 +160,8 @@ void ATCFSquadActor::InitializeAttributesFromDefinition() const
 
 	const FTCFSquadAttributeDefaults& Defaults = SquadDefinition->AttributeDefaults;
 
+	SquadAttributeSet->InitMaxHealth(Defaults.MaxHealth);
+	SquadAttributeSet->InitHealth(FMath::Clamp(Defaults.Health, 0.0f,	Defaults.MaxHealth));
 	SquadAttributeSet->SetMorale(Defaults.Morale);
 	SquadAttributeSet->SetSuppression(Defaults.Suppression);
 	SquadAttributeSet->SetCohesion(Defaults.Cohesion);

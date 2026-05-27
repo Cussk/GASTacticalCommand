@@ -12,6 +12,12 @@ USTRUCT(BlueprintType)
 struct FTCFSquadAttributeDefaults
 {
 	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Attributes", meta = (ClampMin = "0.0"))
+	float Health = 100.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Attributes", meta = (ClampMin = "0.0"))
+	float MaxHealth = 100.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Attributes")
 	float Morale = 100.0f;

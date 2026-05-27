@@ -20,6 +20,14 @@ class GASTACTICALCOMMAND_API UTCFSquadAttributeSet : public UAttributeSet
 
 public:
 	UTCFSquadAttributeSet();
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Attributes", ReplicatedUsing = OnRep_Health)
+	FGameplayAttributeData Health;
+	ATTRIBUTE_ACCESSORS(UTCFSquadAttributeSet, Health)
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Attributes", ReplicatedUsing = OnRep_MaxHealth)
+	FGameplayAttributeData MaxHealth;
+	ATTRIBUTE_ACCESSORS(UTCFSquadAttributeSet, MaxHealth)
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Attributes", ReplicatedUsing = OnRep_Morale)
 	FGameplayAttributeData Morale;
@@ -59,6 +67,12 @@ protected:
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
+	UFUNCTION()
+	void OnRep_Health(const FGameplayAttributeData& OldValue);
+
+	UFUNCTION()
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldValue);
+	
 	UFUNCTION()
 	void OnRep_Morale(const FGameplayAttributeData& OldValue);
 

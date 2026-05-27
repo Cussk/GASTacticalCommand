@@ -15,6 +15,7 @@ namespace TCFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_State_Suppressing);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_State_Moving);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_State_Stationary);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_State_Dead);
 
 	// Squad Role
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_Role_Rifle);

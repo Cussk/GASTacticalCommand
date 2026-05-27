@@ -7,6 +7,8 @@
 
 UTCFSquadAttributeSet::UTCFSquadAttributeSet()
 {
+	InitHealth(100.0f);
+	InitMaxHealth(100.0f);
 	InitMorale(100.0f);
 	InitSuppression(0.0f);
 	InitCohesion(100.0f);
@@ -21,6 +23,8 @@ void UTCFSquadAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, Health, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, MaxHealth, COND_None,	REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, Morale, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, Suppression, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, Cohesion, COND_None, REPNOTIFY_Always);
@@ -34,6 +38,18 @@ void UTCFSquadAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 void UTCFSquadAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
+	
+	if (Attribute == GetHealthAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
+		return;
+	}
+
+	if (Attribute == GetMaxHealthAttribute())
+	{
+		ClampNonNegativeAttribute(NewValue);
+		return;
+	}
 
 	if (Attribute == GetMoraleAttribute()
 		|| Attribute == GetSuppressionAttribute()
@@ -57,7 +73,20 @@ void UTCFSquadAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 {
 	Super::PostGameplayEffectExecute(Data);
 
-	float ClampedValue = 0.0f;
+	float ClampedValue;
+	
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
+		return;
+	}
+
+	if (Data.EvaluatedData.Attribute == GetMaxHealthAttribute())
+	{
+		SetMaxHealth(FMath::Max(0.0f, GetMaxHealth()));
+		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
+		return;
+	}
 
 	if (Data.EvaluatedData.Attribute == GetMoraleAttribute())
 	{
@@ -121,6 +150,16 @@ void UTCFSquadAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		ClampNonNegativeAttribute(ClampedValue);
 		SetCapturePower(ClampedValue);
 	}
+}
+
+void UTCFSquadAttributeSet::OnRep_Health(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, Health, OldValue);
+}
+
+void UTCFSquadAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, MaxHealth, OldValue);
 }
 
 void UTCFSquadAttributeSet::OnRep_Morale(const FGameplayAttributeData& OldValue)

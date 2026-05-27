@@ -20,7 +20,10 @@ ATCFCapturePointActor::ATCFCapturePointActor()
 
 	CaptureRadiusPreview = CreateDefaultSubobject<USphereComponent>(TEXT("CaptureRadiusPreview"));
 	CaptureRadiusPreview->SetupAttachment(SceneRoot);
-	CaptureRadiusPreview->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CaptureRadiusPreview->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CaptureRadiusPreview->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CaptureRadiusPreview->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	CaptureRadiusPreview->SetGenerateOverlapEvents(false);
 	CaptureRadiusPreview->SetSphereRadius(500.0f);
 
 	AffiliationComponent = CreateDefaultSubobject<UTCFAffiliationComponent>(TEXT("AffiliationComponent"));

@@ -44,8 +44,7 @@ int32 UTCFRTSCursorWidget::NativePaint(
 		return ResultLayerId;
 	}
 
-	const FTCFRTSHoverContext& HoverContext = HoverContextComponent->GetCurrentHoverContext();
-	const FTCFRTSCursorVisual* CursorVisual = FindCursorVisual(HoverContext.CursorState);
+	const FTCFRTSCursorVisual* CursorVisual = FindCursorVisual(HoverContextComponent->GetEffectiveCursorState());
 	if (!CursorVisual || !CursorVisual->CursorTexture)
 	{
 		return ResultLayerId;

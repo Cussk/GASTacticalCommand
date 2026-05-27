@@ -57,6 +57,35 @@ void UTCFRTSHoverContextComponent::ForceRefreshHoverContext()
 	RefreshHoverContext();
 }
 
+void UTCFRTSHoverContextComponent::SetCursorOverride(ETCFRTSCursorState NewCursorState)
+{
+	bHasCursorOverride = true;
+	CursorOverrideState = NewCursorState;
+
+	if (bApplyMouseCursor)
+	{
+		ApplyCursorState(GetEffectiveCursorState());
+	}
+}
+
+void UTCFRTSHoverContextComponent::ClearCursorOverride()
+{
+	bHasCursorOverride = false;
+	CursorOverrideState = ETCFRTSCursorState::Default;
+
+	if (bApplyMouseCursor)
+	{
+		ApplyCursorState(GetEffectiveCursorState());
+	}
+}
+
+ETCFRTSCursorState UTCFRTSHoverContextComponent::GetEffectiveCursorState() const
+{
+	return bHasCursorOverride
+		? CursorOverrideState
+		: CurrentHoverContext.CursorState;
+}
+
 void UTCFRTSHoverContextComponent::RefreshHoverContext()
 {
 	FHitResult HitResult;
@@ -84,7 +113,7 @@ void UTCFRTSHoverContextComponent::RefreshHoverContext()
 
 	if (bApplyMouseCursor)
 	{
-		ApplyCursorState(CurrentHoverContext.CursorState);
+		ApplyCursorState(GetEffectiveCursorState());
 	}
 }
 
@@ -106,8 +135,22 @@ FTCFRTSHoverContext UTCFRTSHoverContextComponent::BuildHoverContextFromHit(const
 	FTCFRTSHoverContext HoverContext;
 	HoverContext.bHasHit = HitResult.bBlockingHit;
 	HoverContext.HoveredActor = HitResult.GetActor();
-	HoverContext.WorldLocation = HitResult.Location;
-	HoverContext.WorldNormal = HitResult.ImpactNormal;
+	HoverContext.WorldLocation = HitResult.ImpactPoint.IsNearlyZero()
+		? HitResult.Location
+		: HitResult.ImpactPoint;
+
+	FVector ResolvedNormal = HitResult.ImpactNormal;
+	if (ResolvedNormal.IsNearlyZero())
+	{
+		ResolvedNormal = HitResult.Normal;
+	}
+
+	if (ResolvedNormal.IsNearlyZero())
+	{
+		ResolvedNormal = FVector::UpVector;
+	}
+
+	HoverContext.WorldNormal = ResolvedNormal.GetSafeNormal();
 	HoverContext.bHasPrimarySelection = SelectionComponent && SelectionComponent->GetPrimarySelectedSquad();
 
 	AActor* HitActor = HitResult.GetActor();

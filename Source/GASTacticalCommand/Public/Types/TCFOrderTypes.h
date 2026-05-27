@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "TCFAffiliationTypes.h"
 #include "TCFOrderTypes.generated.h"
 
 class AActor;
@@ -151,4 +152,31 @@ struct FTCFOrderTargetingConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting")
 	bool bRequiresLineOfSight = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting")
+	bool bUseRelationshipFilter = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting", meta = (EditCondition = "bUseRelationshipFilter"))
+	FTCFSquadQueryRelationshipFilter RelationshipFilter;
+};
+
+USTRUCT(BlueprintType)
+struct FTCFOrderTargetingDecalConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
+	bool bShowDecal = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
+	TSoftObjectPtr<UMaterialInterface> DecalMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
+	FVector DecalSize = FVector(48.0f, 256.0f, 256.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
+	bool bScaleToOrderRadius = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal", meta = (ClampMin = "1.0"))
+	float MinimumRadius = 96.0f;
 };

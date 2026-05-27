@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TCFPlayerController.generated.h"
 
+class UTCFRTSOrderTargetingComponent;
 class UTCFRTSCommandRouterComponent;
 class UTCFRTSHoverContextComponent;
 class ATCFRTSCameraPawn;
@@ -42,6 +43,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Command")
 	UTCFRTSCommandRouterComponent* GetRTSCommandRouterComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Order Targeting")
+	UTCFRTSOrderTargetingComponent* GetRTSOrderTargetingComponent() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -64,6 +68,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFRTSCommandRouterComponent> RTSCommandRouterComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFRTSOrderTargetingComponent> RTSOrderTargetingComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
 	TObjectPtr<UInputMappingContext> RTSInputMappingContext;
@@ -85,6 +92,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
 	TObjectPtr<UInputAction> CameraZoomAction;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
+	TObjectPtr<UInputAction> CancelOrderAction;
 
 private:	
 	UPROPERTY()
@@ -108,6 +118,8 @@ private:
 	void HandleCameraPanCompleted(const FInputActionValue& Value);
 
 	void HandleCameraZoomTriggered(const FInputActionValue& Value);
+	
+	void HandleCancelOrderStarted(const FInputActionValue& Value);
 
 	bool IsAppendSelectionActive() const;
 };

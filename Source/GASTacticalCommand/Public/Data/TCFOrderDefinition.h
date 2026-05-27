@@ -30,6 +30,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting")
 	FTCFOrderTargetingConfig Targeting;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting")
+	FTCFOrderTargetingDecalConfig TargetingDecal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Presentation")
 	TSoftObjectPtr<UTexture2D> Icon;

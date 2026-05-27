@@ -7,6 +7,7 @@
 #include "Components/TCFPlayerOrderComponent.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
+#include "Components/TCFRTSOrderTargetingComponent.h"
 
 UTCFRTSCommandRouterComponent::UTCFRTSCommandRouterComponent()
 {
@@ -30,10 +31,16 @@ void UTCFRTSCommandRouterComponent::BeginPlay()
 	MovementCommandComponent = OwnerActor->FindComponentByClass<UTCFPlayerMovementCommandComponent>();
 	HoverContextComponent = OwnerActor->FindComponentByClass<UTCFRTSHoverContextComponent>();
 	PlayerOrderComponent = OwnerActor->FindComponentByClass<UTCFPlayerOrderComponent>();
+	OrderTargetingComponent = OwnerActor->FindComponentByClass<UTCFRTSOrderTargetingComponent>();
 }
 
 bool UTCFRTSCommandRouterComponent::ExecutePrimaryCommand()
 {
+	if (OrderTargetingComponent && OrderTargetingComponent->HasPendingOrder())
+	{
+		return OrderTargetingComponent->ConfirmPendingOrder();
+	}
+	
 	FTCFRTSCommandIntent CommandIntent = BuildCommandIntent();
 	CommandIntent.bWasExecuted = ExecuteCommandIntent(CommandIntent);
 

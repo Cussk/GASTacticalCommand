@@ -28,6 +28,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Hover")
 	void ForceRefreshHoverContext();
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Cursor")
+	void SetCursorOverride(ETCFRTSCursorState NewCursorState);
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Cursor")
+	void ClearCursorOverride();
+
+	UFUNCTION(BlueprintPure, Category = "TCF|RTS Cursor")
+	ETCFRTSCursorState GetEffectiveCursorState() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|RTS Hover")
 	FOnTCFRTSHoverContextChanged OnHoverContextChanged;
@@ -102,6 +111,9 @@ private:
 	TObjectPtr<UTCFRelationshipSubsystem> RelationshipSubsystem;
 
 	FTCFRTSHoverContext CurrentHoverContext;
+	
+	bool bHasCursorOverride = false;
+	ETCFRTSCursorState CursorOverrideState = ETCFRTSCursorState::Default;
 
 	void RefreshHoverContext();
 

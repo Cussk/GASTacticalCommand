@@ -13,6 +13,7 @@
 #include "InputActionValue.h"
 #include "Components/TCFRTSCommandRouterComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
+#include "Components/TCFRTSOrderTargetingComponent.h"
 #include "Player/TCFRTSCameraPawn.h"
 
 ATCFPlayerController::ATCFPlayerController()
@@ -27,6 +28,7 @@ ATCFPlayerController::ATCFPlayerController()
 	PlayerOrderComponent = CreateDefaultSubobject<UTCFPlayerOrderComponent>(TEXT("PlayerOrderComponent"));
 	RTSHoverContextComponent = CreateDefaultSubobject<UTCFRTSHoverContextComponent>(TEXT("RTSHoverContextComponent"));
 	RTSCommandRouterComponent = CreateDefaultSubobject<UTCFRTSCommandRouterComponent>(TEXT("RTSCommandRouterComponent"));
+	RTSOrderTargetingComponent = CreateDefaultSubobject<UTCFRTSOrderTargetingComponent>(TEXT("RTSOrderTargetingComponent"));
 }
 
 UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const
@@ -57,6 +59,11 @@ UTCFRTSHoverContextComponent* ATCFPlayerController::GetRTSHoverContextComponent(
 UTCFRTSCommandRouterComponent* ATCFPlayerController::GetRTSCommandRouterComponent() const
 {
 	return RTSCommandRouterComponent;
+}
+
+UTCFRTSOrderTargetingComponent* ATCFPlayerController::GetRTSOrderTargetingComponent() const
+{
+	return RTSOrderTargetingComponent;
 }
 
 void ATCFPlayerController::BeginPlay()
@@ -115,6 +122,11 @@ void ATCFPlayerController::SetupInputComponent()
 	if (CameraZoomAction)
 	{
 		EnhancedInputComponent->BindAction(CameraZoomAction, ETriggerEvent::Triggered, this, &ATCFPlayerController::HandleCameraZoomTriggered);
+	}
+	
+	if (CancelOrderAction)
+	{
+		EnhancedInputComponent->BindAction(CancelOrderAction, ETriggerEvent::Started, this, &ATCFPlayerController::HandleCancelOrderStarted);
 	}
 }
 
@@ -218,6 +230,14 @@ void ATCFPlayerController::HandleCameraZoomTriggered(const FInputActionValue& Va
 	}
 
 	CameraPawn->AddZoomInput(Value.Get<float>());
+}
+
+void ATCFPlayerController::HandleCancelOrderStarted(const FInputActionValue& Value)
+{
+	if (RTSOrderTargetingComponent)
+	{
+		RTSOrderTargetingComponent->CancelOrderTargeting();
+	}
 }
 
 bool ATCFPlayerController::IsAppendSelectionActive() const

@@ -29,7 +29,9 @@ enum class ETCFRTSCursorState : uint8
 	CapturePoint,
 	ResourceNode,
 	ProductionBuilding,
-	InvalidTarget
+	InvalidTarget,
+	OrderTarget,
+	OrderTargetInvalid
 };
 
 UENUM(BlueprintType)

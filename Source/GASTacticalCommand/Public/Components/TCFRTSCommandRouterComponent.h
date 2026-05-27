@@ -11,6 +11,7 @@ class UTCFPlayerOrderComponent;
 class UTCFPlayerMovementCommandComponent;
 class UTCFPlayerSelectionComponent;
 class UTCFRTSHoverContextComponent;
+class UTCFRTSOrderTargetingComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTCFRTSCommandIntentResolved, FTCFRTSCommandIntent, CommandIntent);
 
@@ -52,6 +53,9 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<UTCFPlayerOrderComponent> PlayerOrderComponent;
+	
+	UPROPERTY()
+	TObjectPtr<UTCFRTSOrderTargetingComponent> OrderTargetingComponent;
 
 	FTCFRTSCommandIntent LastCommandIntent;
 

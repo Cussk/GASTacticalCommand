@@ -161,22 +161,28 @@ struct FTCFOrderTargetingConfig
 };
 
 USTRUCT(BlueprintType)
-struct FTCFOrderTargetingDecalConfig
+struct FTCFOrderTargetingPreviewConfig
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
-	bool bShowDecal = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Preview")
+	bool bShowPreview = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
-	TSoftObjectPtr<UMaterialInterface> DecalMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Preview")
+	TSoftObjectPtr<UStaticMesh> PreviewMesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Preview")
+	TSoftObjectPtr<UMaterialInterface> PreviewMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
-	FVector DecalSize = FVector(8.0f, 256.0f, 256.0f);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Preview")
+	FVector PreviewSize = FVector(1.0f, 256.0f, 256.0f);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Preview")
 	bool bScaleToOrderRadius = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Decal", meta = (ClampMin = "1.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Preview", meta = (ClampMin = "1.0"))
 	float MinimumRadius = 96.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Targeting Preview", meta = (ClampMin = "0.0"))
+	float GroundOffset = 4.0f;
 };

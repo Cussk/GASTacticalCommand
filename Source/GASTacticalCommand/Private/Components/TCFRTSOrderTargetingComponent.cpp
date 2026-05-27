@@ -83,7 +83,7 @@ void UTCFRTSOrderTargetingComponent::CancelOrderTargeting()
 		HoverContextComponent->ClearCursorOverride();
 	}
 
-	HideDecal();
+	HidePreview();
 	SetComponentTickEnabled(false);
 
 	OnOrderTargetingCanceled.Broadcast();
@@ -175,31 +175,31 @@ void UTCFRTSOrderTargetingComponent::RefreshCursorOverride() const
 
 void UTCFRTSOrderTargetingComponent::RefreshDecal()
 {
-	if (!PendingOrderDefinition || !PendingOrderDefinition->TargetingDecal.bShowDecal)
+	if (!PendingOrderDefinition || !PendingOrderDefinition->TargetingPreview.bShowPreview)
 	{
-		HideDecal();
+		HidePreview();
 		return;
 	}
 
 	const ETCFOrderTargetType TargetType = PendingOrderDefinition->Targeting.TargetType;
-	const bool bCanUseGroundDecal =
+	const bool bCanUseGroundPreview =
 		TargetType == ETCFOrderTargetType::Location
 		|| TargetType == ETCFOrderTargetType::Area
 		|| TargetType == ETCFOrderTargetType::Direction;
 
-	if (!bCanUseGroundDecal)
+	if (!bCanUseGroundPreview)
 	{
-		HideDecal();
+		HidePreview();
 		return;
 	}
 
-	if (!bCurrentTargetValid && !bShowInvalidLocationDecal)
+	if (!bCurrentTargetValid && !bShowInvalidLocationPreview)
 	{
-		HideDecal();
+		HidePreview();
 		return;
 	}
 
-	CreateOrUpdateDecal();
+	CreateOrUpdatePreview();
 }
 
 bool UTCFRTSOrderTargetingComponent::SubmitSelfOrder(const UTCFOrderDefinition& OrderDefinition) const
@@ -343,7 +343,7 @@ bool UTCFRTSOrderTargetingComponent::IsAreaTargetValid() const
 	return HoverContext.bHasHit;
 }
 
-void UTCFRTSOrderTargetingComponent::CreateOrUpdateDecal()
+void UTCFRTSOrderTargetingComponent::CreateOrUpdatePreview()
 {
 	if (!PendingOrderDefinition || !HoverContextComponent)
 	{
@@ -353,103 +353,166 @@ void UTCFRTSOrderTargetingComponent::CreateOrUpdateDecal()
 	const FTCFRTSHoverContext& HoverContext = HoverContextComponent->GetCurrentHoverContext();
 	if (!HoverContext.bHasHit)
 	{
-		HideDecal();
+		HidePreview();
 		return;
 	}
 
-	UMaterialInterface* DecalMaterial = ResolveDecalMaterial();
-	if (!DecalMaterial)
+	UStaticMesh* PreviewMesh = ResolvePreviewMesh();
+	UMaterialInterface* PreviewMaterial = ResolvePreviewMaterial();
+
+	if (!PreviewMesh || !PreviewMaterial)
 	{
-		HideDecal();
+		HidePreview();
 		return;
 	}
 
-	const FVector DecalNormal = HoverContext.WorldNormal.IsNearlyZero()
-		? FVector::UpVector
-		: HoverContext.WorldNormal.GetSafeNormal();
-
-	const FVector DecalLocation = HoverContext.WorldLocation + DecalNormal * 4.0f;
-	const FVector DecalSize = GetDecalSizeForPendingOrder();
-	const FRotator DecalRotation = FRotator(-90.0f, 0.0f, 0.0f);
-
-	if (!TargetingDecalComponent)
+	if (!TargetingPreviewMeshComponent)
 	{
-		TargetingDecalComponent = UGameplayStatics::SpawnDecalAtLocation(
-			GetWorld(),
-			DecalMaterial,
-			DecalSize,
-			DecalLocation,
-			DecalRotation,
-			0.0f);
-
-		if (!TargetingDecalComponent)
+		AActor* OwnerActor = GetOwner();
+		if (!OwnerActor)
 		{
 			return;
 		}
 
-		TargetingDecalComponent->SetFadeScreenSize(0.001f);
+		TargetingPreviewMeshComponent = NewObject<UStaticMeshComponent>(
+			OwnerActor,
+			TEXT("OrderTargetingPreviewMesh"));
+
+		if (!TargetingPreviewMeshComponent)
+		{
+			return;
+		}
+
+		TargetingPreviewMeshComponent->CreationMethod = EComponentCreationMethod::Instance;
+		TargetingPreviewMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		TargetingPreviewMeshComponent->SetGenerateOverlapEvents(false);
+		TargetingPreviewMeshComponent->SetCastShadow(false);
+		TargetingPreviewMeshComponent->bReceivesDecals = false;
+		TargetingPreviewMeshComponent->SetAbsolute(true, true, true);
+		TargetingPreviewMeshComponent->SetHiddenInGame(false);
+		TargetingPreviewMeshComponent->SetVisibility(true);
+
+		OwnerActor->AddInstanceComponent(TargetingPreviewMeshComponent);
+		TargetingPreviewMeshComponent->RegisterComponent();
 	}
 
-	TargetingDecalComponent->SetDecalMaterial(DecalMaterial);
-	TargetingDecalComponent->DecalSize = DecalSize;
-	TargetingDecalComponent->SetWorldLocation(DecalLocation);
-	TargetingDecalComponent->SetWorldRotation(DecalRotation);
-	TargetingDecalComponent->SetHiddenInGame(false);
-	TargetingDecalComponent->SetVisibility(true);
+	const FVector PreviewNormal = HoverContext.WorldNormal.IsNearlyZero()
+		? FVector::UpVector
+		: HoverContext.WorldNormal.GetSafeNormal();
+
+	const float GroundOffset = PendingOrderDefinition
+		? PendingOrderDefinition->TargetingPreview.GroundOffset
+		: 4.0f;
+
+	const FVector PreviewLocation = HoverContext.WorldLocation + PreviewNormal * GroundOffset;
+
+	TargetingPreviewMeshComponent->SetStaticMesh(PreviewMesh);
+	TargetingPreviewMeshComponent->SetMaterial(0, PreviewMaterial);
+	TargetingPreviewMeshComponent->SetWorldLocation(PreviewLocation);
+	TargetingPreviewMeshComponent->SetWorldRotation(GetPreviewRotationForPendingOrder(PreviewLocation));
+	TargetingPreviewMeshComponent->SetWorldScale3D(GetPreviewScaleForPendingOrder());
+	TargetingPreviewMeshComponent->SetHiddenInGame(false);
+	TargetingPreviewMeshComponent->SetVisibility(true);
 }
 
-void UTCFRTSOrderTargetingComponent::HideDecal() const
+void UTCFRTSOrderTargetingComponent::HidePreview() const
 {
-	if (TargetingDecalComponent)
+	if (TargetingPreviewMeshComponent)
 	{
-		TargetingDecalComponent->SetVisibility(false);
+		TargetingPreviewMeshComponent->SetVisibility(false);
 	}
 }
 
-void UTCFRTSOrderTargetingComponent::DestroyDecal()
+void UTCFRTSOrderTargetingComponent::DestroyPreview()
 {
-	if (TargetingDecalComponent)
+	if (TargetingPreviewMeshComponent)
 	{
-		TargetingDecalComponent->DestroyComponent();
-		TargetingDecalComponent = nullptr;
+		TargetingPreviewMeshComponent->DestroyComponent();
+		TargetingPreviewMeshComponent = nullptr;
 	}
 }
 
-FVector UTCFRTSOrderTargetingComponent::GetDecalSizeForPendingOrder() const
+FVector UTCFRTSOrderTargetingComponent::GetPreviewScaleForPendingOrder() const
 {
 	if (!PendingOrderDefinition)
 	{
-		return FVector(48.0f, 256.0f, 256.0f);
+		return FVector(1.0f);
 	}
 
-	const FTCFOrderTargetingDecalConfig& DecalConfig = PendingOrderDefinition->TargetingDecal;
+	const FTCFOrderTargetingPreviewConfig& PreviewConfig = PendingOrderDefinition->TargetingPreview;
 
-	if (DecalConfig.bScaleToOrderRadius)
+	if (PreviewConfig.bScaleToOrderRadius)
 	{
 		const float Radius = FMath::Max(
-			DecalConfig.MinimumRadius,
+			PreviewConfig.MinimumRadius,
 			PendingOrderDefinition->Targeting.Radius);
 
-		return FVector(
-			DecalConfig.DecalSize.X,
-			Radius * 2.0f,
-			Radius * 2.0f);
+		// Assumes a default UE plane mesh that is 100x100 units.
+		const float Diameter = Radius * 2.0f;
+		const float PlaneBaseSize = 100.0f;
+		const float UniformScale = Diameter / PlaneBaseSize;
+
+		return FVector(UniformScale, UniformScale, 1.0f);
 	}
 
-	return DecalConfig.DecalSize;
+	// Also assumes a default 100x100 plane.
+	const float PlaneBaseSize = 100.0f;
+	return FVector(
+		PreviewConfig.PreviewSize.Y / PlaneBaseSize,
+		PreviewConfig.PreviewSize.Z / PlaneBaseSize,
+		1.0f);
 }
 
-UMaterialInterface* UTCFRTSOrderTargetingComponent::ResolveDecalMaterial() const
+UStaticMesh* UTCFRTSOrderTargetingComponent::ResolvePreviewMesh() const
+{
+	if (PendingOrderDefinition && !PendingOrderDefinition->TargetingPreview.PreviewMesh.IsNull())
+	{
+		return PendingOrderDefinition->TargetingPreview.PreviewMesh.LoadSynchronous();
+	}
+
+	return DefaultPreviewMesh.LoadSynchronous();
+}
+
+UMaterialInterface* UTCFRTSOrderTargetingComponent::ResolvePreviewMaterial() const
+{
+	if (PendingOrderDefinition && !PendingOrderDefinition->TargetingPreview.PreviewMaterial.IsNull())
+	{
+		return PendingOrderDefinition->TargetingPreview.PreviewMaterial.LoadSynchronous();
+	}
+
+	return DefaultPreviewMaterial.LoadSynchronous();
+}
+
+FRotator UTCFRTSOrderTargetingComponent::GetPreviewRotationForPendingOrder(const FVector& PreviewLocation) const
 {
 	if (!PendingOrderDefinition)
 	{
-		return DefaultDecalMaterial.LoadSynchronous();
+		return FRotator::ZeroRotator;
 	}
 
-	if (!PendingOrderDefinition->TargetingDecal.DecalMaterial.IsNull())
+	if (PendingOrderDefinition->Targeting.TargetType != ETCFOrderTargetType::Direction)
 	{
-		return PendingOrderDefinition->TargetingDecal.DecalMaterial.LoadSynchronous();
+		return FRotator::ZeroRotator;
 	}
 
-	return DefaultDecalMaterial.LoadSynchronous();
+	if (!SelectionComponent)
+	{
+		return FRotator::ZeroRotator;
+	}
+
+	const AActor* PrimarySelectedActor = SelectionComponent->GetPrimarySelectedSquad();
+	if (!PrimarySelectedActor)
+	{
+		return FRotator::ZeroRotator;
+	}
+
+	FVector Direction = PreviewLocation - PrimarySelectedActor->GetActorLocation();
+	Direction.Z = 0.0f;
+
+	if (Direction.IsNearlyZero())
+	{
+		return FRotator::ZeroRotator;
+	}
+
+	return Direction.Rotation();
 }

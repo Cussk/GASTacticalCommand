@@ -8,7 +8,6 @@
 #include "TCFRTSOrderTargetingComponent.generated.h"
 
 class APlayerController;
-class UDecalComponent;
 class UMaterialInterface;
 class UTCFOrderDefinition;
 class UTCFPlayerOrderComponent;
@@ -63,10 +62,13 @@ protected:
 		FActorComponentTickFunction* ThisTickFunction) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Order Targeting")
-	TSoftObjectPtr<UMaterialInterface> DefaultDecalMaterial;
+	TSoftObjectPtr<UStaticMesh> DefaultPreviewMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Order Targeting")
-	bool bShowInvalidLocationDecal = true;
+	TSoftObjectPtr<UMaterialInterface> DefaultPreviewMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Order Targeting")
+	bool bShowInvalidLocationPreview = true;
 
 private:
 	UPROPERTY()
@@ -85,7 +87,7 @@ private:
 	TObjectPtr<UTCFOrderDefinition> PendingOrderDefinition;
 
 	UPROPERTY()
-	TObjectPtr<UDecalComponent> TargetingDecalComponent;
+	TObjectPtr<UStaticMeshComponent> TargetingPreviewMeshComponent;
 
 	bool bCurrentTargetValid = false;
 
@@ -102,10 +104,12 @@ private:
 	bool IsDirectionTargetValid() const;
 	bool IsAreaTargetValid() const;
 
-	void CreateOrUpdateDecal();
-	void HideDecal() const;
-	void DestroyDecal();
+	void CreateOrUpdatePreview();
+	void HidePreview() const;
+	void DestroyPreview();
 
-	FVector GetDecalSizeForPendingOrder() const;
-	UMaterialInterface* ResolveDecalMaterial() const;
+	FVector GetPreviewScaleForPendingOrder() const;
+	UStaticMesh* ResolvePreviewMesh() const;
+	UMaterialInterface* ResolvePreviewMaterial() const;
+	FRotator GetPreviewRotationForPendingOrder(const FVector& PreviewLocation) const;
 };

@@ -65,5 +65,13 @@ private:
 	void GetSquadsInsideSelectionBox(TArray<ATCFSquadActor*>& OutSquads) const;
 	bool IsSquadInsideSelectionBox(const ATCFSquadActor& Squad) const;
 	
+	bool GetSelectionScreenBounds(FVector2D& OutMinScreenPosition, FVector2D& OutMaxScreenPosition) const;
+	bool GetActorScreenBounds(const AActor& Actor, FVector2D& OutMinScreenPosition, FVector2D& OutMaxScreenPosition) const;
+	static bool DoScreenRectanglesOverlap(
+		const FVector2D& AMin,
+		const FVector2D& AMax,
+		const FVector2D& BMin,
+		const FVector2D& BMax);
+	
 	void CreateSelectionBoxWidget();
 };

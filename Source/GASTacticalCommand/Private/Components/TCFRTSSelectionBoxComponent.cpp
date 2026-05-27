@@ -181,34 +181,111 @@ void UTCFRTSSelectionBoxComponent::GetSquadsInsideSelectionBox(TArray<ATCFSquadA
 
 bool UTCFRTSSelectionBoxComponent::IsSquadInsideSelectionBox(const ATCFSquadActor& Squad) const
 {
-	if (!PlayerController)
+	FVector2D SelectionMin;
+	FVector2D SelectionMax;
+	if (!GetSelectionScreenBounds(SelectionMin, SelectionMax))
 	{
 		return false;
 	}
 
+	FVector2D SquadMin;
+	FVector2D SquadMax;
+	if (!GetActorScreenBounds(Squad, SquadMin, SquadMax))
+	{
+		return false;
+	}
+
+	return DoScreenRectanglesOverlap(
+		SelectionMin,
+		SelectionMax,
+		SquadMin,
+		SquadMax);
+}
+
+bool UTCFRTSSelectionBoxComponent::GetSelectionScreenBounds(
+	FVector2D& OutMinScreenPosition,
+	FVector2D& OutMaxScreenPosition) const
+{
 	FVector2D CurrentMousePosition;
 	const FVector2D BoxEnd = TryGetMouseScreenPosition(CurrentMousePosition)
 		? CurrentMousePosition
 		: DragEndScreenPosition;
 
-	const FVector2D MinScreenPosition(
+	OutMinScreenPosition = FVector2D(
 		FMath::Min(DragStartScreenPosition.X, BoxEnd.X),
 		FMath::Min(DragStartScreenPosition.Y, BoxEnd.Y));
 
-	const FVector2D MaxScreenPosition(
+	OutMaxScreenPosition = FVector2D(
 		FMath::Max(DragStartScreenPosition.X, BoxEnd.X),
 		FMath::Max(DragStartScreenPosition.Y, BoxEnd.Y));
 
-	FVector2D SquadScreenPosition;
-	if (!PlayerController->ProjectWorldLocationToScreen(Squad.GetActorLocation(), SquadScreenPosition))
+	return OutMaxScreenPosition.X > OutMinScreenPosition.X
+		&& OutMaxScreenPosition.Y > OutMinScreenPosition.Y;
+}
+
+bool UTCFRTSSelectionBoxComponent::GetActorScreenBounds(
+	const AActor& Actor,
+	FVector2D& OutMinScreenPosition,
+	FVector2D& OutMaxScreenPosition) const
+{
+	if (!PlayerController)
 	{
 		return false;
 	}
 
-	return SquadScreenPosition.X >= MinScreenPosition.X
-		&& SquadScreenPosition.X <= MaxScreenPosition.X
-		&& SquadScreenPosition.Y >= MinScreenPosition.Y
-		&& SquadScreenPosition.Y <= MaxScreenPosition.Y;
+	FVector Origin;
+	FVector BoxExtent;
+	Actor.GetActorBounds(false, Origin, BoxExtent);
+
+	const FVector Corners[8] =
+	{
+		Origin + FVector( BoxExtent.X,  BoxExtent.Y,  BoxExtent.Z),
+		Origin + FVector( BoxExtent.X,  BoxExtent.Y, -BoxExtent.Z),
+		Origin + FVector( BoxExtent.X, -BoxExtent.Y,  BoxExtent.Z),
+		Origin + FVector( BoxExtent.X, -BoxExtent.Y, -BoxExtent.Z),
+		Origin + FVector(-BoxExtent.X,  BoxExtent.Y,  BoxExtent.Z),
+		Origin + FVector(-BoxExtent.X,  BoxExtent.Y, -BoxExtent.Z),
+		Origin + FVector(-BoxExtent.X, -BoxExtent.Y,  BoxExtent.Z),
+		Origin + FVector(-BoxExtent.X, -BoxExtent.Y, -BoxExtent.Z)
+	};
+
+	bool bProjectedAnyCorner = false;
+
+	OutMinScreenPosition = FVector2D(TNumericLimits<float>::Max(), TNumericLimits<float>::Max());
+	OutMaxScreenPosition = FVector2D(TNumericLimits<float>::Lowest(), TNumericLimits<float>::Lowest());
+
+	for (const FVector& Corner : Corners)
+	{
+		FVector2D ScreenPosition;
+		if (!PlayerController->ProjectWorldLocationToScreen(Corner, ScreenPosition))
+		{
+			continue;
+		}
+
+		bProjectedAnyCorner = true;
+
+		OutMinScreenPosition.X = FMath::Min(OutMinScreenPosition.X, ScreenPosition.X);
+		OutMinScreenPosition.Y = FMath::Min(OutMinScreenPosition.Y, ScreenPosition.Y);
+
+		OutMaxScreenPosition.X = FMath::Max(OutMaxScreenPosition.X, ScreenPosition.X);
+		OutMaxScreenPosition.Y = FMath::Max(OutMaxScreenPosition.Y, ScreenPosition.Y);
+	}
+
+	return bProjectedAnyCorner
+		&& OutMaxScreenPosition.X > OutMinScreenPosition.X
+		&& OutMaxScreenPosition.Y > OutMinScreenPosition.Y;
+}
+
+bool UTCFRTSSelectionBoxComponent::DoScreenRectanglesOverlap(
+	const FVector2D& AMin,
+	const FVector2D& AMax,
+	const FVector2D& BMin,
+	const FVector2D& BMax)
+{
+	return AMin.X <= BMax.X
+		&& AMax.X >= BMin.X
+		&& AMin.Y <= BMax.Y
+		&& AMax.Y >= BMin.Y;
 }
 
 void UTCFRTSSelectionBoxComponent::CreateSelectionBoxWidget()

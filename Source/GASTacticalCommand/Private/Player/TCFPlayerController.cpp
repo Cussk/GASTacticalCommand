@@ -11,6 +11,7 @@
 #include "Engine/HitResult.h"
 #include "InputAction.h"
 #include "InputActionValue.h"
+#include "Components/TCFRTSCommandRouterComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Player/TCFRTSCameraPawn.h"
 
@@ -25,6 +26,7 @@ ATCFPlayerController::ATCFPlayerController()
 	PlayerMovementCommandComponent = CreateDefaultSubobject<UTCFPlayerMovementCommandComponent>(TEXT("PlayerMovementCommandComponent"));
 	PlayerOrderComponent = CreateDefaultSubobject<UTCFPlayerOrderComponent>(TEXT("PlayerOrderComponent"));
 	RTSHoverContextComponent = CreateDefaultSubobject<UTCFRTSHoverContextComponent>(TEXT("RTSHoverContextComponent"));
+	RTSCommandRouterComponent = CreateDefaultSubobject<UTCFRTSCommandRouterComponent>(TEXT("RTSCommandRouterComponent"));
 }
 
 UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const
@@ -50,6 +52,11 @@ UTCFPlayerOrderComponent* ATCFPlayerController::GetPlayerOrderComponent() const
 UTCFRTSHoverContextComponent* ATCFPlayerController::GetRTSHoverContextComponent() const
 {
 	return RTSHoverContextComponent;
+}
+
+UTCFRTSCommandRouterComponent* ATCFPlayerController::GetRTSCommandRouterComponent() const
+{
+	return RTSCommandRouterComponent;
 }
 
 void ATCFPlayerController::BeginPlay()
@@ -162,18 +169,10 @@ void ATCFPlayerController::HandleSelectCompleted(const FInputActionValue& Value)
 
 void ATCFPlayerController::HandleCommandStarted(const FInputActionValue& Value)
 {
-	if (!PlayerMovementCommandComponent)
+	if (RTSCommandRouterComponent)
 	{
-		return;
+		RTSCommandRouterComponent->ExecutePrimaryCommand();
 	}
-
-	FHitResult HitResult;
-	if (!GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
-	{
-		return;
-	}
-
-	PlayerMovementCommandComponent->MoveSelectedSquadsToLocation(HitResult.Location);
 }
 
 void ATCFPlayerController::HandleAppendSelectionStarted(const FInputActionValue& Value)

@@ -32,6 +32,18 @@ enum class ETCFRTSCursorState : uint8
 	InvalidTarget
 };
 
+UENUM(BlueprintType)
+enum class ETCFRTSCommandIntentType : uint8
+{
+	None,
+	Move,
+	AttackTarget,
+	CapturePointMove,
+	GatherResource,
+	ProductionBuildingInteraction,
+	Invalid
+};
+
 USTRUCT(BlueprintType)
 struct FTCFRTSHoverContext
 {
@@ -60,4 +72,34 @@ struct FTCFRTSHoverContext
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Hover")
 	bool bHasPrimarySelection = false;
+};
+
+USTRUCT(BlueprintType)
+struct FTCFRTSCommandIntent
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Command")
+	ETCFRTSCommandIntentType IntentType = ETCFRTSCommandIntentType::None;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Command")
+	ETCFRTSHoverTargetType TargetType = ETCFRTSHoverTargetType::None;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Command")
+	ETCFRTSCursorState CursorState = ETCFRTSCursorState::Default;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Command")
+	TObjectPtr<AActor> TargetActor = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Command")
+	FVector TargetLocation = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Command")
+	ETCFSquadRelationship RelationshipToPrimarySelection = ETCFSquadRelationship::Neutral;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Command")
+	int32 SelectedSquadCount = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Command")
+	bool bWasExecuted = false;
 };

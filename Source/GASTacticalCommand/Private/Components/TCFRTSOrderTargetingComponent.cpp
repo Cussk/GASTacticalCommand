@@ -8,6 +8,7 @@
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Data/TCFOrderDefinition.h"
+#include "Engine/StaticMeshActor.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInterface.h"
@@ -32,6 +33,13 @@ void UTCFRTSOrderTargetingComponent::BeginPlay()
 		PlayerOrderComponent = OwnerActor->FindComponentByClass<UTCFPlayerOrderComponent>();
 		HoverContextComponent = OwnerActor->FindComponentByClass<UTCFRTSHoverContextComponent>();
 	}
+}
+
+void UTCFRTSOrderTargetingComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	DestroyPreview();
+
+	Super::EndPlay(EndPlayReason);
 }
 
 bool UTCFRTSOrderTargetingComponent::BeginOrderTargeting(UTCFOrderDefinition* OrderDefinition)
@@ -227,6 +235,8 @@ bool UTCFRTSOrderTargetingComponent::BuildTargetFromHover(FTCFOrderTarget& OutTa
 	OutTarget.TargetType = PendingOrderDefinition->Targeting.TargetType;
 	OutTarget.Radius = PendingOrderDefinition->Targeting.Radius;
 	OutTarget.ConeAngleDegrees = PendingOrderDefinition->Targeting.ConeAngleDegrees;
+	
+	FHitResult GroundHit;
 
 	switch (PendingOrderDefinition->Targeting.TargetType)
 	{
@@ -242,24 +252,24 @@ bool UTCFRTSOrderTargetingComponent::BuildTargetFromHover(FTCFOrderTarget& OutTa
 
 	case ETCFOrderTargetType::Location:
 	case ETCFOrderTargetType::Area:
-		if (!HoverContext.bHasHit)
+		if (!TraceGroundPreview(GroundHit))
 		{
 			return false;
 		}
 
-		OutTarget.TargetLocation = HoverContext.WorldLocation;
+		OutTarget.TargetLocation = GroundHit.ImpactPoint;
 		return true;
 
 	case ETCFOrderTargetType::Direction:
-		if (!HoverContext.bHasHit || !SelectionComponent)
+		if (!TraceGroundPreview(GroundHit) || !SelectionComponent)
 		{
 			return false;
 		}
 
 		if (const AActor* PrimarySelectedActor = SelectionComponent->GetPrimarySelectedSquad())
 		{
-			OutTarget.TargetLocation = HoverContext.WorldLocation;
-			OutTarget.TargetDirection = (HoverContext.WorldLocation - PrimarySelectedActor->GetActorLocation()).GetSafeNormal();
+			OutTarget.TargetLocation = GroundHit.ImpactPoint;
+			OutTarget.TargetDirection = (GroundHit.ImpactPoint - PrimarySelectedActor->GetActorLocation()).GetSafeNormal();
 			return !OutTarget.TargetDirection.IsNearlyZero();
 		}
 
@@ -325,22 +335,22 @@ bool UTCFRTSOrderTargetingComponent::IsActorTargetValid() const
 
 bool UTCFRTSOrderTargetingComponent::IsLocationTargetValid() const
 {
-	const FTCFRTSHoverContext& HoverContext = HoverContextComponent->GetCurrentHoverContext();
-	return HoverContext.bHasHit;
-}
-
-bool UTCFRTSOrderTargetingComponent::IsDirectionTargetValid() const
-{
-	const FTCFRTSHoverContext& HoverContext = HoverContextComponent->GetCurrentHoverContext();
-	return HoverContext.bHasHit
-		&& SelectionComponent
-		&& IsValid(SelectionComponent->GetPrimarySelectedSquad());
+	FHitResult GroundHit;
+	return TraceGroundPreview(GroundHit);
 }
 
 bool UTCFRTSOrderTargetingComponent::IsAreaTargetValid() const
 {
-	const FTCFRTSHoverContext& HoverContext = HoverContextComponent->GetCurrentHoverContext();
-	return HoverContext.bHasHit;
+	FHitResult GroundHit;
+	return TraceGroundPreview(GroundHit);
+}
+
+bool UTCFRTSOrderTargetingComponent::IsDirectionTargetValid() const
+{
+	FHitResult GroundHit;
+	return TraceGroundPreview(GroundHit)
+		&& SelectionComponent
+		&& IsValid(SelectionComponent->GetPrimarySelectedSquad());
 }
 
 void UTCFRTSOrderTargetingComponent::CreateOrUpdatePreview()
@@ -350,8 +360,8 @@ void UTCFRTSOrderTargetingComponent::CreateOrUpdatePreview()
 		return;
 	}
 
-	const FTCFRTSHoverContext& HoverContext = HoverContextComponent->GetCurrentHoverContext();
-	if (!HoverContext.bHasHit)
+	FHitResult GroundHit;
+	if (!TraceGroundPreview(GroundHit))
 	{
 		HidePreview();
 		return;
@@ -366,71 +376,83 @@ void UTCFRTSOrderTargetingComponent::CreateOrUpdatePreview()
 		return;
 	}
 
-	if (!TargetingPreviewMeshComponent)
-	{
-		AActor* OwnerActor = GetOwner();
-		if (!OwnerActor)
-		{
-			return;
-		}
-
-		TargetingPreviewMeshComponent = NewObject<UStaticMeshComponent>(
-			OwnerActor,
-			TEXT("OrderTargetingPreviewMesh"));
-
-		if (!TargetingPreviewMeshComponent)
-		{
-			return;
-		}
-
-		TargetingPreviewMeshComponent->CreationMethod = EComponentCreationMethod::Instance;
-		TargetingPreviewMeshComponent->SetMobility(EComponentMobility::Movable);
-		TargetingPreviewMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		TargetingPreviewMeshComponent->SetGenerateOverlapEvents(false);
-		TargetingPreviewMeshComponent->SetCastShadow(false);
-		TargetingPreviewMeshComponent->bReceivesDecals = false;
-		TargetingPreviewMeshComponent->SetAbsolute(true, true, true);
-		TargetingPreviewMeshComponent->SetTranslucentSortPriority(10);
-		TargetingPreviewMeshComponent->SetHiddenInGame(false);
-		TargetingPreviewMeshComponent->SetVisibility(true);
-
-		OwnerActor->AddInstanceComponent(TargetingPreviewMeshComponent);
-		TargetingPreviewMeshComponent->RegisterComponent();
-	}
-
-	const FVector PreviewNormal = HoverContext.WorldNormal.IsNearlyZero()
-		? FVector::UpVector
-		: HoverContext.WorldNormal.GetSafeNormal();
+	const FVector PreviewNormal = GroundHit.ImpactNormal.IsNearlyZero()
+	? FVector::UpVector
+	: GroundHit.ImpactNormal.GetSafeNormal();
 
 	const float GroundOffset = PendingOrderDefinition
 		? PendingOrderDefinition->TargetingPreview.GroundOffset
 		: 4.0f;
 
-	const FVector PreviewLocation = HoverContext.WorldLocation + PreviewNormal * GroundOffset;
+	const FVector PreviewLocation = GroundHit.ImpactPoint + PreviewNormal * GroundOffset;
+	const FRotator PreviewRotation = GetPreviewRotationForPendingOrder(PreviewLocation);
+	const FVector PreviewScale = GetPreviewScaleForPendingOrder();
 
-	TargetingPreviewMeshComponent->SetStaticMesh(PreviewMesh);
-	TargetingPreviewMeshComponent->SetMaterial(0, PreviewMaterial);
-	TargetingPreviewMeshComponent->SetWorldLocation(PreviewLocation);
-	TargetingPreviewMeshComponent->SetWorldRotation(GetPreviewRotationForPendingOrder(PreviewLocation));
-	TargetingPreviewMeshComponent->SetWorldScale3D(GetPreviewScaleForPendingOrder());
-	TargetingPreviewMeshComponent->SetHiddenInGame(false);
-	TargetingPreviewMeshComponent->SetVisibility(true);
+	if (!TargetingPreviewActor)
+	{
+		UWorld* World = GetWorld();
+		if (!World)
+		{
+			return;
+		}
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.ObjectFlags |= RF_Transient;
+
+		TargetingPreviewActor = World->SpawnActor<AStaticMeshActor>(
+			AStaticMeshActor::StaticClass(),
+			PreviewLocation,
+			PreviewRotation,
+			SpawnParams);
+
+		if (!TargetingPreviewActor)
+		{
+			return;
+		}
+
+		TargetingPreviewActor->SetActorEnableCollision(false);
+		TargetingPreviewActor->SetActorHiddenInGame(false);
+	}
+
+	UStaticMeshComponent* PreviewMeshComponent = TargetingPreviewActor->GetStaticMeshComponent();
+	if (!PreviewMeshComponent)
+	{
+		HidePreview();
+		return;
+	}
+
+	PreviewMeshComponent->SetMobility(EComponentMobility::Movable);
+	PreviewMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PreviewMeshComponent->SetGenerateOverlapEvents(false);
+	PreviewMeshComponent->SetCastShadow(false);
+	PreviewMeshComponent->bReceivesDecals = false;
+	PreviewMeshComponent->SetVisibility(true);
+	PreviewMeshComponent->SetHiddenInGame(false);
+	PreviewMeshComponent->SetStaticMesh(PreviewMesh);
+	PreviewMeshComponent->SetMaterial(0, PreviewMaterial);
+
+	TargetingPreviewActor->SetActorLocation(PreviewLocation);
+	TargetingPreviewActor->SetActorRotation(PreviewRotation);
+	TargetingPreviewActor->SetActorScale3D(PreviewScale);
+	TargetingPreviewActor->SetActorHiddenInGame(false);
 }
 
 void UTCFRTSOrderTargetingComponent::HidePreview() const
 {
-	if (TargetingPreviewMeshComponent)
+	if (TargetingPreviewActor)
 	{
-		TargetingPreviewMeshComponent->SetVisibility(false);
+		TargetingPreviewActor->SetActorHiddenInGame(true);
 	}
 }
 
 void UTCFRTSOrderTargetingComponent::DestroyPreview()
 {
-	if (TargetingPreviewMeshComponent)
+	if (TargetingPreviewActor)
 	{
-		TargetingPreviewMeshComponent->DestroyComponent();
-		TargetingPreviewMeshComponent = nullptr;
+		TargetingPreviewActor->Destroy();
+		TargetingPreviewActor = nullptr;
 	}
 }
 
@@ -451,14 +473,14 @@ FVector UTCFRTSOrderTargetingComponent::GetPreviewScaleForPendingOrder() const
 
 		// Assumes a default UE plane mesh that is 100x100 units.
 		const float Diameter = Radius * 2.0f;
-		const float PlaneBaseSize = 100.0f;
+		constexpr float PlaneBaseSize = 100.0f;
 		const float UniformScale = Diameter / PlaneBaseSize;
 
 		return FVector(UniformScale, UniformScale, 1.0f);
 	}
 
 	// Also assumes a default 100x100 plane.
-	const float PlaneBaseSize = 100.0f;
+	constexpr float PlaneBaseSize = 100.0f;
 	return FVector(
 		PreviewConfig.PreviewSize.Y / PlaneBaseSize,
 		PreviewConfig.PreviewSize.Z / PlaneBaseSize,
@@ -530,4 +552,34 @@ FRotator UTCFRTSOrderTargetingComponent::GetPreviewRotationForPendingOrder(const
 	}
 
 	return Direction.Rotation();
+}
+
+bool UTCFRTSOrderTargetingComponent::TraceGroundPreview(FHitResult& OutHitResult) const
+{
+	if (!PlayerController)
+	{
+		return false;
+	}
+
+	FVector WorldOrigin;
+	FVector WorldDirection;
+	if (!PlayerController->DeprojectMousePositionToWorld(WorldOrigin, WorldDirection))
+	{
+		return false;
+	}
+
+	const FVector TraceStart = WorldOrigin;
+	const FVector TraceEnd = TraceStart + WorldDirection * GroundPreviewTraceDistance;
+
+	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(TCFOrderTargetingGroundPreviewTrace), false);
+	QueryParams.bReturnPhysicalMaterial = false;
+	QueryParams.AddIgnoredActor(PlayerController);
+	QueryParams.AddIgnoredActor(GetOwner());
+
+	return GetWorld()->LineTraceSingleByChannel(
+		OutHitResult,
+		TraceStart,
+		TraceEnd,
+		GroundPreviewTraceChannel,
+		QueryParams);
 }

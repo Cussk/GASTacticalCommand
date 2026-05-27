@@ -55,6 +55,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	virtual void TickComponent(
 		float DeltaTime,
@@ -69,6 +70,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Order Targeting")
 	bool bShowInvalidLocationPreview = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Order Targeting")
+	TEnumAsByte<ECollisionChannel> GroundPreviewTraceChannel = ECC_WorldStatic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Order Targeting", meta = (ClampMin = "1000.0"))
+	float GroundPreviewTraceDistance = 100000.0f;
 
 private:
 	UPROPERTY()
@@ -87,7 +94,7 @@ private:
 	TObjectPtr<UTCFOrderDefinition> PendingOrderDefinition;
 
 	UPROPERTY()
-	TObjectPtr<UStaticMeshComponent> TargetingPreviewMeshComponent;
+	TObjectPtr<AStaticMeshActor> TargetingPreviewActor;
 
 	bool bCurrentTargetValid = false;
 
@@ -112,4 +119,6 @@ private:
 	UStaticMesh* ResolvePreviewMesh() const;
 	UMaterialInterface* ResolvePreviewMaterial() const;
 	FRotator GetPreviewRotationForPendingOrder(const FVector& PreviewLocation) const;
+	
+	bool TraceGroundPreview(FHitResult& OutHitResult) const;
 };

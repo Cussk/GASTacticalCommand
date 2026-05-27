@@ -103,3 +103,25 @@ struct FTCFRTSCommandIntent
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|RTS Command")
 	bool bWasExecuted = false;
 };
+
+USTRUCT(BlueprintType)
+struct FTCFRTSCursorVisual
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
+	ETCFRTSCursorState CursorState = ETCFRTSCursorState::Default;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
+	TObjectPtr<UTexture2D> CursorTexture = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
+	FVector2D DrawSize = FVector2D(64.0f, 64.0f);
+
+	// Pixel offset from the top-left of the drawn image to the actual click point.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
+	FVector2D HotSpot = FVector2D(16.0f, 16.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
+	FLinearColor Tint = FLinearColor::White;
+};

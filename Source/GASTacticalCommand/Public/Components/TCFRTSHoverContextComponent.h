@@ -11,6 +11,7 @@ class APlayerController;
 class ATCFSquadActor;
 class UTCFPlayerSelectionComponent;
 class UTCFRelationshipSubsystem;
+class UTCFRTSCursorWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTCFRTSHoverContextChanged, const FTCFRTSHoverContext&, NewHoverContext);
 
@@ -80,6 +81,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
 	TEnumAsByte<EMouseCursor::Type> InvalidTargetCursor = EMouseCursor::SlashedCircle;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|RTS Cursor")
+	bool bUseCustomCursorWidget = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|RTS Cursor", meta = (EditCondition = "bUseCustomCursorWidget"))
+	TSubclassOf<UTCFRTSCursorWidget> CursorWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UTCFRTSCursorWidget> CursorWidget;
 
 private:
 	UPROPERTY()
@@ -106,4 +116,6 @@ private:
 	EMouseCursor::Type GetMouseCursorForState(ETCFRTSCursorState CursorState) const;
 
 	bool AreHoverContextsEquivalent(const FTCFRTSHoverContext& A, const FTCFRTSHoverContext& B) const;
+	
+	void CreateCursorWidget();
 };

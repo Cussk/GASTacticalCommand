@@ -7,6 +7,7 @@
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Subsystems/TCFRelationshipSubsystem.h"
+#include "UI/TCFRTSCursorWidget.h"
 
 UTCFRTSHoverContextComponent::UTCFRTSHoverContextComponent()
 {
@@ -14,6 +15,8 @@ UTCFRTSHoverContextComponent::UTCFRTSHoverContextComponent()
 	PrimaryComponentTick.bStartWithTickEnabled = true;
 
 	SetIsReplicatedByDefault(false);
+	
+	CursorWidgetClass = UTCFRTSCursorWidget::StaticClass();
 }
 
 void UTCFRTSHoverContextComponent::BeginPlay()
@@ -29,7 +32,8 @@ void UTCFRTSHoverContextComponent::BeginPlay()
 	RelationshipSubsystem = GetWorld()
 		? GetWorld()->GetSubsystem<UTCFRelationshipSubsystem>()
 		: nullptr;
-
+	
+	CreateCursorWidget();
 	ForceRefreshHoverContext();
 }
 
@@ -225,6 +229,12 @@ void UTCFRTSHoverContextComponent::ApplyCursorState(ETCFRTSCursorState CursorSta
 		return;
 	}
 
+	if (bUseCustomCursorWidget && CursorWidget)
+	{
+		PlayerController->CurrentMouseCursor = EMouseCursor::None;
+		return;
+	}
+
 	PlayerController->CurrentMouseCursor = GetMouseCursorForState(CursorState);
 }
 
@@ -273,3 +283,23 @@ bool UTCFRTSHoverContextComponent::AreHoverContextsEquivalent(
 		&& A.RelationshipToPrimarySelection == B.RelationshipToPrimarySelection
 		&& A.bHasPrimarySelection == B.bHasPrimarySelection;
 }
+
+void UTCFRTSHoverContextComponent::CreateCursorWidget()
+{
+	if (!bUseCustomCursorWidget || CursorWidget || !CursorWidgetClass || !PlayerController)
+	{
+		return;
+	}
+
+	CursorWidget = CreateWidget<UTCFRTSCursorWidget>(PlayerController, CursorWidgetClass);
+	if (!CursorWidget)
+	{
+		return;
+	}
+
+	CursorWidget->InitializeCursorWidget(this);
+	CursorWidget->AddToViewport(20);
+
+	PlayerController->CurrentMouseCursor = EMouseCursor::None;
+}
+

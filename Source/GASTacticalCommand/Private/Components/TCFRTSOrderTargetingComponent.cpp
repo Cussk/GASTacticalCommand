@@ -384,11 +384,13 @@ void UTCFRTSOrderTargetingComponent::CreateOrUpdatePreview()
 		}
 
 		TargetingPreviewMeshComponent->CreationMethod = EComponentCreationMethod::Instance;
+		TargetingPreviewMeshComponent->SetMobility(EComponentMobility::Movable);
 		TargetingPreviewMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		TargetingPreviewMeshComponent->SetGenerateOverlapEvents(false);
 		TargetingPreviewMeshComponent->SetCastShadow(false);
 		TargetingPreviewMeshComponent->bReceivesDecals = false;
 		TargetingPreviewMeshComponent->SetAbsolute(true, true, true);
+		TargetingPreviewMeshComponent->SetTranslucentSortPriority(10);
 		TargetingPreviewMeshComponent->SetHiddenInGame(false);
 		TargetingPreviewMeshComponent->SetVisibility(true);
 
@@ -467,10 +469,23 @@ UStaticMesh* UTCFRTSOrderTargetingComponent::ResolvePreviewMesh() const
 {
 	if (PendingOrderDefinition && !PendingOrderDefinition->TargetingPreview.PreviewMesh.IsNull())
 	{
-		return PendingOrderDefinition->TargetingPreview.PreviewMesh.LoadSynchronous();
+		if (UStaticMesh* OrderPreviewMesh = PendingOrderDefinition->TargetingPreview.PreviewMesh.LoadSynchronous())
+		{
+			return OrderPreviewMesh;
+		}
 	}
 
-	return DefaultPreviewMesh.LoadSynchronous();
+	if (!DefaultPreviewMesh.IsNull())
+	{
+		if (UStaticMesh* DefaultMesh = DefaultPreviewMesh.LoadSynchronous())
+		{
+			return DefaultMesh;
+		}
+	}
+
+	return LoadObject<UStaticMesh>(
+		nullptr,
+		TEXT("/Engine/BasicShapes/Plane.Plane"));
 }
 
 UMaterialInterface* UTCFRTSOrderTargetingComponent::ResolvePreviewMaterial() const

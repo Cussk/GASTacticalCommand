@@ -25,12 +25,14 @@ namespace TCFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Doctrine_Utility, "Doctrine.Utility");
 
 	// Order Type
+	UE_DEFINE_GAMEPLAY_TAG(Order_Type_BasicAttack, "Order.Type.BasicAttack");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Type_SuppressiveFire, "Order.Type.SuppressiveFire");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Type_Rally, "Order.Type.Rally");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Type_FortifyPosition, "Order.Type.FortifyPosition");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Type_TacticalRetreat, "Order.Type.TacticalRetreat");
 	
 	// Order Cooldown
+	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_BasicAttack, "Order.Cooldown.BasicAttack");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_Rally, "Order.Cooldown.Rally");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_SuppressiveFire, "Order.Cooldown.SuppressiveFire");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_FortifyPosition, "Order.Cooldown.FortifyPosition");

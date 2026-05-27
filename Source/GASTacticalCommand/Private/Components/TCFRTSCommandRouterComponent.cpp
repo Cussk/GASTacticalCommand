@@ -2,7 +2,9 @@
 
 #include "Components/TCFRTSCommandRouterComponent.h"
 
+#include "TCFGameplayTags.h"
 #include "Components/TCFPlayerMovementCommandComponent.h"
+#include "Components/TCFPlayerOrderComponent.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
 
@@ -10,6 +12,8 @@ UTCFRTSCommandRouterComponent::UTCFRTSCommandRouterComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(false);
+	
+	BasicAttackOrderTag = TCFGameplayTags::Order_Type_BasicAttack;
 }
 
 void UTCFRTSCommandRouterComponent::BeginPlay()
@@ -25,6 +29,7 @@ void UTCFRTSCommandRouterComponent::BeginPlay()
 	SelectionComponent = OwnerActor->FindComponentByClass<UTCFPlayerSelectionComponent>();
 	MovementCommandComponent = OwnerActor->FindComponentByClass<UTCFPlayerMovementCommandComponent>();
 	HoverContextComponent = OwnerActor->FindComponentByClass<UTCFRTSHoverContextComponent>();
+	PlayerOrderComponent = OwnerActor->FindComponentByClass<UTCFPlayerOrderComponent>();
 }
 
 bool UTCFRTSCommandRouterComponent::ExecutePrimaryCommand()
@@ -90,8 +95,7 @@ bool UTCFRTSCommandRouterComponent::ExecuteCommandIntent(FTCFRTSCommandIntent& C
 		return MovementCommandComponent->MoveSelectedSquadsToLocation(CommandIntent.TargetLocation);
 
 	case ETCFRTSCommandIntentType::AttackTarget:
-		// V2.2 will consume this intent and activate Basic Attack for selected squads.
-		return false;
+		return ExecuteAttackTargetIntent(CommandIntent);
 
 	case ETCFRTSCommandIntentType::GatherResource:
 		// Worker gather command is a later V2 economy phase.
@@ -106,6 +110,25 @@ bool UTCFRTSCommandRouterComponent::ExecuteCommandIntent(FTCFRTSCommandIntent& C
 	default:
 		return false;
 	}
+}
+
+bool UTCFRTSCommandRouterComponent::ExecuteAttackTargetIntent(const FTCFRTSCommandIntent& CommandIntent) const
+{
+	if (!PlayerOrderComponent || !BasicAttackOrderTag.IsValid() || !IsValid(CommandIntent.TargetActor))
+	{
+		return false;
+	}
+
+	FTCFOrderTarget OrderTarget;
+	OrderTarget.TargetType = ETCFOrderTargetType::Actor;
+	OrderTarget.TargetActor = CommandIntent.TargetActor;
+	OrderTarget.TargetLocation = CommandIntent.TargetLocation;
+
+	TArray<FTCFOrderResult> Results;
+	return PlayerOrderComponent->SubmitSelectedSquadsOrder(
+		BasicAttackOrderTag,
+		OrderTarget,
+		Results);
 }
 
 ETCFRTSCommandIntentType UTCFRTSCommandRouterComponent::ResolveIntentType(const FTCFRTSHoverContext& HoverContext) const

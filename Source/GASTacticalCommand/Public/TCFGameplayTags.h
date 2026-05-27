@@ -27,12 +27,14 @@ namespace TCFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Doctrine_Utility);
 
 	// Order Type
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_BasicAttack);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_SuppressiveFire);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_Rally);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_FortifyPosition);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_TacticalRetreat);
 	
 	// Order Cooldown
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_BasicAttack);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_Rally);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_SuppressiveFire);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_FortifyPosition);

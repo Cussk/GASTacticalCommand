@@ -7,6 +7,8 @@
 #include "Types/TCFOrderTypes.h"
 #include "TCFPlayerOrderComponent.generated.h"
 
+class ATCFSquadActor;
+class UTCFOrderSubsystem;
 class UTCFPlayerSelectionComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTCFPlayerOrderSubmitted, FTCFSquadOrderRequest, Request, FTCFOrderResult, Result);
@@ -21,6 +23,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Orders")
 	bool SubmitSelectedSquadOrder(FGameplayTag OrderTag, const FTCFOrderTarget& Target, FTCFOrderResult& OutResult);
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Orders")
+	bool SubmitSelectedSquadsOrder(FGameplayTag OrderTag, const FTCFOrderTarget& Target, TArray<FTCFOrderResult>& OutResults);
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Orders")
 	FOnTCFPlayerOrderSubmitted OnOrderSubmitted;
@@ -34,6 +39,13 @@ private:
 
 	UPROPERTY(VisibleInstanceOnly, Category = "TCF|Orders")
 	int32 NextOrderSequence = 1;
+	
+	bool SubmitSquadOrder(
+	UTCFOrderSubsystem& OrderSubsystem,
+	ATCFSquadActor* SourceSquad,
+	FGameplayTag OrderTag,
+	const FTCFOrderTarget& Target,
+	FTCFOrderResult& OutResult);
 
 	UTCFPlayerSelectionComponent* FindSelectionComponent() const;
 };

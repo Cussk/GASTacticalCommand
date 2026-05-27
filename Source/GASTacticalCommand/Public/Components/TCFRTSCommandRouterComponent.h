@@ -7,6 +7,7 @@
 #include "Types/TCFRTSControlTypes.h"
 #include "TCFRTSCommandRouterComponent.generated.h"
 
+class UTCFPlayerOrderComponent;
 class UTCFPlayerMovementCommandComponent;
 class UTCFPlayerSelectionComponent;
 class UTCFRTSHoverContextComponent;
@@ -32,6 +33,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Command")
+	FGameplayTag BasicAttackOrderTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Command")
 	bool bMoveToCapturePointOnCommand = true;
@@ -45,11 +49,15 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UTCFRTSHoverContextComponent> HoverContextComponent;
+	
+	UPROPERTY()
+	TObjectPtr<UTCFPlayerOrderComponent> PlayerOrderComponent;
 
 	FTCFRTSCommandIntent LastCommandIntent;
 
 	FTCFRTSCommandIntent BuildCommandIntent() const;
 	bool ExecuteCommandIntent(FTCFRTSCommandIntent& CommandIntent) const;
+	bool ExecuteAttackTargetIntent(const FTCFRTSCommandIntent& CommandIntent) const;
 
 	ETCFRTSCommandIntentType ResolveIntentType(const FTCFRTSHoverContext& HoverContext) const;
 	FVector ResolveTargetLocation(const FTCFRTSHoverContext& HoverContext) const;

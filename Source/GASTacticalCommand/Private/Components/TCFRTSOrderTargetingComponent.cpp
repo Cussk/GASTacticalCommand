@@ -165,7 +165,7 @@ void UTCFRTSOrderTargetingComponent::RefreshTargetingPreview()
 	bCurrentTargetValid = IsHoverValidForPendingOrder();
 
 	RefreshCursorOverride();
-	RefreshDecal();
+	RefreshPreview();
 }
 
 void UTCFRTSOrderTargetingComponent::RefreshCursorOverride() const
@@ -181,7 +181,7 @@ void UTCFRTSOrderTargetingComponent::RefreshCursorOverride() const
 			: ETCFRTSCursorState::OrderTargetInvalid);
 }
 
-void UTCFRTSOrderTargetingComponent::RefreshDecal()
+void UTCFRTSOrderTargetingComponent::RefreshPreview()
 {
 	if (!PendingOrderDefinition || !PendingOrderDefinition->TargetingPreview.bShowPreview)
 	{

@@ -100,7 +100,7 @@ private:
 
 	void RefreshTargetingPreview();
 	void RefreshCursorOverride() const;
-	void RefreshDecal();
+	void RefreshPreview();
 
 	bool SubmitSelfOrder(const UTCFOrderDefinition& OrderDefinition) const;
 	bool BuildTargetFromHover(FTCFOrderTarget& OutTarget) const;

@@ -7,7 +7,7 @@
 #include "Types/TCFRTSControlTypes.h"
 #include "TCFRTSCommandRouterComponent.generated.h"
 
-class UTCFPlayerOrderComponent;
+class UTCFPlayerOrderSubmissionComponent;
 class UTCFPlayerMovementCommandComponent;
 class UTCFPlayerSelectionComponent;
 class UTCFRTSHoverContextComponent;
@@ -52,7 +52,7 @@ private:
 	TObjectPtr<UTCFRTSHoverContextComponent> HoverContextComponent;
 	
 	UPROPERTY()
-	TObjectPtr<UTCFPlayerOrderComponent> PlayerOrderComponent;
+	TObjectPtr<UTCFPlayerOrderSubmissionComponent> PlayerOrderComponent;
 	
 	UPROPERTY()
 	TObjectPtr<UTCFRTSOrderTargetingComponent> OrderTargetingComponent;
@@ -62,6 +62,8 @@ private:
 	FTCFRTSCommandIntent BuildCommandIntent() const;
 	bool ExecuteCommandIntent(FTCFRTSCommandIntent& CommandIntent) const;
 	bool ExecuteAttackTargetIntent(const FTCFRTSCommandIntent& CommandIntent) const;
+	
+	void StopSelectedSquadAttackCommands() const;
 
 	ETCFRTSCommandIntentType ResolveIntentType(const FTCFRTSHoverContext& HoverContext) const;
 	FVector ResolveTargetLocation(const FTCFRTSHoverContext& HoverContext) const;

@@ -3,11 +3,12 @@
 #include "Components/TCFRTSCommandRouterComponent.h"
 
 #include "TCFGameplayTags.h"
+#include "Actors/TCFSquadActor.h"
 #include "Components/TCFPlayerMovementCommandComponent.h"
-#include "Components/TCFPlayerOrderComponent.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFRTSOrderTargetingComponent.h"
+#include "Components/TCFSquadAttackCommandComponent.h"
 
 UTCFRTSCommandRouterComponent::UTCFRTSCommandRouterComponent()
 {
@@ -30,7 +31,6 @@ void UTCFRTSCommandRouterComponent::BeginPlay()
 	SelectionComponent = OwnerActor->FindComponentByClass<UTCFPlayerSelectionComponent>();
 	MovementCommandComponent = OwnerActor->FindComponentByClass<UTCFPlayerMovementCommandComponent>();
 	HoverContextComponent = OwnerActor->FindComponentByClass<UTCFRTSHoverContextComponent>();
-	PlayerOrderComponent = OwnerActor->FindComponentByClass<UTCFPlayerOrderComponent>();
 	OrderTargetingComponent = OwnerActor->FindComponentByClass<UTCFRTSOrderTargetingComponent>();
 }
 
@@ -89,6 +89,8 @@ bool UTCFRTSCommandRouterComponent::ExecuteCommandIntent(FTCFRTSCommandIntent& C
 	switch (CommandIntent.IntentType)
 	{
 	case ETCFRTSCommandIntentType::Move:
+		StopSelectedSquadAttackCommands();
+
 		return MovementCommandComponent
 			? MovementCommandComponent->MoveSelectedSquadsToLocation(CommandIntent.TargetLocation)
 			: false;
@@ -99,6 +101,7 @@ bool UTCFRTSCommandRouterComponent::ExecuteCommandIntent(FTCFRTSCommandIntent& C
 			return false;
 		}
 
+		StopSelectedSquadAttackCommands();
 		return MovementCommandComponent->MoveSelectedSquadsToLocation(CommandIntent.TargetLocation);
 
 	case ETCFRTSCommandIntentType::AttackTarget:
@@ -121,21 +124,62 @@ bool UTCFRTSCommandRouterComponent::ExecuteCommandIntent(FTCFRTSCommandIntent& C
 
 bool UTCFRTSCommandRouterComponent::ExecuteAttackTargetIntent(const FTCFRTSCommandIntent& CommandIntent) const
 {
-	if (!PlayerOrderComponent || !BasicAttackOrderTag.IsValid() || !IsValid(CommandIntent.TargetActor))
+	if (!SelectionComponent || !IsValid(CommandIntent.TargetActor))
 	{
 		return false;
 	}
 
-	FTCFOrderTarget OrderTarget;
-	OrderTarget.TargetType = ETCFOrderTargetType::Actor;
-	OrderTarget.TargetActor = CommandIntent.TargetActor;
-	OrderTarget.TargetLocation = CommandIntent.TargetLocation;
+	TArray<ATCFSquadActor*> SelectedSquads;
+	SelectionComponent->GetSelectedSquads(SelectedSquads);
 
-	TArray<FTCFOrderResult> Results;
-	return PlayerOrderComponent->SubmitSelectedSquadsOrder(
-		BasicAttackOrderTag,
-		OrderTarget,
-		Results);
+	if (SelectedSquads.IsEmpty())
+	{
+		return false;
+	}
+
+	bool bStartedAnyAttackCommand = false;
+
+	for (const ATCFSquadActor* SelectedSquad : SelectedSquads)
+	{
+		if (!IsValid(SelectedSquad))
+		{
+			continue;
+		}
+
+		UTCFSquadAttackCommandComponent* AttackCommandComponent = SelectedSquad->GetAttackCommandComponent();
+		if (!AttackCommandComponent)
+		{
+			continue;
+		}
+
+		bStartedAnyAttackCommand |= AttackCommandComponent->StartAttackCommand(CommandIntent.TargetActor);
+	}
+
+	return bStartedAnyAttackCommand;
+}
+
+void UTCFRTSCommandRouterComponent::StopSelectedSquadAttackCommands() const
+{
+	if (!SelectionComponent)
+	{
+		return;
+	}
+
+	TArray<ATCFSquadActor*> SelectedSquads;
+	SelectionComponent->GetSelectedSquads(SelectedSquads);
+
+	for (ATCFSquadActor* SelectedSquad : SelectedSquads)
+	{
+		if (!IsValid(SelectedSquad))
+		{
+			continue;
+		}
+
+		if (UTCFSquadAttackCommandComponent* AttackCommandComponent = SelectedSquad->GetAttackCommandComponent())
+		{
+			AttackCommandComponent->StopAttackCommand();
+		}
+	}
 }
 
 ETCFRTSCommandIntentType UTCFRTSCommandRouterComponent::ResolveIntentType(const FTCFRTSHoverContext& HoverContext) const

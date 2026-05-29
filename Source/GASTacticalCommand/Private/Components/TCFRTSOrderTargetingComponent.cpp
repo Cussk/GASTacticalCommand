@@ -4,7 +4,7 @@
 
 #include "Actors/TCFSquadActor.h"
 #include "Components/DecalComponent.h"
-#include "Components/TCFPlayerOrderComponent.h"
+#include "Components/TCFPlayerOrderSubmissionComponent.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Data/TCFOrderDefinition.h"
@@ -30,7 +30,7 @@ void UTCFRTSOrderTargetingComponent::BeginPlay()
 	if (OwnerActor)
 	{
 		SelectionComponent = OwnerActor->FindComponentByClass<UTCFPlayerSelectionComponent>();
-		PlayerOrderComponent = OwnerActor->FindComponentByClass<UTCFPlayerOrderComponent>();
+		PlayerOrderComponent = OwnerActor->FindComponentByClass<UTCFPlayerOrderSubmissionComponent>();
 		HoverContextComponent = OwnerActor->FindComponentByClass<UTCFRTSHoverContextComponent>();
 	}
 }

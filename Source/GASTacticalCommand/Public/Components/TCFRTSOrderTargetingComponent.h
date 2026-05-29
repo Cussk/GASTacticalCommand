@@ -10,7 +10,7 @@
 class APlayerController;
 class UMaterialInterface;
 class UTCFOrderDefinition;
-class UTCFPlayerOrderComponent;
+class UTCFPlayerOrderSubmissionComponent;
 class UTCFPlayerSelectionComponent;
 class UTCFRTSHoverContextComponent;
 
@@ -85,7 +85,7 @@ private:
 	TObjectPtr<UTCFPlayerSelectionComponent> SelectionComponent;
 
 	UPROPERTY()
-	TObjectPtr<UTCFPlayerOrderComponent> PlayerOrderComponent;
+	TObjectPtr<UTCFPlayerOrderSubmissionComponent> PlayerOrderComponent;
 
 	UPROPERTY()
 	TObjectPtr<UTCFRTSHoverContextComponent> HoverContextComponent;

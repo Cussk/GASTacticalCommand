@@ -1,26 +1,26 @@
 //Copyright Kyle Cuss and Cuss Programming 2026.
 
-#include "Components/TCFPlayerOrderComponent.h"
+#include "Components/TCFPlayerOrderSubmissionComponent.h"
 
 #include "Actors/TCFSquadActor.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Subsystems/TCFOrderSubsystem.h"
 #include "TCFGameplayTags.h"
 
-UTCFPlayerOrderComponent::UTCFPlayerOrderComponent()
+UTCFPlayerOrderSubmissionComponent::UTCFPlayerOrderSubmissionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(false);
 }
 
-void UTCFPlayerOrderComponent::BeginPlay()
+void UTCFPlayerOrderSubmissionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
 	PlayerSelectionComponent = FindSelectionComponent();
 }
 
-bool UTCFPlayerOrderComponent::SubmitSelectedSquadOrder(
+bool UTCFPlayerOrderSubmissionComponent::SubmitSelectedSquadOrder(
 	FGameplayTag OrderTag,
 	const FTCFOrderTarget& Target,
 	FTCFOrderResult& OutResult)
@@ -63,7 +63,7 @@ bool UTCFPlayerOrderComponent::SubmitSelectedSquadOrder(
 	return SubmitSquadOrder(*OrderSubsystem, SelectedSquad, OrderTag, Target, OutResult);
 }
 
-bool UTCFPlayerOrderComponent::SubmitSelectedSquadsOrder(
+bool UTCFPlayerOrderSubmissionComponent::SubmitSelectedSquadsOrder(
 	FGameplayTag OrderTag,
 	const FTCFOrderTarget& Target,
 	TArray<FTCFOrderResult>& OutResults)
@@ -131,7 +131,7 @@ bool UTCFPlayerOrderComponent::SubmitSelectedSquadsOrder(
 	return bAnyOrderSucceeded;
 }
 
-bool UTCFPlayerOrderComponent::SubmitSquadOrder(
+bool UTCFPlayerOrderSubmissionComponent::SubmitSquadOrder(
 	UTCFOrderSubsystem& OrderSubsystem,
 	ATCFSquadActor* SourceSquad,
 	FGameplayTag OrderTag,
@@ -160,7 +160,7 @@ bool UTCFPlayerOrderComponent::SubmitSquadOrder(
 	return OutResult.bSuccess;
 }
 
-UTCFPlayerSelectionComponent* UTCFPlayerOrderComponent::FindSelectionComponent() const
+UTCFPlayerSelectionComponent* UTCFPlayerOrderSubmissionComponent::FindSelectionComponent() const
 {
 	const AActor* Owner = GetOwner();
 	if (!Owner)

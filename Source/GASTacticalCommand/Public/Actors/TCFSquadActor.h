@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 #include "TCFSquadActor.generated.h"
 
+class UTCFSquadAttackCommandComponent;
 class UTCFSquadIntegrityStateComponent;
 class UTCFSquadMovementComponent;
 class UTCFAffiliationComponent;
@@ -31,6 +32,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
 	UTCFSquadMovementComponent* GetMovementComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
+	UTCFSquadAttackCommandComponent* GetAttackCommandComponent() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
 	UTCFSquadIntegrityStateComponent* GetIntegrityStateComponent() const;
@@ -71,6 +75,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFSquadMovementComponent> MovementComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFSquadAttackCommandComponent> AttackCommandComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

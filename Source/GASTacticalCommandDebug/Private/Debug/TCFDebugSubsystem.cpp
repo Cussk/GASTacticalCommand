@@ -5,7 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "EngineUtils.h"
 #include "Actors/TCFSquadActor.h"
-#include "Components/TCFPlayerOrderComponent.h"
+#include "Components/TCFPlayerOrderSubmissionComponent.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "GAS/TCFSquadAttributeSet.h"
 #include "GameplayEffect.h"
@@ -32,7 +32,7 @@ void UTCFDebugSubsystem::RegisterPlayerController(APlayerController* PlayerContr
 	RefreshInterval = FMath::Max(0.05f, InRefreshInterval);
 
 	ObservedSelectionComponent = PlayerController->FindComponentByClass<UTCFPlayerSelectionComponent>();
-	ObservedOrderComponent = PlayerController->FindComponentByClass<UTCFPlayerOrderComponent>();
+	ObservedOrderComponent = PlayerController->FindComponentByClass<UTCFPlayerOrderSubmissionComponent>();
 
 	BindObservedComponents();
 	RefreshDebugSnapshot();

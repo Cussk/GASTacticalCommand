@@ -9,6 +9,7 @@
 #include "GAS/TCFSquadAttributeSet.h"
 #include "GameplayEffect.h"
 #include "Components/TCFAffiliationComponent.h"
+#include "Components/TCFSquadAttackCommandComponent.h"
 #include "Components/TCFSquadIntegrityStateComponent.h"
 #include "Components/TCFSquadMovementComponent.h"
 #include "Components/TCFSquadSelectionComponent.h"
@@ -30,6 +31,7 @@ ATCFSquadActor::ATCFSquadActor()
 	SquadVisual->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	
 	MovementComponent = CreateDefaultSubobject<UTCFSquadMovementComponent>(TEXT("MovementComponent"));
+	AttackCommandComponent = CreateDefaultSubobject<UTCFSquadAttackCommandComponent>(TEXT("AttackCommandComponent"));
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -52,6 +54,11 @@ UAbilitySystemComponent* ATCFSquadActor::GetAbilitySystemComponent() const
 UTCFSquadMovementComponent* ATCFSquadActor::GetMovementComponent() const
 {
 	return MovementComponent;
+}
+
+UTCFSquadAttackCommandComponent* ATCFSquadActor::GetAttackCommandComponent() const
+{
+	return AttackCommandComponent;
 }
 
 UTCFSquadIntegrityStateComponent* ATCFSquadActor::GetIntegrityStateComponent() const

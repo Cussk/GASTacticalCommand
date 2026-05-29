@@ -12,7 +12,7 @@ enum class ETCFCapturePointState : uint8;
 class ATCFSquadActor;
 class UAbilitySystemComponent;
 class UTCFDebugHUDWidget;
-class UTCFPlayerOrderComponent;
+class UTCFPlayerOrderSubmissionComponent;
 class UTCFPlayerSelectionComponent;
 
 UCLASS()
@@ -50,7 +50,7 @@ private:
 	TObjectPtr<UTCFPlayerSelectionComponent> ObservedSelectionComponent;
 
 	UPROPERTY()
-	TObjectPtr<UTCFPlayerOrderComponent> ObservedOrderComponent;
+	TObjectPtr<UTCFPlayerOrderSubmissionComponent> ObservedOrderComponent;
 
 	UPROPERTY()
 	TObjectPtr<UTCFDebugHUDWidget> DebugWidget;

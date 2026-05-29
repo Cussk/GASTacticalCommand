@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Types/TCFOrderTypes.h"
-#include "TCFPlayerOrderComponent.generated.h"
+#include "TCFPlayerOrderSubmissionComponent.generated.h"
 
 class ATCFSquadActor;
 class UTCFOrderSubsystem;
@@ -14,12 +14,12 @@ class UTCFPlayerSelectionComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTCFPlayerOrderSubmitted, FTCFSquadOrderRequest, Request, FTCFOrderResult, Result);
 
 UCLASS(ClassGroup = (TCF), meta = (BlueprintSpawnableComponent))
-class GASTACTICALCOMMAND_API UTCFPlayerOrderComponent : public UActorComponent
+class GASTACTICALCOMMAND_API UTCFPlayerOrderSubmissionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	UTCFPlayerOrderComponent();
+	UTCFPlayerOrderSubmissionComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Orders")
 	bool SubmitSelectedSquadOrder(FGameplayTag OrderTag, const FTCFOrderTarget& Target, FTCFOrderResult& OutResult);

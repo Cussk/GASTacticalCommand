@@ -3,7 +3,7 @@
 #include "Player/TCFPlayerController.h"
 
 #include "Components/TCFPlayerMovementCommandComponent.h"
-#include "Components/TCFPlayerOrderComponent.h"
+#include "Components/TCFPlayerOrderSubmissionComponent.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Components/TCFRTSSelectionBoxComponent.h"
 #include "EnhancedInputComponent.h"
@@ -25,7 +25,7 @@ ATCFPlayerController::ATCFPlayerController()
 	PlayerSelectionComponent = CreateDefaultSubobject<UTCFPlayerSelectionComponent>(TEXT("PlayerSelectionComponent"));
 	RTSSelectionBoxComponent = CreateDefaultSubobject<UTCFRTSSelectionBoxComponent>(TEXT("RTSSelectionBoxComponent"));
 	PlayerMovementCommandComponent = CreateDefaultSubobject<UTCFPlayerMovementCommandComponent>(TEXT("PlayerMovementCommandComponent"));
-	PlayerOrderComponent = CreateDefaultSubobject<UTCFPlayerOrderComponent>(TEXT("PlayerOrderComponent"));
+	PlayerOrderComponent = CreateDefaultSubobject<UTCFPlayerOrderSubmissionComponent>(TEXT("PlayerOrderComponent"));
 	RTSHoverContextComponent = CreateDefaultSubobject<UTCFRTSHoverContextComponent>(TEXT("RTSHoverContextComponent"));
 	RTSCommandRouterComponent = CreateDefaultSubobject<UTCFRTSCommandRouterComponent>(TEXT("RTSCommandRouterComponent"));
 	RTSOrderTargetingComponent = CreateDefaultSubobject<UTCFRTSOrderTargetingComponent>(TEXT("RTSOrderTargetingComponent"));
@@ -46,7 +46,7 @@ UTCFPlayerMovementCommandComponent* ATCFPlayerController::GetPlayerMovementComma
 	return PlayerMovementCommandComponent;
 }
 
-UTCFPlayerOrderComponent* ATCFPlayerController::GetPlayerOrderComponent() const
+UTCFPlayerOrderSubmissionComponent* ATCFPlayerController::GetPlayerOrderComponent() const
 {
 	return PlayerOrderComponent;
 }

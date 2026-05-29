@@ -13,7 +13,7 @@ class ATCFRTSCameraPawn;
 class UInputAction;
 class UInputMappingContext;
 class UTCFPlayerMovementCommandComponent;
-class UTCFPlayerOrderComponent;
+class UTCFPlayerOrderSubmissionComponent;
 class UTCFPlayerSelectionComponent;
 class UTCFRTSSelectionBoxComponent;
 struct FInputActionValue;
@@ -36,7 +36,7 @@ public:
 	UTCFPlayerMovementCommandComponent* GetPlayerMovementCommandComponent() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Orders")
-	UTCFPlayerOrderComponent* GetPlayerOrderComponent() const;
+	UTCFPlayerOrderSubmissionComponent* GetPlayerOrderComponent() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Hover")
 	UTCFRTSHoverContextComponent* GetRTSHoverContextComponent() const;
@@ -61,7 +61,7 @@ protected:
 	TObjectPtr<UTCFPlayerMovementCommandComponent> PlayerMovementCommandComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
-	TObjectPtr<UTCFPlayerOrderComponent> PlayerOrderComponent;
+	TObjectPtr<UTCFPlayerOrderSubmissionComponent> PlayerOrderComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFRTSHoverContextComponent> RTSHoverContextComponent;

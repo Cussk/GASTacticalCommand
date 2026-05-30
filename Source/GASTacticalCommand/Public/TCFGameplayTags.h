@@ -67,4 +67,9 @@ namespace TCFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_ActivationFailed);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_Cooldown);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Result_Failed_Cost);
+	
+	// Resources
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Resource_Type_Materials);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Resource_Type_Energy);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Resource_Type_ResearchData);
 }

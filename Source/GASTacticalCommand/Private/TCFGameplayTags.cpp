@@ -65,4 +65,9 @@ namespace TCFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_ActivationFailed, "Order.Result.Failed.ActivationFailed");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_Cooldown, "Order.Result.Failed.Cooldown");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Result_Failed_Cost, "Order.Result.Failed.Cost");
+	
+	// Resources
+	UE_DEFINE_GAMEPLAY_TAG(Resource_Type_Materials, "Resource.Type.Materials");
+	UE_DEFINE_GAMEPLAY_TAG(Resource_Type_Energy, "Resource.Type.Energy");
+	UE_DEFINE_GAMEPLAY_TAG(Resource_Type_ResearchData, "Resource.Type.ResearchData");
 }

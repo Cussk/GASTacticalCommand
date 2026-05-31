@@ -3,6 +3,7 @@
 #include "Components/TCFRTSHoverContextComponent.h"
 
 #include "Actors/TCFCapturePointActor.h"
+#include "Actors/TCFResourceNodeActor.h"
 #include "Actors/TCFSquadActor.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -101,14 +102,13 @@ void UTCFRTSHoverContextComponent::RefreshHoverContext()
 		NewHoverContext.TargetType = ETCFRTSHoverTargetType::None;
 	}
 
-	if (!AreHoverContextsEquivalent(CurrentHoverContext, NewHoverContext))
+	const bool bHoverContextChanged = !AreHoverContextsEquivalent(CurrentHoverContext, NewHoverContext);
+
+	CurrentHoverContext = NewHoverContext;
+
+	if (bHoverContextChanged)
 	{
-		CurrentHoverContext = NewHoverContext;
 		OnHoverContextChanged.Broadcast(CurrentHoverContext);
-	}
-	else
-	{
-		CurrentHoverContext = NewHoverContext;
 	}
 
 	if (bApplyMouseCursor)
@@ -179,8 +179,8 @@ ETCFRTSHoverTargetType UTCFRTSHoverContextComponent::ResolveTargetType(const AAc
 	{
 		return ETCFRTSHoverTargetType::CapturePoint;
 	}
-
-	if (ResourceNodeActorTag != NAME_None && HitActor->ActorHasTag(ResourceNodeActorTag))
+	
+	if (HitActor->IsA<ATCFResourceNodeActor>())
 	{
 		return ETCFRTSHoverTargetType::ResourceNode;
 	}
@@ -274,11 +274,21 @@ void UTCFRTSHoverContextComponent::ApplyCursorState(ETCFRTSCursorState CursorSta
 
 	if (bUseCustomCursorWidget && CursorWidget)
 	{
-		PlayerController->CurrentMouseCursor = EMouseCursor::None;
+		if (PlayerController->CurrentMouseCursor != EMouseCursor::None)
+		{
+			PlayerController->CurrentMouseCursor = EMouseCursor::None;
+		}
+
 		return;
 	}
 
-	PlayerController->CurrentMouseCursor = GetMouseCursorForState(CursorState);
+	const EMouseCursor::Type DesiredMouseCursor = GetMouseCursorForState(CursorState);
+	if (PlayerController->CurrentMouseCursor == DesiredMouseCursor)
+	{
+		return;
+	}
+
+	PlayerController->CurrentMouseCursor = DesiredMouseCursor;
 }
 
 EMouseCursor::Type UTCFRTSHoverContextComponent::GetMouseCursorForState(ETCFRTSCursorState CursorState) const

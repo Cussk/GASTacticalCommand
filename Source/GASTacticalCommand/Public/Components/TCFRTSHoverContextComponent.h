@@ -59,9 +59,6 @@ protected:
 	bool bApplyMouseCursor = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Hover")
-	FName ResourceNodeActorTag = TEXT("RTS.ResourceNode");
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Hover")
 	FName ProductionBuildingActorTag = TEXT("RTS.ProductionBuilding");
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")

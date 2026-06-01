@@ -11,6 +11,7 @@
 #include "Engine/HitResult.h"
 #include "InputAction.h"
 #include "InputActionValue.h"
+#include "Components/TCFRTSBuildingPlacementComponent.h"
 #include "Components/TCFRTSCommandRouterComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFRTSOrderTargetingComponent.h"
@@ -29,6 +30,7 @@ ATCFPlayerController::ATCFPlayerController()
 	RTSHoverContextComponent = CreateDefaultSubobject<UTCFRTSHoverContextComponent>(TEXT("RTSHoverContextComponent"));
 	RTSCommandRouterComponent = CreateDefaultSubobject<UTCFRTSCommandRouterComponent>(TEXT("RTSCommandRouterComponent"));
 	RTSOrderTargetingComponent = CreateDefaultSubobject<UTCFRTSOrderTargetingComponent>(TEXT("RTSOrderTargetingComponent"));
+	RTSBuildingPlacementComponent = CreateDefaultSubobject<UTCFRTSBuildingPlacementComponent>(TEXT("RTSBuildingPlacementComponent"));
 }
 
 UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const
@@ -64,6 +66,11 @@ UTCFRTSCommandRouterComponent* ATCFPlayerController::GetRTSCommandRouterComponen
 UTCFRTSOrderTargetingComponent* ATCFPlayerController::GetRTSOrderTargetingComponent() const
 {
 	return RTSOrderTargetingComponent;
+}
+
+UTCFRTSBuildingPlacementComponent* ATCFPlayerController::GetRTSBuildingPlacementComponent() const
+{
+	return RTSBuildingPlacementComponent;
 }
 
 void ATCFPlayerController::BeginPlay()
@@ -126,7 +133,7 @@ void ATCFPlayerController::SetupInputComponent()
 	
 	if (CancelOrderAction)
 	{
-		EnhancedInputComponent->BindAction(CancelOrderAction, ETriggerEvent::Started, this, &ATCFPlayerController::HandleCancelOrderStarted);
+		EnhancedInputComponent->BindAction(CancelOrderAction, ETriggerEvent::Started, this, &ATCFPlayerController::HandleCancelActionStarted);
 	}
 }
 
@@ -181,6 +188,12 @@ void ATCFPlayerController::HandleSelectCompleted(const FInputActionValue& Value)
 
 void ATCFPlayerController::HandleCommandStarted(const FInputActionValue& Value)
 {
+	if (RTSBuildingPlacementComponent && RTSBuildingPlacementComponent->IsPlacingBuilding())
+	{
+		RTSBuildingPlacementComponent->ConfirmBuildingPlacement();
+		return;
+	}
+
 	if (RTSCommandRouterComponent)
 	{
 		RTSCommandRouterComponent->ExecutePrimaryCommand();
@@ -232,8 +245,14 @@ void ATCFPlayerController::HandleCameraZoomTriggered(const FInputActionValue& Va
 	CameraPawn->AddZoomInput(Value.Get<float>());
 }
 
-void ATCFPlayerController::HandleCancelOrderStarted(const FInputActionValue& Value)
+void ATCFPlayerController::HandleCancelActionStarted(const FInputActionValue& Value)
 {
+	if (RTSBuildingPlacementComponent && RTSBuildingPlacementComponent->IsPlacingBuilding())
+	{
+		RTSBuildingPlacementComponent->CancelBuildingPlacement();
+		return;
+	}
+
 	if (RTSOrderTargetingComponent)
 	{
 		RTSOrderTargetingComponent->CancelOrderTargeting();

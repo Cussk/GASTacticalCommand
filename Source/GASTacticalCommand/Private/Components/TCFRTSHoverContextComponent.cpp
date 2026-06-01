@@ -312,6 +312,12 @@ EMouseCursor::Type UTCFRTSHoverContextComponent::GetMouseCursorForState(ETCFRTSC
 
 	case ETCFRTSCursorState::ResourceNode:
 		return ResourceNodeCursor.GetValue();
+		
+	case ETCFRTSCursorState::BuildingPlacement:
+		return ProductionBuildingCursor.GetValue();
+
+	case ETCFRTSCursorState::BuildingPlacementInvalid:
+		return InvalidTargetCursor.GetValue();
 
 	case ETCFRTSCursorState::ProductionBuilding:
 		return ProductionBuildingCursor.GetValue();

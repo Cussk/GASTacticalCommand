@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TCFPlayerController.generated.h"
 
+class UTCFRTSBuildingPlacementComponent;
 class UTCFRTSOrderTargetingComponent;
 class UTCFRTSCommandRouterComponent;
 class UTCFRTSHoverContextComponent;
@@ -46,6 +47,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Order Targeting")
 	UTCFRTSOrderTargetingComponent* GetRTSOrderTargetingComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Building Placement")
+	UTCFRTSBuildingPlacementComponent* GetRTSBuildingPlacementComponent() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -71,6 +75,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFRTSOrderTargetingComponent> RTSOrderTargetingComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFRTSBuildingPlacementComponent> RTSBuildingPlacementComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
 	TObjectPtr<UInputMappingContext> RTSInputMappingContext;
@@ -119,7 +126,7 @@ private:
 
 	void HandleCameraZoomTriggered(const FInputActionValue& Value);
 	
-	void HandleCancelOrderStarted(const FInputActionValue& Value);
+	void HandleCancelActionStarted(const FInputActionValue& Value);
 
 	bool IsAppendSelectionActive() const;
 };

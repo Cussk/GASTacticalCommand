@@ -31,7 +31,9 @@ enum class ETCFRTSCursorState : uint8
 	ProductionBuilding,
 	InvalidTarget,
 	OrderTarget,
-	OrderTargetInvalid
+	OrderTargetInvalid,
+	BuildingPlacement,
+	BuildingPlacementInvalid,
 };
 
 UENUM(BlueprintType)

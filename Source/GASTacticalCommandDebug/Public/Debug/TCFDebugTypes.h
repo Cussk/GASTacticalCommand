@@ -8,6 +8,43 @@
 #include "TCFDebugTypes.generated.h"
 
 USTRUCT(BlueprintType)
+struct FTCFDebugEconomySnapshot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bHasResourceBank = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 Materials = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 Energy = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 ResearchData = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FTCFDebugWorkerSnapshot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bHasSelectedSquad = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bIsWorker = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	TArray<FString> WorkerLines;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	TArray<FString> CommandLines;
+};
+
+
+USTRUCT(BlueprintType)
 struct FTCFDebugOrderSnapshot
 {
 	GENERATED_BODY()
@@ -128,4 +165,10 @@ struct FTCFDebugSquadSnapshot
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
 	FTCFDebugOrderSnapshot LastOrder;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FTCFDebugEconomySnapshot Economy;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FTCFDebugWorkerSnapshot Worker;
 };

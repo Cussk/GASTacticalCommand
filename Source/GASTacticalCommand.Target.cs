@@ -16,6 +16,6 @@ public class GASTacticalCommandTarget : TargetRules
 
 	void RegisterModulesCreatedByRider()
 	{
-		ExtraModuleNames.AddRange(new string[] { "GASTacticalCommandDebug" });
+		ExtraModuleNames.AddRange(new string[] { "GASTacticalCommandDebug", "GASTacticalCommandCore" });
 	}
 }

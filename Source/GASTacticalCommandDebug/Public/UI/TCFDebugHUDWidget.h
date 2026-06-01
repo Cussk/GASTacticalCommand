@@ -29,6 +29,9 @@ protected:
 private:
 	UPROPERTY()
 	FTCFDebugSquadSnapshot Snapshot;
+	
+	TSharedPtr<STextBlock> ResourceTopText;
+	TSharedPtr<STextBlock> WorkerPanelText;
 
 	TSharedPtr<STextBlock> HeaderText;
 	TSharedPtr<STextBlock> SquadText;
@@ -40,8 +43,14 @@ private:
 	TSharedPtr<STextBlock> AffiliationText;
 	TSharedPtr<STextBlock> RelationshipText;
 	TSharedPtr<STextBlock> CapturePointText;
+	TSharedPtr<STextBlock> EconomyText;
+	TSharedPtr<STextBlock> WorkerText;
 
 	void RefreshText() const;
+
+	TSharedRef<SWidget> BuildMainDebugPanel();
+	FText BuildTopResourceText() const;
+	FText BuildWorkerPanelText() const;
 
 	FText BuildSquadText() const;
 	FText BuildAttributeText() const;

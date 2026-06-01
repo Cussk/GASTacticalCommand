@@ -15,7 +15,8 @@ public class GASTacticalCommandDebug : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks",
-			"GASTacticalCommand"
+			"GASTacticalCommand",
+			"GASTacticalCommandCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

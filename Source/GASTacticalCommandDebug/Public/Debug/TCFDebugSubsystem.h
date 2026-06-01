@@ -8,6 +8,7 @@
 #include "Types/TCFAffiliationTypes.h"
 #include "TCFDebugSubsystem.generated.h"
 
+class ATCFResourceNodeActor;
 enum class ETCFCapturePointState : uint8;
 class ATCFSquadActor;
 class UAbilitySystemComponent;
@@ -87,4 +88,10 @@ private:
 	void AddActiveEffectLines(const UAbilitySystemComponent& AbilitySystem, FTCFDebugSquadSnapshot& Snapshot) const;
 	void AddRelationshipLines(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot) const;
 	void AddNearestCapturePointData(const ATCFSquadActor& Squad, FTCFDebugSquadSnapshot& Snapshot) const;
+	
+	void AddEconomyData(FTCFDebugSquadSnapshot& Snapshot) const;
+	void AddWorkerData(const ATCFSquadActor* SelectedSquad, FTCFDebugSquadSnapshot& Snapshot) const;
+
+	static FString BuildResourceLine(FGameplayTag ResourceType, int32 Amount);
+	static FString BuildResourceNodeSummary(const ATCFResourceNodeActor* ResourceNode);
 };

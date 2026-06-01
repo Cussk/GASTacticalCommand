@@ -9,10 +9,16 @@
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "GAS/TCFSquadAttributeSet.h"
 #include "GameplayEffect.h"
+#include "TCFGameplayTags.h"
 #include "TimerManager.h"
 #include "Actors/TCFCapturePointActor.h"
+#include "Actors/TCFResourceNodeActor.h"
 #include "Components/TCFAffiliationComponent.h"
 #include "Components/TCFCapturePointComponent.h"
+#include "Components/TCFPlayerResourceBankComponent.h"
+#include "Components/TCFSquadAttackCommandComponent.h"
+#include "Components/TCFSquadGatherCommandComponent.h"
+#include "Player/TCFPlayerState.h"
 #include "Subsystems/TCFRelationshipSubsystem.h"
 #include "Subsystems/TCFSquadQuerySubsystem.h"
 #include "Types/TCFAffiliationTypes.h"
@@ -193,6 +199,8 @@ FTCFDebugSquadSnapshot UTCFDebugSubsystem::BuildSnapshot() const
 	{
 		return Snapshot;
 	}
+	
+	AddEconomyData(Snapshot);
 
 	const ATCFSquadActor* SelectedSquad = SelectionComponent->GetSelectedSquad();
 	if (!IsValid(SelectedSquad))
@@ -209,6 +217,7 @@ FTCFDebugSquadSnapshot UTCFDebugSubsystem::BuildSnapshot() const
 	AddAffiliationData(*SelectedSquad, Snapshot);
 	AddRelationshipLines(*SelectedSquad, Snapshot);
 	AddNearestCapturePointData(*SelectedSquad, Snapshot);
+	AddWorkerData(SelectedSquad, Snapshot);
 
 	if (const UAbilitySystemComponent* AbilitySystem = SelectedSquad->GetAbilitySystemComponent())
 	{
@@ -505,3 +514,128 @@ void UTCFDebugSubsystem::AddNearestCapturePointData(const ATCFSquadActor& Squad,
 	Snapshot.NearestCapturePoint.OccupyingSquadCount = CaptureComponent->GetLastOccupyingSquadCount();
 	Snapshot.NearestCapturePoint.DistanceFromSelectedSquad = FMath::Sqrt(BestDistanceSquared);
 }
+
+void UTCFDebugSubsystem::AddEconomyData(FTCFDebugSquadSnapshot& Snapshot) const
+{
+	const ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	const APlayerController* PlayerController = LocalPlayer
+		? LocalPlayer->GetPlayerController(GetWorld())
+		: nullptr;
+
+	const ATCFPlayerState* TCFPlayerState = PlayerController
+		? Cast<ATCFPlayerState>(PlayerController->PlayerState)
+		: nullptr;
+
+	const UTCFPlayerResourceBankComponent* ResourceBank = TCFPlayerState
+		? TCFPlayerState->GetPlayerResourceBankComponent()
+		: nullptr;
+
+	if (!ResourceBank)
+	{
+		Snapshot.Economy.bHasResourceBank = false;
+		return;
+	}
+
+	Snapshot.Economy.bHasResourceBank = true;
+	Snapshot.Economy.Materials = ResourceBank->GetResourceAmount(TCFGameplayTags::Resource_Type_Materials);
+	Snapshot.Economy.Energy = ResourceBank->GetResourceAmount(TCFGameplayTags::Resource_Type_Energy);
+	Snapshot.Economy.ResearchData = ResourceBank->GetResourceAmount(TCFGameplayTags::Resource_Type_ResearchData);
+}
+
+void UTCFDebugSubsystem::AddWorkerData(
+	const ATCFSquadActor* SelectedSquad,
+	FTCFDebugSquadSnapshot& Snapshot) const
+{
+	if (!IsValid(SelectedSquad))
+	{
+		Snapshot.Worker.bHasSelectedSquad = false;
+		Snapshot.Worker.WorkerLines.Add(TEXT("No selected squad."));
+		return;
+	}
+
+	Snapshot.Worker.bHasSelectedSquad = true;
+	Snapshot.Worker.bIsWorker = SelectedSquad->GetRoleTag().MatchesTagExact(TCFGameplayTags::Squad_Role_Worker);
+
+	if (const UTCFSquadAttributeSet* AttributeSet = SelectedSquad->GetSquadAttributeSet())
+	{
+		Snapshot.Worker.WorkerLines.Add(FString::Printf(
+			TEXT("GatherRate: %.2f"),
+			AttributeSet->GetGatherRate()));
+
+		Snapshot.Worker.WorkerLines.Add(FString::Printf(
+			TEXT("BuildRate: %.2f"),
+			AttributeSet->GetBuildRate()));
+	}
+
+	Snapshot.Worker.WorkerLines.Add(FString::Printf(
+		TEXT("Worker Role: %s"),
+		Snapshot.Worker.bIsWorker ? TEXT("Yes") : TEXT("No")));
+
+	const UTCFSquadGatherCommandComponent* GatherCommandComponent = SelectedSquad->GetGatherCommandComponent();
+	if (GatherCommandComponent && GatherCommandComponent->HasGatherCommand())
+	{
+		const ATCFResourceNodeActor* TargetNode = GatherCommandComponent->GetTargetResourceNode();
+
+		Snapshot.Worker.CommandLines.Add(TEXT("Gather Command: Active"));
+		Snapshot.Worker.CommandLines.Add(FString::Printf(
+			TEXT("Gather Target: %s"),
+			*BuildResourceNodeSummary(TargetNode)));
+	}
+	else
+	{
+		Snapshot.Worker.CommandLines.Add(TEXT("Gather Command: Idle"));
+	}
+
+	const UTCFSquadAttackCommandComponent* AttackCommandComponent = SelectedSquad->GetAttackCommandComponent();
+	if (AttackCommandComponent && AttackCommandComponent->HasAttackCommand())
+	{
+		const AActor* AttackTarget = AttackCommandComponent->GetAttackTarget();
+
+		Snapshot.Worker.CommandLines.Add(TEXT("Attack Command: Active"));
+		Snapshot.Worker.CommandLines.Add(FString::Printf(
+			TEXT("Attack Target: %s"),
+			AttackTarget ? *AttackTarget->GetName() : TEXT("Invalid")));
+	}
+	else
+	{
+		Snapshot.Worker.CommandLines.Add(TEXT("Attack Command: Idle"));
+	}
+}
+
+FString UTCFDebugSubsystem::BuildResourceLine(FGameplayTag ResourceType, int32 Amount)
+{
+	FString ResourceName = ResourceType.ToString();
+
+	if (ResourceType.MatchesTagExact(TCFGameplayTags::Resource_Type_Materials))
+	{
+		ResourceName = TEXT("Materials");
+	}
+	else if (ResourceType.MatchesTagExact(TCFGameplayTags::Resource_Type_Energy))
+	{
+		ResourceName = TEXT("Energy");
+	}
+	else if (ResourceType.MatchesTagExact(TCFGameplayTags::Resource_Type_ResearchData))
+	{
+		ResourceName = TEXT("ResearchData");
+	}
+
+	return FString::Printf(TEXT("%s: %d"), *ResourceName, Amount);
+}
+
+FString UTCFDebugSubsystem::BuildResourceNodeSummary(const ATCFResourceNodeActor* ResourceNode)
+{
+	if (!IsValid(ResourceNode))
+	{
+		return TEXT("Invalid");
+	}
+
+	return FString::Printf(
+		TEXT("%s | %s | %d / %d | %s"),
+		*ResourceNode->GetName(),
+		*ResourceNode->GetResourceType().ToString(),
+		ResourceNode->GetCurrentAmount(),
+		ResourceNode->GetMaxAmount(),
+		ResourceNode->IsDepleted() ? TEXT("Depleted") : TEXT("Available"));
+}
+
+

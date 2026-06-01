@@ -16,6 +16,11 @@
 			"Name": "GASTacticalCommandDebug",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GASTacticalCommandCore",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [

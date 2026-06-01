@@ -21,6 +21,84 @@ const FTCFDebugSquadSnapshot& UTCFDebugHUDWidget::GetDebugSnapshot() const
 
 TSharedRef<SWidget> UTCFDebugHUDWidget::RebuildWidget()
 {
+	const FSlateFontInfo TitleFont = FCoreStyle::GetDefaultFontStyle("Bold", 12);
+	const FSlateFontInfo BodyFont = FCoreStyle::GetDefaultFontStyle("Regular", 10);
+
+	const FSlateColor BackgroundFrame = FSlateColor(FLinearColor(0.10f, 0.45f, 0.75f, 0.85f));
+	const FSlateColor ResourceBackground = FSlateColor(FLinearColor(0.02f, 0.04f, 0.06f, 0.88f));
+	const FSlateColor WorkerBackground = FSlateColor(FLinearColor(0.04f, 0.025f, 0.02f, 0.86f));
+	const FLinearColor BodyColor = FLinearColor::White;
+
+	return SNew(SOverlay)
+
+	// Existing left debug panel.
+	+ SOverlay::Slot()
+	.HAlign(HAlign_Left)
+	.VAlign(VAlign_Top)
+	.Padding(12.0f, 72.0f, 0.0f, 0.0f)
+	[
+		SNew(SBox)
+		.WidthOverride(460.0f)
+		[
+			BuildMainDebugPanel()
+		]
+	]
+
+	// Top-center resource panel.
+	+ SOverlay::Slot()
+	.HAlign(HAlign_Center)
+	.VAlign(VAlign_Top)
+	.Padding(0.0f, 14.0f, 0.0f, 0.0f)
+	[
+		SNew(SBorder)
+			.Padding(2.0f)
+			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+			.BorderBackgroundColor(BackgroundFrame)
+			[
+				SNew(SBorder)
+				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+				.BorderBackgroundColor(ResourceBackground)
+				.Padding(FMargin(14.0f, 7.0f))
+				[
+					SAssignNew(ResourceTopText, STextBlock)
+					.Font(TitleFont)
+					.ColorAndOpacity(BodyColor)
+				]
+			]
+	]
+
+	// Right-side worker/economy command panel.
+	+ SOverlay::Slot()
+	.HAlign(HAlign_Right)
+	.VAlign(VAlign_Top)
+	.Padding(0.0f, 84.0f, 14.0f, 0.0f)
+	[
+		SNew(SBox)
+		.WidthOverride(380.0f)
+		[
+			SNew(SBorder)
+				.Padding(2.0f)
+				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+				.BorderBackgroundColor(BackgroundFrame)
+				[
+					SNew(SBorder)
+					.Padding(10.0f)
+					.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+					.BorderBackgroundColor(WorkerBackground)
+					[
+						SAssignNew(WorkerPanelText, STextBlock)
+						.Font(BodyFont)
+						.ColorAndOpacity(BodyColor)
+						.AutoWrapText(true)
+						.WrapTextAt(350.0f)
+					]
+				]
+		]
+	];
+}
+
+TSharedRef<SWidget> UTCFDebugHUDWidget::BuildMainDebugPanel()
+{
 	const FSlateColor HeaderColor(FLinearColor(0.25f, 0.75f, 1.0f, 1.0f));
 	const FSlateColor SectionColor(FLinearColor(0.75f, 0.85f, 1.0f, 1.0f));
 	const FSlateColor BodyColor(FLinearColor(0.88f, 0.90f, 0.92f, 1.0f));
@@ -44,7 +122,7 @@ TSharedRef<SWidget> UTCFDebugHUDWidget::RebuildWidget()
 					SNew(SBorder)
 					.Padding(10.0f)
 					.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-					.BorderBackgroundColor(FSlateColor(FLinearColor(0.01f, 0.012f, 0.018f, 0.92f)))
+					.BorderBackgroundColor(FSlateColor(FLinearColor(0.04f, 0.025f, 0.02f, 0.86f)))
 					[
 						SNew(SScrollBox)
 
@@ -153,6 +231,46 @@ TSharedRef<SWidget> UTCFDebugHUDWidget::RebuildWidget()
 		];
 }
 
+FText UTCFDebugHUDWidget::BuildTopResourceText() const
+{
+	if (!Snapshot.Economy.bHasResourceBank)
+	{
+		return FText::FromString(TEXT("Resources unavailable"));
+	}
+
+	return FText::FromString(FString::Printf(
+		TEXT("Materials: %d    Energy: %d    Research Data: %d"),
+		Snapshot.Economy.Materials,
+		Snapshot.Economy.Energy,
+		Snapshot.Economy.ResearchData));
+}
+
+FText UTCFDebugHUDWidget::BuildWorkerPanelText() const
+{
+	if (!Snapshot.Worker.bHasSelectedSquad)
+	{
+		return FText::FromString(TEXT("━━ WORKER / BUILD DEBUG ━━\nNo selected squad."));
+	}
+
+	FString WorkerInfo = JoinLines(Snapshot.Worker.WorkerLines);
+	FString CommandInfo = JoinLines(Snapshot.Worker.CommandLines);
+
+	if (WorkerInfo.IsEmpty())
+	{
+		WorkerInfo = TEXT("No worker data.");
+	}
+
+	if (CommandInfo.IsEmpty())
+	{
+		CommandInfo = TEXT("No command data.");
+	}
+
+	return FText::FromString(FString::Printf(
+		TEXT("━━ WORKER / BUILD DEBUG ━━\n%s\n\n━━ COMMANDS ━━\n%s"),
+		*WorkerInfo,
+		*CommandInfo));
+}
+
 void UTCFDebugHUDWidget::ReleaseSlateResources(bool bReleaseChildren)
 {
 	Super::ReleaseSlateResources(bReleaseChildren);
@@ -174,6 +292,16 @@ void UTCFDebugHUDWidget::RefreshText() const
 	if (SquadText)
 	{
 		SquadText->SetText(BuildSquadText());
+	}
+	
+	if (ResourceTopText)
+	{
+		ResourceTopText->SetText(BuildTopResourceText());
+	}
+
+	if (WorkerPanelText)
+	{
+		WorkerPanelText->SetText(BuildWorkerPanelText());
 	}
 
 	if (AttributeText)

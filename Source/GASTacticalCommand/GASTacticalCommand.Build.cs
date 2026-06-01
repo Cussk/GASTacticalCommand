@@ -21,7 +21,8 @@ public class GASTacticalCommand : ModuleRules
 			"DeveloperSettings",
 			"UMG",
 			"Slate",
-			"SlateCore"
+			"SlateCore",
+			"GASTacticalCommandCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

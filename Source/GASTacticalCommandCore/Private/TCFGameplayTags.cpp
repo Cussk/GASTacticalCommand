@@ -74,4 +74,16 @@ namespace TCFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Resource_Type_Materials, "Resource.Type.Materials");
 	UE_DEFINE_GAMEPLAY_TAG(Resource_Type_Energy, "Resource.Type.Energy");
 	UE_DEFINE_GAMEPLAY_TAG(Resource_Type_ResearchData, "Resource.Type.ResearchData");
+	
+	// Building Type
+	UE_DEFINE_GAMEPLAY_TAG(Building_Type_CommandCenter, "Building.Type.CommandCenter");
+	UE_DEFINE_GAMEPLAY_TAG(Building_Type_Barracks, "Building.Type.Barracks");
+	UE_DEFINE_GAMEPLAY_TAG(Building_Type_ResearchLab, "Building.Type.ResearchLab");
+	UE_DEFINE_GAMEPLAY_TAG(Building_Type_ResourceDropoff, "Building.Type.ResourceDropoff");
+
+	// Building Role
+	UE_DEFINE_GAMEPLAY_TAG(Building_Role_Headquarters, "Building.Role.Headquarters");
+	UE_DEFINE_GAMEPLAY_TAG(Building_Role_Production, "Building.Role.Production");
+	UE_DEFINE_GAMEPLAY_TAG(Building_Role_Research, "Building.Role.Research");
+	UE_DEFINE_GAMEPLAY_TAG(Building_Role_ResourceDropoff, "Building.Role.ResourceDropoff");
 }

@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/TCFAffiliationComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Subsystems/TCFRTSPlacementGridSubsystem.h"
 
 ATCFBuildingActor::ATCFBuildingActor()
 {
@@ -44,6 +45,14 @@ void ATCFBuildingActor::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeFromDefinition();
+	TryReservePlacementFootprint();
+}
+
+void ATCFBuildingActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	ReleasePlacementFootprint();
+	
+	Super::EndPlay(EndPlayReason);
 }
 
 void ATCFBuildingActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -108,6 +117,16 @@ FIntPoint ATCFBuildingActor::GetFootprintSize() const
 ETCFBuildingRuntimeState ATCFBuildingActor::GetRuntimeState() const
 {
 	return RuntimeState;
+}
+
+bool ATCFBuildingActor::HasReservedPlacementFootprint() const
+{
+	return bHasReservedPlacementFootprint;
+}
+
+FIntPoint ATCFBuildingActor::GetReservedPlacementAnchorCell() const
+{
+	return ReservedPlacementAnchorCell;
 }
 
 bool ATCFBuildingActor::IsActive() const
@@ -196,4 +215,56 @@ void ATCFBuildingActor::ApplyRuntimeStatePresentation()
 	{
 		BuildingVisual->SetVisibility(!bDestroyed, true);
 	}
+}
+
+void ATCFBuildingActor::TryReservePlacementFootprint()
+{
+	if (!bReservePlacementGridOnBeginPlay || !BuildingDefinition || !BuildingDefinition->bBlocksBuildingPlacement)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	UTCFRTSPlacementGridSubsystem* PlacementGridSubsystem = World
+		? World->GetSubsystem<UTCFRTSPlacementGridSubsystem>()
+		: nullptr;
+
+	if (!PlacementGridSubsystem)
+	{
+		return;
+	}
+
+	FTCFPlacementGridValidationResult ValidationResult;
+	FIntPoint AnchorCell = FIntPoint::ZeroValue;
+
+	const bool bReserved = PlacementGridSubsystem->ReserveFootprintAtWorldLocation(
+		this,
+		GetActorLocation(),
+		GetFootprintSize(),
+		true,
+		AnchorCell,
+		ValidationResult);
+
+	bHasReservedPlacementFootprint = bReserved;
+
+	if (bReserved)
+	{
+		ReservedPlacementAnchorCell = AnchorCell;
+	}
+}
+
+void ATCFBuildingActor::ReleasePlacementFootprint()
+{
+	UWorld* World = GetWorld();
+	UTCFRTSPlacementGridSubsystem* PlacementGridSubsystem = World
+		? World->GetSubsystem<UTCFRTSPlacementGridSubsystem>()
+		: nullptr;
+
+	if (PlacementGridSubsystem)
+	{
+		PlacementGridSubsystem->ReleaseFootprintForActor(this);
+	}
+
+	bHasReservedPlacementFootprint = false;
+	ReservedPlacementAnchorCell = FIntPoint::ZeroValue;
 }

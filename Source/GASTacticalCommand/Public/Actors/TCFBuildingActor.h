@@ -27,7 +27,6 @@ public:
 	ATCFBuildingActor();
 
 	virtual void OnConstruction(const FTransform& Transform) override;
-	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Building")
@@ -53,6 +52,12 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Building")
 	ETCFBuildingRuntimeState GetRuntimeState() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Placement")
+	bool HasReservedPlacementFootprint() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Placement")
+	FIntPoint GetReservedPlacementAnchorCell() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Building")
 	bool IsActive() const;
@@ -67,6 +72,9 @@ public:
 	FOnTCFBuildingRuntimeStateChanged OnRuntimeStateChanged;
 
 protected:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<USceneComponent> SceneRoot;
 
@@ -84,6 +92,9 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_RuntimeState, BlueprintReadOnly, Category = "TCF|Building")
 	ETCFBuildingRuntimeState RuntimeState = ETCFBuildingRuntimeState::Inactive;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Building|Placement")
+	bool bReservePlacementGridOnBeginPlay = true;
 
 	UFUNCTION()
 	void OnRep_BuildingDefinition();
@@ -95,4 +106,10 @@ private:
 	void InitializeFromDefinition();
 	void ApplyDefinitionVisuals() const;
 	void ApplyRuntimeStatePresentation();
+	
+	FIntPoint ReservedPlacementAnchorCell = FIntPoint::ZeroValue;
+	bool bHasReservedPlacementFootprint = false;
+
+	void TryReservePlacementFootprint();
+	void ReleasePlacementFootprint();
 };

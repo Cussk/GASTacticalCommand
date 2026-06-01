@@ -60,6 +60,14 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Attributes", ReplicatedUsing = OnRep_CapturePower)
 	FGameplayAttributeData CapturePower;
 	ATTRIBUTE_ACCESSORS(UTCFSquadAttributeSet, CapturePower)
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Attributes", ReplicatedUsing = OnRep_GatherRate)
+	FGameplayAttributeData GatherRate;
+	ATTRIBUTE_ACCESSORS(UTCFSquadAttributeSet, GatherRate)
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Attributes", ReplicatedUsing = OnRep_BuildRate)
+	FGameplayAttributeData BuildRate;
+	ATTRIBUTE_ACCESSORS(UTCFSquadAttributeSet, BuildRate)
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -68,34 +76,40 @@ protected:
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
 	UFUNCTION()
-	void OnRep_Health(const FGameplayAttributeData& OldValue);
+	void OnRep_Health(const FGameplayAttributeData& OldValue) const;
 
 	UFUNCTION()
-	void OnRep_MaxHealth(const FGameplayAttributeData& OldValue);
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldValue) const;
 	
 	UFUNCTION()
-	void OnRep_Morale(const FGameplayAttributeData& OldValue);
+	void OnRep_Morale(const FGameplayAttributeData& OldValue) const;
 
 	UFUNCTION()
-	void OnRep_Suppression(const FGameplayAttributeData& OldValue);
+	void OnRep_Suppression(const FGameplayAttributeData& OldValue) const;
 
 	UFUNCTION()
-	void OnRep_Cohesion(const FGameplayAttributeData& OldValue);
+	void OnRep_Cohesion(const FGameplayAttributeData& OldValue) const;
 
 	UFUNCTION()
-	void OnRep_Stamina(const FGameplayAttributeData& OldValue);
+	void OnRep_Stamina(const FGameplayAttributeData& OldValue) const;
 
 	UFUNCTION()
-	void OnRep_Accuracy(const FGameplayAttributeData& OldValue);
+	void OnRep_Accuracy(const FGameplayAttributeData& OldValue) const;
 
 	UFUNCTION()
-	void OnRep_Defense(const FGameplayAttributeData& OldValue);
+	void OnRep_Defense(const FGameplayAttributeData& OldValue) const;
 
 	UFUNCTION()
-	void OnRep_MovementSpeed(const FGameplayAttributeData& OldValue);
+	void OnRep_MovementSpeed(const FGameplayAttributeData& OldValue) const;
 
 	UFUNCTION()
-	void OnRep_CapturePower(const FGameplayAttributeData& OldValue);
+	void OnRep_CapturePower(const FGameplayAttributeData& OldValue) const;
+	
+	UFUNCTION()
+	void OnRep_GatherRate(const FGameplayAttributeData& OldValue) const;
+
+	UFUNCTION()
+	void OnRep_BuildRate(const FGameplayAttributeData& OldValue) const;
 
 private:
 	static void ClampResourceAttribute(float& NewValue);

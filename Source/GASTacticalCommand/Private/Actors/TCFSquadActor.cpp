@@ -10,6 +10,7 @@
 #include "GameplayEffect.h"
 #include "Components/TCFAffiliationComponent.h"
 #include "Components/TCFSquadAttackCommandComponent.h"
+#include "Components/TCFSquadGatherCommandComponent.h"
 #include "Components/TCFSquadIntegrityStateComponent.h"
 #include "Components/TCFSquadMovementComponent.h"
 #include "Components/TCFSquadSelectionComponent.h"
@@ -32,6 +33,7 @@ ATCFSquadActor::ATCFSquadActor()
 	
 	MovementComponent = CreateDefaultSubobject<UTCFSquadMovementComponent>(TEXT("MovementComponent"));
 	AttackCommandComponent = CreateDefaultSubobject<UTCFSquadAttackCommandComponent>(TEXT("AttackCommandComponent"));
+	GatherCommandComponent = CreateDefaultSubobject<UTCFSquadGatherCommandComponent>(TEXT("GatherCommandComponent"));
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -59,6 +61,11 @@ UTCFSquadMovementComponent* ATCFSquadActor::GetMovementComponent() const
 UTCFSquadAttackCommandComponent* ATCFSquadActor::GetAttackCommandComponent() const
 {
 	return AttackCommandComponent;
+}
+
+UTCFSquadGatherCommandComponent* ATCFSquadActor::GetGatherCommandComponent() const
+{
+	return GatherCommandComponent;
 }
 
 UTCFSquadIntegrityStateComponent* ATCFSquadActor::GetIntegrityStateComponent() const
@@ -177,6 +184,8 @@ void ATCFSquadActor::InitializeAttributesFromDefinition() const
 	SquadAttributeSet->SetDefense(Defaults.Defense);
 	SquadAttributeSet->SetMovementSpeed(Defaults.MovementSpeed);
 	SquadAttributeSet->SetCapturePower(Defaults.CapturePower);
+	SquadAttributeSet->SetGatherRate(Defaults.GatherRate);
+	SquadAttributeSet->SetBuildRate(Defaults.BuildRate);
 }
 
 void ATCFSquadActor::GrantStartupTags() const

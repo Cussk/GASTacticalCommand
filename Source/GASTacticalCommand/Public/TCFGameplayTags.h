@@ -16,11 +16,13 @@ namespace TCFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_State_Moving);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_State_Stationary);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_State_Dead);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_State_Gathering);
 
 	// Squad Role
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_Role_Rifle);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_Role_Engineer);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_Role_Heavy);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Squad_Role_Worker);
 
 	// Doctrine
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Doctrine_Offensive);
@@ -33,6 +35,7 @@ namespace TCFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_Rally);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_FortifyPosition);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_TacticalRetreat);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Type_Gather);
 	
 	// Order Cooldown
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_BasicAttack);
@@ -40,6 +43,7 @@ namespace TCFGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_SuppressiveFire);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_FortifyPosition);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_TacticalRetreat);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Cooldown_Gather);
 
 	// Order Blocking
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Order_Blocked_Suppressed);

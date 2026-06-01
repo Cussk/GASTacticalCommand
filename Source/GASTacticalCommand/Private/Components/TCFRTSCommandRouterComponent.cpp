@@ -3,12 +3,14 @@
 #include "Components/TCFRTSCommandRouterComponent.h"
 
 #include "TCFGameplayTags.h"
+#include "Actors/TCFResourceNodeActor.h"
 #include "Actors/TCFSquadActor.h"
 #include "Components/TCFPlayerMovementCommandComponent.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFRTSOrderTargetingComponent.h"
 #include "Components/TCFSquadAttackCommandComponent.h"
+#include "Components/TCFSquadGatherCommandComponent.h"
 
 UTCFRTSCommandRouterComponent::UTCFRTSCommandRouterComponent()
 {
@@ -90,6 +92,7 @@ bool UTCFRTSCommandRouterComponent::ExecuteCommandIntent(FTCFRTSCommandIntent& C
 	{
 	case ETCFRTSCommandIntentType::Move:
 		StopSelectedSquadAttackCommands();
+		StopSelectedSquadGatherCommands();
 
 		return MovementCommandComponent
 			? MovementCommandComponent->MoveSelectedSquadsToLocation(CommandIntent.TargetLocation)
@@ -102,14 +105,16 @@ bool UTCFRTSCommandRouterComponent::ExecuteCommandIntent(FTCFRTSCommandIntent& C
 		}
 
 		StopSelectedSquadAttackCommands();
+		StopSelectedSquadGatherCommands();
 		return MovementCommandComponent->MoveSelectedSquadsToLocation(CommandIntent.TargetLocation);
 
 	case ETCFRTSCommandIntentType::AttackTarget:
+		StopSelectedSquadGatherCommands();
 		return ExecuteAttackTargetIntent(CommandIntent);
 
 	case ETCFRTSCommandIntentType::GatherResource:
-		// Worker gather command is a later V2 economy phase.
-		return false;
+		StopSelectedSquadAttackCommands();
+		return ExecuteGatherResourceIntent(CommandIntent);
 
 	case ETCFRTSCommandIntentType::ProductionBuildingInteraction:
 		// Building interaction/production UI is a later V2 phase.
@@ -158,6 +163,45 @@ bool UTCFRTSCommandRouterComponent::ExecuteAttackTargetIntent(const FTCFRTSComma
 	return bStartedAnyAttackCommand;
 }
 
+bool UTCFRTSCommandRouterComponent::ExecuteGatherResourceIntent(const FTCFRTSCommandIntent& CommandIntent) const
+{
+	if (!SelectionComponent || !IsValid(CommandIntent.TargetActor))
+	{
+		return false;
+	}
+
+	ATCFResourceNodeActor* ResourceNode = Cast<ATCFResourceNodeActor>(CommandIntent.TargetActor);
+	if (!ResourceNode || !ResourceNode->CanGatherResource())
+	{
+		return false;
+	}
+
+	TArray<ATCFSquadActor*> SelectedSquads;
+	SelectionComponent->GetSelectedSquads(SelectedSquads);
+
+	if (SelectedSquads.IsEmpty())
+	{
+		return false;
+	}
+
+	bool bStartedAnyGatherCommand = false;
+
+	for (ATCFSquadActor* SelectedSquad : SelectedSquads)
+	{
+		if (!IsValid(SelectedSquad))
+		{
+			continue;
+		}
+
+		if (UTCFSquadGatherCommandComponent* GatherCommandComponent = SelectedSquad->GetGatherCommandComponent())
+		{
+			bStartedAnyGatherCommand |= GatherCommandComponent->StartGatherCommand(ResourceNode);
+		}
+	}
+
+	return bStartedAnyGatherCommand;
+}
+
 void UTCFRTSCommandRouterComponent::StopSelectedSquadAttackCommands() const
 {
 	if (!SelectionComponent)
@@ -178,6 +222,30 @@ void UTCFRTSCommandRouterComponent::StopSelectedSquadAttackCommands() const
 		if (UTCFSquadAttackCommandComponent* AttackCommandComponent = SelectedSquad->GetAttackCommandComponent())
 		{
 			AttackCommandComponent->StopAttackCommand();
+		}
+	}
+}
+
+void UTCFRTSCommandRouterComponent::StopSelectedSquadGatherCommands() const
+{
+	if (!SelectionComponent)
+	{
+		return;
+	}
+
+	TArray<ATCFSquadActor*> SelectedSquads;
+	SelectionComponent->GetSelectedSquads(SelectedSquads);
+
+	for (ATCFSquadActor* SelectedSquad : SelectedSquads)
+	{
+		if (!IsValid(SelectedSquad))
+		{
+			continue;
+		}
+
+		if (UTCFSquadGatherCommandComponent* GatherCommandComponent = SelectedSquad->GetGatherCommandComponent())
+		{
+			GatherCommandComponent->StopGatherCommand();
 		}
 	}
 }

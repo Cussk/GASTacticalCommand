@@ -42,6 +42,12 @@ struct FTCFSquadAttributeDefaults
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Attributes")
 	float CapturePower = 1.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Attributes", meta = (ClampMin = "0.0"))
+	float GatherRate = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Attributes", meta = (ClampMin = "0.0"))
+	float BuildRate = 1.0f;
 };
 
 USTRUCT(BlueprintType)

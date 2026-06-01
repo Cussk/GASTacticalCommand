@@ -17,6 +17,8 @@ UTCFSquadAttributeSet::UTCFSquadAttributeSet()
 	InitDefense(1.0f);
 	InitMovementSpeed(400.0f);
 	InitCapturePower(1.0f);
+	InitGatherRate(1.0f);
+	InitBuildRate(1.0f);
 }
 
 void UTCFSquadAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -33,6 +35,8 @@ void UTCFSquadAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, Defense, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, MovementSpeed, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, CapturePower, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, GatherRate, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UTCFSquadAttributeSet, BuildRate, COND_None, REPNOTIFY_Always);
 }
 
 void UTCFSquadAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -64,6 +68,13 @@ void UTCFSquadAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribu
 		|| Attribute == GetDefenseAttribute()
 		|| Attribute == GetMovementSpeedAttribute()
 		|| Attribute == GetCapturePowerAttribute())
+	{
+		ClampNonNegativeAttribute(NewValue);
+		return;
+	}
+	
+	if (Attribute == GetGatherRateAttribute()
+	|| Attribute == GetBuildRateAttribute())
 	{
 		ClampNonNegativeAttribute(NewValue);
 	}
@@ -150,56 +161,80 @@ void UTCFSquadAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCa
 		ClampNonNegativeAttribute(ClampedValue);
 		SetCapturePower(ClampedValue);
 	}
+	
+	if (Data.EvaluatedData.Attribute == GetGatherRateAttribute())
+	{
+		ClampedValue = GetGatherRate();
+		ClampNonNegativeAttribute(ClampedValue);
+		SetGatherRate(ClampedValue);
+	}
+	
+	if (Data.EvaluatedData.Attribute == GetBuildRateAttribute())
+	{
+		ClampedValue = GetBuildRate();
+		ClampNonNegativeAttribute(ClampedValue);
+		SetBuildRate(ClampedValue);
+	}
 }
 
-void UTCFSquadAttributeSet::OnRep_Health(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_Health(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, Health, OldValue);
 }
 
-void UTCFSquadAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, MaxHealth, OldValue);
 }
 
-void UTCFSquadAttributeSet::OnRep_Morale(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_Morale(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, Morale, OldValue);
 }
 
-void UTCFSquadAttributeSet::OnRep_Suppression(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_Suppression(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, Suppression, OldValue);
 }
 
-void UTCFSquadAttributeSet::OnRep_Cohesion(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_Cohesion(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, Cohesion, OldValue);
 }
 
-void UTCFSquadAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, Stamina, OldValue);
 }
 
-void UTCFSquadAttributeSet::OnRep_Accuracy(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_Accuracy(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, Accuracy, OldValue);
 }
 
-void UTCFSquadAttributeSet::OnRep_Defense(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_Defense(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, Defense, OldValue);
 }
 
-void UTCFSquadAttributeSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, MovementSpeed, OldValue);
 }
 
-void UTCFSquadAttributeSet::OnRep_CapturePower(const FGameplayAttributeData& OldValue)
+void UTCFSquadAttributeSet::OnRep_CapturePower(const FGameplayAttributeData& OldValue) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, CapturePower, OldValue);
+}
+
+void UTCFSquadAttributeSet::OnRep_GatherRate(const FGameplayAttributeData& OldValue) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, GatherRate, OldValue);
+}
+
+void UTCFSquadAttributeSet::OnRep_BuildRate(const FGameplayAttributeData& OldValue) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UTCFSquadAttributeSet, BuildRate, OldValue);
 }
 
 void UTCFSquadAttributeSet::ClampResourceAttribute(float& NewValue)

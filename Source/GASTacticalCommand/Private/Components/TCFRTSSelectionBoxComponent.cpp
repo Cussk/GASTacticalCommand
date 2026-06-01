@@ -21,9 +21,7 @@ void UTCFRTSSelectionBoxComponent::BeginPlay()
 	Super::BeginPlay();
 
 	PlayerController = Cast<APlayerController>(GetOwner());
-	SelectionComponent = GetOwner()
-		? GetOwner()->FindComponentByClass<UTCFPlayerSelectionComponent>()
-		: nullptr;
+	SelectionComponent = GetOwner() ? GetOwner()->FindComponentByClass<UTCFPlayerSelectionComponent>() : nullptr;
 	
 	CreateSelectionBoxWidget();
 }

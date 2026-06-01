@@ -172,6 +172,11 @@ bool ATCFPlayerController::TryGetRTSCameraPawn()
 
 void ATCFPlayerController::HandleSelectStarted(const FInputActionValue& Value)
 {
+	if (RTSBuildingPlacementComponent && RTSBuildingPlacementComponent->IsPlacingBuilding())
+	{
+		return;
+	}
+	
 	if (RTSSelectionBoxComponent)
 	{
 		RTSSelectionBoxComponent->BeginSelection();
@@ -180,6 +185,11 @@ void ATCFPlayerController::HandleSelectStarted(const FInputActionValue& Value)
 
 void ATCFPlayerController::HandleSelectCompleted(const FInputActionValue& Value)
 {
+	if (RTSBuildingPlacementComponent && RTSBuildingPlacementComponent->IsPlacingBuilding())
+	{
+		return;
+	}
+	
 	if (RTSSelectionBoxComponent)
 	{
 		RTSSelectionBoxComponent->EndSelection(IsAppendSelectionActive());

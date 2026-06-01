@@ -4,6 +4,7 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
+#include "Components/TCFRTSSelectionBoxComponent.h"
 #include "Data/TCFBuildingDefinition.h"
 #include "Engine/StaticMeshActor.h"
 #include "GameFramework/PlayerController.h"
@@ -27,6 +28,7 @@ void UTCFRTSBuildingPlacementComponent::BeginPlay()
 	if (AActor* OwnerActor = GetOwner())
 	{
 		HoverContextComponent = OwnerActor->FindComponentByClass<UTCFRTSHoverContextComponent>();
+		SelectionBoxComponent = OwnerActor->FindComponentByClass<UTCFRTSSelectionBoxComponent>();
 	}
 }
 
@@ -47,6 +49,11 @@ bool UTCFRTSBuildingPlacementComponent::BeginBuildingPlacement(UTCFBuildingDefin
 	PendingBuildingDefinition = BuildingDefinition;
 	bCurrentPlacementValid = false;
 	CurrentValidationResult = FTCFPlacementGridValidationResult();
+	
+	if (SelectionBoxComponent)
+	{
+		SelectionBoxComponent->CancelSelection();
+	}
 
 	SetComponentTickEnabled(true);
 	RefreshPlacement();

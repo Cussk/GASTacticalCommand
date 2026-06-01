@@ -7,6 +7,7 @@
 #include "Types/TCFPlacementGridTypes.h"
 #include "TCFRTSBuildingPlacementComponent.generated.h"
 
+class UTCFRTSSelectionBoxComponent;
 class APlayerController;
 class AStaticMeshActor;
 class UMaterialInterface;
@@ -109,6 +110,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UTCFRTSHoverContextComponent> HoverContextComponent;
+	
+	UPROPERTY()
+	TObjectPtr<UTCFRTSSelectionBoxComponent> SelectionBoxComponent;
 
 	UPROPERTY()
 	TObjectPtr<UTCFBuildingDefinition> PendingBuildingDefinition;

@@ -30,6 +30,9 @@ class GASTACTICALCOMMAND_API UTCFBuildingDefinition : public UPrimaryDataAsset
 public:
 	UFUNCTION(BlueprintPure, Category = "TCF|Building")
 	FIntPoint GetSafeFootprintSize() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Construction")
+	float GetSafeRequiredConstructionWork() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Building")
 	TSubclassOf<ATCFBuildingActor> GetBuildingActorClass() const;
@@ -51,6 +54,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Economy")
 	TArray<FTCFResourceAmount> Cost;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Construction", meta = (ClampMin = "0.0"))
+	float RequiredConstructionWork = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Construction")
+	bool bCanReceiveWorkerConstruction = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Placement", meta = (ClampMin = "1"))
 	FIntPoint FootprintSize = FIntPoint(2, 2);

@@ -292,6 +292,7 @@ void UTCFRTSHoverContextComponent::CreateCursorWidget()
 	CursorWidget = CreateWidget<UTCFRTSCursorWidget>(PlayerController, CursorWidgetClass);
 	if (!CursorWidget)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("RTS cursor widget class is not assigned."));
 		return;
 	}
 

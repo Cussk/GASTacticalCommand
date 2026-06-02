@@ -61,6 +61,7 @@ void ATCFBuildingActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME(ATCFBuildingActor, BuildingDefinition);
 	DOREPLIFETIME(ATCFBuildingActor, RuntimeState);
+	DOREPLIFETIME(ATCFBuildingActor, ConstructionWorkCompleted);
 }
 
 void ATCFBuildingActor::ApplyBuildingDefinition(
@@ -79,6 +80,7 @@ void ATCFBuildingActor::ApplyBuildingDefinition(
 		RuntimeState = BuildingDefinition->InitialRuntimeState;
 	}
 
+	InitializeConstructionStateFromDefinition();
 	ApplyDefinitionVisuals();
 	ApplyRuntimeStatePresentation();
 }
@@ -148,6 +150,87 @@ void ATCFBuildingActor::SetRuntimeState(ETCFBuildingRuntimeState NewRuntimeState
 	OnRuntimeStateChanged.Broadcast(OldRuntimeState, RuntimeState);
 }
 
+bool ATCFBuildingActor::IsUnderConstruction() const
+{
+	return RuntimeState == ETCFBuildingRuntimeState::UnderConstruction;
+}
+
+bool ATCFBuildingActor::IsConstructionComplete() const
+{
+	if (!BuildingDefinition)
+	{
+		return RuntimeState == ETCFBuildingRuntimeState::Active;
+	}
+
+	const float RequiredWork = GetRequiredConstructionWork();
+	return RequiredWork <= 0.0f || ConstructionWorkCompleted >= RequiredWork;
+}
+
+bool ATCFBuildingActor::CanReceiveConstructionWork() const
+{
+	return BuildingDefinition
+		&& BuildingDefinition->bCanReceiveWorkerConstruction
+		&& RuntimeState == ETCFBuildingRuntimeState::UnderConstruction
+		&& !IsConstructionComplete();
+}
+
+float ATCFBuildingActor::GetConstructionWorkCompleted() const
+{
+	return ConstructionWorkCompleted;
+}
+
+float ATCFBuildingActor::GetRequiredConstructionWork() const
+{
+	return BuildingDefinition
+		? BuildingDefinition->GetSafeRequiredConstructionWork()
+		: 0.0f;
+}
+
+float ATCFBuildingActor::GetConstructionProgressAlpha() const
+{
+	const float RequiredWork = GetRequiredConstructionWork();
+	if (RequiredWork <= 0.0f)
+	{
+		return IsConstructionComplete() ? 1.0f : 0.0f;
+	}
+
+	return FMath::Clamp(ConstructionWorkCompleted / RequiredWork, 0.0f, 1.0f);
+}
+
+bool ATCFBuildingActor::AddConstructionWork(float WorkAmount, AActor* WorkSource)
+{
+	if (!HasAuthority() || WorkAmount <= 0.0f || !CanReceiveConstructionWork())
+	{
+		return false;
+	}
+
+	SetConstructionWorkCompleted(ConstructionWorkCompleted + WorkAmount);
+
+	if (IsConstructionComplete())
+	{
+		CompleteConstruction(WorkSource);
+	}
+
+	return true;
+}
+
+void ATCFBuildingActor::CompleteConstruction(AActor* CompletionSource)
+{
+	if (!HasAuthority() || RuntimeState != ETCFBuildingRuntimeState::UnderConstruction)
+	{
+		return;
+	}
+
+	const float RequiredWork = GetRequiredConstructionWork();
+	if (RequiredWork > 0.0f)
+	{
+		SetConstructionWorkCompleted(RequiredWork);
+	}
+
+	SetRuntimeState(ETCFBuildingRuntimeState::Active);
+	OnConstructionCompleted.Broadcast(this, CompletionSource);
+}
+
 UTCFAffiliationComponent* ATCFBuildingActor::GetAffiliationComponent() const
 {
 	return AffiliationComponent;
@@ -165,15 +248,29 @@ void ATCFBuildingActor::OnRep_RuntimeState(ETCFBuildingRuntimeState OldRuntimeSt
 	OnRuntimeStateChanged.Broadcast(OldRuntimeState, RuntimeState);
 }
 
+void ATCFBuildingActor::OnRep_ConstructionWorkCompleted(float OldConstructionWorkCompleted)
+{
+	OnConstructionProgressChanged.Broadcast(
+		this,
+		OldConstructionWorkCompleted,
+		ConstructionWorkCompleted);
+}
+
 void ATCFBuildingActor::InitializeFromDefinition()
 {
 	ApplyDefinitionVisuals();
+	
+	if (!HasAuthority())
+	{
+		return;
+	}
 
-	if (HasAuthority() && BuildingDefinition && RuntimeState == ETCFBuildingRuntimeState::Inactive)
+	if (BuildingDefinition && RuntimeState == ETCFBuildingRuntimeState::Inactive)
 	{
 		RuntimeState = BuildingDefinition->InitialRuntimeState;
 	}
 
+	InitializeConstructionStateFromDefinition();
 	ApplyRuntimeStatePresentation();
 }
 
@@ -214,6 +311,63 @@ void ATCFBuildingActor::ApplyRuntimeStatePresentation()
 	if (BuildingVisual)
 	{
 		BuildingVisual->SetVisibility(!bDestroyed, true);
+	}
+}
+
+void ATCFBuildingActor::InitializeConstructionStateFromDefinition()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	const float RequiredWork = GetRequiredConstructionWork();
+
+	if (RuntimeState == ETCFBuildingRuntimeState::UnderConstruction)
+	{
+		if (RequiredWork <= 0.0f)
+		{
+			CompleteConstruction(this);
+			return;
+		}
+
+		ConstructionWorkCompleted = FMath::Clamp(
+			ConstructionWorkCompleted,
+			0.0f,
+			RequiredWork);
+
+		return;
+	}
+
+	if (RuntimeState == ETCFBuildingRuntimeState::Active)
+	{
+		ConstructionWorkCompleted = RequiredWork;
+		return;
+	}
+
+	ConstructionWorkCompleted = 0.0f;
+}
+
+void ATCFBuildingActor::SetConstructionWorkCompleted(float NewConstructionWorkCompleted)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	const float RequiredWork = GetRequiredConstructionWork();
+	const float OldProgress = ConstructionWorkCompleted;
+
+	ConstructionWorkCompleted = RequiredWork > 0.0f
+		? FMath::Clamp(NewConstructionWorkCompleted, 0.0f, RequiredWork)
+		: 0.0f;
+
+	if (!FMath::IsNearlyEqual(OldProgress, ConstructionWorkCompleted))
+	{
+		OnConstructionProgressChanged.Broadcast(
+			this,
+			OldProgress,
+			ConstructionWorkCompleted);
 	}
 }
 

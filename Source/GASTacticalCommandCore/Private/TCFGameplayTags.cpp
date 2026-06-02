@@ -15,6 +15,7 @@ namespace TCFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Squad_State_Stationary, "Squad.State.Stationary");
 	UE_DEFINE_GAMEPLAY_TAG(Squad_State_Dead, "Squad.State.Dead");
 	UE_DEFINE_GAMEPLAY_TAG(Squad_State_Gathering, "Squad.State.Gathering");
+	UE_DEFINE_GAMEPLAY_TAG(Squad_State_Building, "Squad.State.Building");
 
 	// Squad Role
 	UE_DEFINE_GAMEPLAY_TAG(Squad_Role_Rifle, "Squad.Role.Rifle");
@@ -34,6 +35,7 @@ namespace TCFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Order_Type_FortifyPosition, "Order.Type.FortifyPosition");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Type_TacticalRetreat, "Order.Type.TacticalRetreat");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Type_Gather, "Order.Type.Gather");
+	UE_DEFINE_GAMEPLAY_TAG(Order_Type_Build, "Order.Type.Build");
 	
 	// Order Cooldown
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_BasicAttack, "Order.Cooldown.BasicAttack");
@@ -42,6 +44,7 @@ namespace TCFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_FortifyPosition, "Order.Cooldown.FortifyPosition");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_TacticalRetreat, "Order.Cooldown.TacticalRetreat");
 	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_Gather, "Order.Cooldown.Gather");
+	UE_DEFINE_GAMEPLAY_TAG(Order_Cooldown_Build, "Order.Cooldown.Build");
 
 	// Order Blocking
 	UE_DEFINE_GAMEPLAY_TAG(Order_Blocked_Suppressed, "Order.Blocked.Suppressed");

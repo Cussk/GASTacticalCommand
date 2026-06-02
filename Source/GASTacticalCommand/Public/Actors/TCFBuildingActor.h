@@ -18,6 +18,22 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	ETCFBuildingRuntimeState,
 	NewState);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
+	FOnTCFBuildingConstructionProgressChanged,
+	ATCFBuildingActor*,
+	Building,
+	float,
+	OldProgress,
+	float,
+	NewProgress);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+	FOnTCFBuildingConstructionCompleted,
+	ATCFBuildingActor*,
+	Building,
+	AActor*,
+	CompletionSource);
+
 UCLASS()
 class GASTACTICALCOMMAND_API ATCFBuildingActor : public AActor
 {
@@ -64,12 +80,42 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Building")
 	void SetRuntimeState(ETCFBuildingRuntimeState NewRuntimeState);
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Construction")
+	bool IsUnderConstruction() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Construction")
+	bool IsConstructionComplete() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Construction")
+	bool CanReceiveConstructionWork() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Construction")
+	float GetConstructionWorkCompleted() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Construction")
+	float GetRequiredConstructionWork() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Construction")
+	float GetConstructionProgressAlpha() const;
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Building|Construction")
+	bool AddConstructionWork(float WorkAmount, AActor* WorkSource);
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Building|Construction")
+	void CompleteConstruction(AActor* CompletionSource);
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
 	UTCFAffiliationComponent* GetAffiliationComponent() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Building")
 	FOnTCFBuildingRuntimeStateChanged OnRuntimeStateChanged;
+	
+	UPROPERTY(BlueprintAssignable, Category = "TCF|Building|Construction")
+	FOnTCFBuildingConstructionProgressChanged OnConstructionProgressChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "TCF|Building|Construction")
+	FOnTCFBuildingConstructionCompleted OnConstructionCompleted;
 
 protected:
 	virtual void BeginPlay() override;
@@ -95,20 +141,29 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Building|Placement")
 	bool bReservePlacementGridOnBeginPlay = true;
+	
+	UPROPERTY(ReplicatedUsing = OnRep_ConstructionWorkCompleted, BlueprintReadOnly, Category = "TCF|Building|Construction")
+	float ConstructionWorkCompleted = 0.0f;
 
 	UFUNCTION()
 	void OnRep_BuildingDefinition();
 
 	UFUNCTION()
 	void OnRep_RuntimeState(ETCFBuildingRuntimeState OldRuntimeState);
+	
+	UFUNCTION()
+	void OnRep_ConstructionWorkCompleted(float OldConstructionWorkCompleted);
 
 private:
+	FIntPoint ReservedPlacementAnchorCell = FIntPoint::ZeroValue;
+	bool bHasReservedPlacementFootprint = false;
+	
 	void InitializeFromDefinition();
 	void ApplyDefinitionVisuals() const;
 	void ApplyRuntimeStatePresentation();
 	
-	FIntPoint ReservedPlacementAnchorCell = FIntPoint::ZeroValue;
-	bool bHasReservedPlacementFootprint = false;
+	void InitializeConstructionStateFromDefinition();
+	void SetConstructionWorkCompleted(float NewConstructionWorkCompleted);
 
 	void TryReservePlacementFootprint();
 	void ReleasePlacementFootprint();

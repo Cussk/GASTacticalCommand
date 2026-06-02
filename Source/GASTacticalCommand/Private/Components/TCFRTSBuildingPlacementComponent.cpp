@@ -5,6 +5,7 @@
 #include "Actors/TCFBuildingActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TCFAffiliationComponent.h"
+#include "Components/TCFPlayerConstructionComponent.h"
 #include "Components/TCFPlayerResourceBankComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFRTSSelectionBoxComponent.h"
@@ -108,29 +109,20 @@ bool UTCFRTSBuildingPlacementComponent::ConfirmBuildingPlacement()
 		return false;
 	}
 
-	FTCFResourceTransactionResult SpendResult;
-	if (!TrySpendBuildingCost(SpendResult))
+	UTCFPlayerConstructionComponent* ConstructionComponent = GetPlayerConstructionComponent();
+	if (!ConstructionComponent)
 	{
-		CurrentCostValidationResult = SpendResult;
-		bCurrentCostValid = false;
-		RefreshCursorOverride();
-		RefreshPreview();
 		return false;
 	}
 
-	ATCFBuildingActor* PlacedBuilding = SpawnPlacedBuilding();
-	if (!PlacedBuilding)
+	ATCFBuildingActor* PlacedBuilding = nullptr;
+	if (!ConstructionComponent->TryRequestBuildingConstruction(
+		PendingBuildingDefinition,
+		CurrentPlacementLocation,
+		CurrentAnchorCell,
+		CurrentValidationResult,
+		PlacedBuilding))
 	{
-		RefundBuildingCost();
-		return false;
-	}
-
-	if (PendingBuildingDefinition->bBlocksBuildingPlacement
-		&& !PlacedBuilding->HasReservedPlacementFootprint())
-	{
-		PlacedBuilding->Destroy();
-		RefundBuildingCost();
-
 		RefreshPlacement();
 		return false;
 	}
@@ -512,105 +504,6 @@ bool UTCFRTSBuildingPlacementComponent::RefreshCostValidation()
 	return true;
 }
 
-bool UTCFRTSBuildingPlacementComponent::TrySpendBuildingCost(
-	FTCFResourceTransactionResult& OutSpendResult) const
-{
-	if (!PendingBuildingDefinition)
-	{
-		OutSpendResult = FTCFResourceTransactionResult();
-		return false;
-	}
-
-	UTCFPlayerResourceBankComponent* ResourceBank = GetPlayerResourceBankComponent();
-	if (!ResourceBank)
-	{
-		OutSpendResult = FTCFResourceTransactionResult::Failure(
-			FGameplayTag(),
-			0,
-			1);
-		return false;
-	}
-
-	return ResourceBank->TrySpendResources(PendingBuildingDefinition->Cost, OutSpendResult);
-}
-
-void UTCFRTSBuildingPlacementComponent::RefundBuildingCost() const
-{
-	if (!PendingBuildingDefinition)
-	{
-		return;
-	}
-
-	UTCFPlayerResourceBankComponent* ResourceBank = GetPlayerResourceBankComponent();
-	if (!ResourceBank)
-	{
-		return;
-	}
-
-	ResourceBank->AddResources(PendingBuildingDefinition->Cost);
-}
-
-ATCFBuildingActor* UTCFRTSBuildingPlacementComponent::SpawnPlacedBuilding() const
-{
-	if (!PendingBuildingDefinition || !GetWorld())
-	{
-		return nullptr;
-	}
-
-	TSubclassOf<ATCFBuildingActor> BuildingClass = PendingBuildingDefinition->GetBuildingActorClass();
-	if (!BuildingClass)
-	{
-		return nullptr;
-	}
-
-	FTransform SpawnTransform;
-	SpawnTransform.SetLocation(CurrentPlacementLocation);
-	SpawnTransform.SetRotation(FQuat::Identity);
-	SpawnTransform.SetScale3D(FVector::OneVector);
-
-	ATCFBuildingActor* PlacedBuilding = GetWorld()->SpawnActorDeferred<ATCFBuildingActor>(
-		BuildingClass,
-		SpawnTransform,
-		PlayerController,
-		nullptr,
-		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-
-	if (!PlacedBuilding)
-	{
-		return nullptr;
-	}
-
-	PlacedBuilding->ApplyBuildingDefinition(PendingBuildingDefinition, true);
-	ApplyPlacedBuildingAffiliation(PlacedBuilding);
-
-	UGameplayStatics::FinishSpawningActor(PlacedBuilding, SpawnTransform);
-
-	return PlacedBuilding;
-}
-
-void UTCFRTSBuildingPlacementComponent::ApplyPlacedBuildingAffiliation(
-	const ATCFBuildingActor* PlacedBuilding) const
-{
-	if (!PlacedBuilding)
-	{
-		return;
-	}
-
-	ATCFPlayerState* TCFPlayerState = GetTCFPlayerState();
-	if (!TCFPlayerState)
-	{
-		return;
-	}
-
-	UTCFAffiliationComponent* AffiliationComponent = PlacedBuilding->GetAffiliationComponent();
-	if (!AffiliationComponent)
-	{
-		return;
-	}
-
-	AffiliationComponent->SetOwnerId(TCFPlayerState->GetPlayerId());
-}
-
 ATCFPlayerState* UTCFRTSBuildingPlacementComponent::GetTCFPlayerState() const
 {
 	if (!PlayerController)
@@ -626,6 +519,14 @@ UTCFPlayerResourceBankComponent* UTCFRTSBuildingPlacementComponent::GetPlayerRes
 	ATCFPlayerState* TCFPlayerState = GetTCFPlayerState();
 	return TCFPlayerState
 		? TCFPlayerState->GetPlayerResourceBankComponent()
+		: nullptr;
+}
+
+UTCFPlayerConstructionComponent* UTCFRTSBuildingPlacementComponent::GetPlayerConstructionComponent() const
+{
+	const ATCFPlayerState* TCFPlayerState = GetTCFPlayerState();
+	return TCFPlayerState
+		? TCFPlayerState->GetPlayerConstructionComponent()
 		: nullptr;
 }
 

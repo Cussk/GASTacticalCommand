@@ -8,6 +8,7 @@
 #include "Types/TCFPlacementGridTypes.h"
 #include "TCFRTSBuildingPlacementComponent.generated.h"
 
+class UTCFPlayerConstructionComponent;
 class UTCFPlayerResourceBankComponent;
 class ATCFPlayerState;
 class ATCFBuildingActor;
@@ -148,14 +149,10 @@ private:
 	FVector ResolvePreviewScale() const;
 	
 	bool RefreshCostValidation();
-	bool TrySpendBuildingCost(FTCFResourceTransactionResult& OutSpendResult) const;
-	void RefundBuildingCost() const;
-
-	ATCFBuildingActor* SpawnPlacedBuilding() const;
-	void ApplyPlacedBuildingAffiliation(const ATCFBuildingActor* PlacedBuilding) const;
 
 	ATCFPlayerState* GetTCFPlayerState() const;
 	UTCFPlayerResourceBankComponent* GetPlayerResourceBankComponent() const;
+	UTCFPlayerConstructionComponent* GetPlayerConstructionComponent() const;
 
 	UTCFRTSPlacementGridSubsystem* GetPlacementGridSubsystem() const;
 };

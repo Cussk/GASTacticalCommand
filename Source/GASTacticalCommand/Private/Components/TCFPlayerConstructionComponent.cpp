@@ -1,0 +1,277 @@
+﻿// Copyright Kyle Cuss and Cuss Programming 2026.
+
+#include "Components/TCFPlayerConstructionComponent.h"
+
+#include "AbilitySystemComponent.h"
+#include "Actors/TCFBuildingActor.h"
+#include "Components/TCFAffiliationComponent.h"
+#include "Components/TCFPlayerResourceBankComponent.h"
+#include "Data/TCFBuildingDefinition.h"
+#include "GAS/Abilities/TCFGameplayAbility_ConstructBuilding.h"
+#include "Kismet/GameplayStatics.h"
+#include "Player/TCFPlayerState.h"
+#include "Subsystems/TCFRTSPlacementGridSubsystem.h"
+
+UTCFPlayerConstructionComponent::UTCFPlayerConstructionComponent()
+{
+	PrimaryComponentTick.bCanEverTick = false;
+	ConstructBuildingAbilityClass = UTCFGameplayAbility_ConstructBuilding::StaticClass();
+}
+
+void UTCFPlayerConstructionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GrantConstructionAbility();
+}
+
+void UTCFPlayerConstructionComponent::GrantConstructionAbility()
+{
+	ATCFPlayerState* TCFPlayerState = GetTCFPlayerState();
+	if (!TCFPlayerState || !TCFPlayerState->HasAuthority() || ConstructionAbilitySpecHandle.IsValid())
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* CommanderASC = GetCommanderAbilitySystemComponent();
+	if (!CommanderASC || !ConstructBuildingAbilityClass)
+	{
+		return;
+	}
+
+	ConstructionAbilitySpecHandle = CommanderASC->GiveAbility(
+		FGameplayAbilitySpec(ConstructBuildingAbilityClass, 1, INDEX_NONE, this));
+}
+
+bool UTCFPlayerConstructionComponent::TryRequestBuildingConstruction(
+	UTCFBuildingDefinition* BuildingDefinition,
+	FVector PlacementLocation,
+	FIntPoint AnchorCell,
+	const FTCFPlacementGridValidationResult& PlacementValidationResult,
+	ATCFBuildingActor*& OutPlacedBuilding)
+{
+	OutPlacedBuilding = nullptr;
+	LastPlacedBuilding = nullptr;
+
+	if (!IsValid(BuildingDefinition) || !PlacementValidationResult.bIsValid)
+	{
+		return false;
+	}
+
+	PendingConstructionRequest.BuildingDefinition = BuildingDefinition;
+	PendingConstructionRequest.PlacementLocation = PlacementLocation;
+	PendingConstructionRequest.AnchorCell = AnchorCell;
+	PendingConstructionRequest.PlacementValidationResult = PlacementValidationResult;
+
+	if (!CanExecutePendingConstructionRequest())
+	{
+		ClearPendingConstructionRequest();
+		return false;
+	}
+
+	UAbilitySystemComponent* CommanderASC = GetCommanderAbilitySystemComponent();
+	if (!CommanderASC || !ConstructBuildingAbilityClass)
+	{
+		ClearPendingConstructionRequest();
+		return false;
+	}
+
+	const bool bActivationStarted = CommanderASC->TryActivateAbilityByClass(ConstructBuildingAbilityClass);
+
+	OutPlacedBuilding = LastPlacedBuilding;
+	const bool bSucceeded = bActivationStarted && IsValid(OutPlacedBuilding);
+
+	if (!bSucceeded)
+	{
+		ClearPendingConstructionRequest();
+	}
+
+	return bSucceeded;
+}
+
+bool UTCFPlayerConstructionComponent::HasPendingConstructionRequest() const
+{
+	return PendingConstructionRequest.IsValid();
+}
+
+const FTCFBuildingConstructionRequest& UTCFPlayerConstructionComponent::GetPendingConstructionRequest() const
+{
+	return PendingConstructionRequest;
+}
+
+void UTCFPlayerConstructionComponent::ClearPendingConstructionRequest()
+{
+	PendingConstructionRequest = FTCFBuildingConstructionRequest();
+}
+
+bool UTCFPlayerConstructionComponent::CanExecutePendingConstructionRequest(
+	FTCFPlacementGridValidationResult* OutValidationResult) const
+{
+	if (!PendingConstructionRequest.IsValid())
+	{
+		if (OutValidationResult)
+		{
+			*OutValidationResult = FTCFPlacementGridValidationResult::Failure(
+				ETCFPlacementGridValidationFailure::InvalidFootprint);
+		}
+
+		return false;
+	}
+
+	const UWorld* World = GetWorld();
+	const UTCFRTSPlacementGridSubsystem* PlacementGrid = World
+		? World->GetSubsystem<UTCFRTSPlacementGridSubsystem>()
+		: nullptr;
+
+	if (!PlacementGrid)
+	{
+		if (OutValidationResult)
+		{
+			*OutValidationResult = FTCFPlacementGridValidationResult::Failure(
+				ETCFPlacementGridValidationFailure::InvalidFootprint);
+		}
+
+		return false;
+	}
+
+	FTCFPlacementGridValidationResult ValidationResult;
+	const bool bValid = const_cast<UTCFRTSPlacementGridSubsystem*>(PlacementGrid)->ValidateFootprint(
+		PendingConstructionRequest.AnchorCell,
+		PendingConstructionRequest.BuildingDefinition->GetSafeFootprintSize(),
+		nullptr,
+		ValidationResult);
+
+	if (OutValidationResult)
+	{
+		*OutValidationResult = ValidationResult;
+	}
+
+	return bValid;
+}
+
+bool UTCFPlayerConstructionComponent::ExecutePendingConstruction(ATCFBuildingActor*& OutPlacedBuilding)
+{
+	OutPlacedBuilding = nullptr;
+
+	FTCFPlacementGridValidationResult ValidationResult;
+	if (!CanExecutePendingConstructionRequest(&ValidationResult))
+	{
+		return false;
+	}
+
+	UTCFBuildingDefinition* BuildingDefinition = PendingConstructionRequest.BuildingDefinition;
+	if (!BuildingDefinition || !GetWorld())
+	{
+		return false;
+	}
+
+	const TSubclassOf<ATCFBuildingActor> BuildingClass = BuildingDefinition->GetBuildingActorClass();
+	if (!BuildingClass)
+	{
+		return false;
+	}
+
+	FTransform SpawnTransform;
+	SpawnTransform.SetLocation(PendingConstructionRequest.PlacementLocation);
+	SpawnTransform.SetRotation(FQuat::Identity);
+	SpawnTransform.SetScale3D(FVector::OneVector);
+
+	ATCFBuildingActor* PlacedBuilding = GetWorld()->SpawnActorDeferred<ATCFBuildingActor>(
+		BuildingClass,
+		SpawnTransform,
+		GetOwner(),
+		nullptr,
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+	if (!PlacedBuilding)
+	{
+		return false;
+	}
+
+	PlacedBuilding->ApplyBuildingDefinition(BuildingDefinition, true);
+	ApplyPlacedBuildingAffiliation(PlacedBuilding);
+
+	UGameplayStatics::FinishSpawningActor(PlacedBuilding, SpawnTransform);
+
+	if (BuildingDefinition->bBlocksBuildingPlacement && !PlacedBuilding->HasReservedPlacementFootprint())
+	{
+		PlacedBuilding->Destroy();
+		return false;
+	}
+
+	LastPlacedBuilding = PlacedBuilding;
+	OutPlacedBuilding = PlacedBuilding;
+
+	OnConstructionSitePlaced.Broadcast(
+		PlacedBuilding,
+		BuildingDefinition,
+		PendingConstructionRequest.PlacementLocation,
+		PendingConstructionRequest.AnchorCell);
+
+	return true;
+}
+
+void UTCFPlayerConstructionComponent::RefundPendingConstructionCost() const
+{
+	const UTCFBuildingDefinition* BuildingDefinition = PendingConstructionRequest.BuildingDefinition;
+	if (!BuildingDefinition)
+	{
+		return;
+	}
+
+	UTCFPlayerResourceBankComponent* ResourceBank = GetResourceBankComponent();
+	if (!ResourceBank)
+	{
+		return;
+	}
+
+	ResourceBank->AddResources(BuildingDefinition->Cost);
+}
+
+ATCFBuildingActor* UTCFPlayerConstructionComponent::GetLastPlacedBuilding() const
+{
+	return LastPlacedBuilding;
+}
+
+UTCFPlayerResourceBankComponent* UTCFPlayerConstructionComponent::GetResourceBankComponent() const
+{
+	const ATCFPlayerState* TCFPlayerState = GetTCFPlayerState();
+	return TCFPlayerState
+		? TCFPlayerState->GetPlayerResourceBankComponent()
+		: nullptr;
+}
+
+ATCFPlayerState* UTCFPlayerConstructionComponent::GetTCFPlayerState() const
+{
+	return Cast<ATCFPlayerState>(GetOwner());
+}
+
+UAbilitySystemComponent* UTCFPlayerConstructionComponent::GetCommanderAbilitySystemComponent() const
+{
+	const ATCFPlayerState* TCFPlayerState = GetTCFPlayerState();
+	return TCFPlayerState
+		? TCFPlayerState->GetAbilitySystemComponent()
+		: nullptr;
+}
+
+void UTCFPlayerConstructionComponent::ApplyPlacedBuildingAffiliation(ATCFBuildingActor* PlacedBuilding) const
+{
+	if (!PlacedBuilding)
+	{
+		return;
+	}
+
+	const ATCFPlayerState* TCFPlayerState = GetTCFPlayerState();
+	if (!TCFPlayerState)
+	{
+		return;
+	}
+
+	UTCFAffiliationComponent* AffiliationComponent = PlacedBuilding->GetAffiliationComponent();
+	if (!AffiliationComponent)
+	{
+		return;
+	}
+
+	AffiliationComponent->SetOwnerId(TCFPlayerState->GetPlayerId());
+}

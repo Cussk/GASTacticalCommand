@@ -14,7 +14,7 @@ enum class ETCFRTSHoverTargetType : uint8
 	Squad,
 	CapturePoint,
 	ResourceNode,
-	ProductionBuilding,
+	Building,
 	OtherActor
 };
 
@@ -29,6 +29,8 @@ enum class ETCFRTSCursorState : uint8
 	CapturePoint,
 	ResourceNode,
 	ProductionBuilding,
+	ResearchBuilding,
+	BuildingDetails,
 	InvalidTarget,
 	OrderTarget,
 	OrderTargetInvalid,

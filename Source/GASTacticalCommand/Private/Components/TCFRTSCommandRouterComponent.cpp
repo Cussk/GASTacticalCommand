@@ -263,7 +263,7 @@ ETCFRTSCommandIntentType UTCFRTSCommandRouterComponent::ResolveIntentType(const 
 	case ETCFRTSHoverTargetType::ResourceNode:
 		return ETCFRTSCommandIntentType::GatherResource;
 
-	case ETCFRTSHoverTargetType::ProductionBuilding:
+	case ETCFRTSHoverTargetType::Building:
 		return ETCFRTSCommandIntentType::ProductionBuildingInteraction;
 
 	case ETCFRTSHoverTargetType::Squad:

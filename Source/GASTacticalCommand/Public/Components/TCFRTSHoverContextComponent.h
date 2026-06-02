@@ -56,37 +56,7 @@ protected:
 	bool bTraceComplex = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Hover")
-	bool bApplyMouseCursor = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Hover")
 	FName ProductionBuildingActorTag = TEXT("RTS.ProductionBuilding");
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	TEnumAsByte<EMouseCursor::Type> DefaultCursor = EMouseCursor::Default;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	TEnumAsByte<EMouseCursor::Type> MoveGroundCursor = EMouseCursor::Crosshairs;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	TEnumAsByte<EMouseCursor::Type> SelectableOwnCursor = EMouseCursor::Hand;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	TEnumAsByte<EMouseCursor::Type> SelectableFriendlyCursor = EMouseCursor::Hand;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	TEnumAsByte<EMouseCursor::Type> AttackEnemyCursor = EMouseCursor::Crosshairs;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	TEnumAsByte<EMouseCursor::Type> CapturePointCursor = EMouseCursor::GrabHand;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	TEnumAsByte<EMouseCursor::Type> ResourceNodeCursor = EMouseCursor::GrabHand;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	TEnumAsByte<EMouseCursor::Type> ProductionBuildingCursor = EMouseCursor::Hand;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	TEnumAsByte<EMouseCursor::Type> InvalidTargetCursor = EMouseCursor::SlashedCircle;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|RTS Cursor")
 	bool bUseCustomCursorWidget = true;
@@ -120,9 +90,6 @@ private:
 	ETCFRTSHoverTargetType ResolveTargetType(const AActor* HitActor) const;
 	ETCFRTSCursorState ResolveCursorState(const FTCFRTSHoverContext& HoverContext, const ATCFSquadActor* HoveredSquad) const;
 	ETCFSquadRelationship ResolveRelationshipToPrimarySelection(const AActor* HoveredActor) const;
-
-	void ApplyCursorState(ETCFRTSCursorState CursorState) const;
-	EMouseCursor::Type GetMouseCursorForState(ETCFRTSCursorState CursorState) const;
 
 	bool AreHoverContextsEquivalent(const FTCFRTSHoverContext& A, const FTCFRTSHoverContext& B) const;
 	

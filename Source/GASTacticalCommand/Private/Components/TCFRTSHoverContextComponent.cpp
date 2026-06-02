@@ -2,6 +2,8 @@
 
 #include "Components/TCFRTSHoverContextComponent.h"
 
+#include "TCFGameplayTags.h"
+#include "Actors/TCFBuildingActor.h"
 #include "Actors/TCFCapturePointActor.h"
 #include "Actors/TCFResourceNodeActor.h"
 #include "Actors/TCFSquadActor.h"
@@ -62,22 +64,12 @@ void UTCFRTSHoverContextComponent::SetCursorOverride(ETCFRTSCursorState NewCurso
 {
 	bHasCursorOverride = true;
 	CursorOverrideState = NewCursorState;
-
-	if (bApplyMouseCursor)
-	{
-		ApplyCursorState(GetEffectiveCursorState());
-	}
 }
 
 void UTCFRTSHoverContextComponent::ClearCursorOverride()
 {
 	bHasCursorOverride = false;
 	CursorOverrideState = ETCFRTSCursorState::Default;
-
-	if (bApplyMouseCursor)
-	{
-		ApplyCursorState(GetEffectiveCursorState());
-	}
 }
 
 ETCFRTSCursorState UTCFRTSHoverContextComponent::GetEffectiveCursorState() const
@@ -109,11 +101,6 @@ void UTCFRTSHoverContextComponent::RefreshHoverContext()
 	if (bHoverContextChanged)
 	{
 		OnHoverContextChanged.Broadcast(CurrentHoverContext);
-	}
-
-	if (bApplyMouseCursor)
-	{
-		ApplyCursorState(GetEffectiveCursorState());
 	}
 }
 
@@ -184,10 +171,10 @@ ETCFRTSHoverTargetType UTCFRTSHoverContextComponent::ResolveTargetType(const AAc
 	{
 		return ETCFRTSHoverTargetType::ResourceNode;
 	}
-
-	if (ProductionBuildingActorTag != NAME_None && HitActor->ActorHasTag(ProductionBuildingActorTag))
+	
+	if (HitActor->IsA<ATCFBuildingActor>())
 	{
-		return ETCFRTSHoverTargetType::ProductionBuilding;
+		return ETCFRTSHoverTargetType::Building;
 	}
 
 	return ETCFRTSHoverTargetType::Ground;
@@ -232,8 +219,20 @@ ETCFRTSCursorState UTCFRTSHoverContextComponent::ResolveCursorState(
 	case ETCFRTSHoverTargetType::ResourceNode:
 		return ETCFRTSCursorState::ResourceNode;
 
-	case ETCFRTSHoverTargetType::ProductionBuilding:
-		return ETCFRTSCursorState::ProductionBuilding;
+	case ETCFRTSHoverTargetType::Building:
+		const ATCFBuildingActor* Building;
+		Building = Cast<ATCFBuildingActor>(HoverContext.HoveredActor);
+		if (Building->GetBuildingRoleTags().HasTagExact(TCFGameplayTags::Building_Role_Research))
+		{
+			return ETCFRTSCursorState::ResearchBuilding;
+		}
+
+		if (Building->GetBuildingRoleTags().HasTagExact(TCFGameplayTags::Building_Role_Production))
+		{
+			return ETCFRTSCursorState::ProductionBuilding;
+		}
+		
+		return ETCFRTSCursorState::BuildingDetails;
 
 	case ETCFRTSHoverTargetType::Ground:
 		return SelectionComponent && SelectionComponent->HasSelectedSquads()
@@ -263,72 +262,6 @@ ETCFSquadRelationship UTCFRTSHoverContextComponent::ResolveRelationshipToPrimary
 	}
 
 	return RelationshipSubsystem->GetActorRelationship(PrimarySelectedSquad, HoveredActor);
-}
-
-void UTCFRTSHoverContextComponent::ApplyCursorState(ETCFRTSCursorState CursorState) const
-{
-	if (!PlayerController)
-	{
-		return;
-	}
-
-	if (bUseCustomCursorWidget && CursorWidget)
-	{
-		if (PlayerController->CurrentMouseCursor != EMouseCursor::None)
-		{
-			PlayerController->CurrentMouseCursor = EMouseCursor::None;
-		}
-
-		return;
-	}
-
-	const EMouseCursor::Type DesiredMouseCursor = GetMouseCursorForState(CursorState);
-	if (PlayerController->CurrentMouseCursor == DesiredMouseCursor)
-	{
-		return;
-	}
-
-	PlayerController->CurrentMouseCursor = DesiredMouseCursor;
-}
-
-EMouseCursor::Type UTCFRTSHoverContextComponent::GetMouseCursorForState(ETCFRTSCursorState CursorState) const
-{
-	switch (CursorState)
-	{
-	case ETCFRTSCursorState::MoveGround:
-		return MoveGroundCursor.GetValue();
-
-	case ETCFRTSCursorState::SelectableOwn:
-		return SelectableOwnCursor.GetValue();
-
-	case ETCFRTSCursorState::SelectableFriendly:
-		return SelectableFriendlyCursor.GetValue();
-
-	case ETCFRTSCursorState::AttackEnemy:
-		return AttackEnemyCursor.GetValue();
-
-	case ETCFRTSCursorState::CapturePoint:
-		return CapturePointCursor.GetValue();
-
-	case ETCFRTSCursorState::ResourceNode:
-		return ResourceNodeCursor.GetValue();
-		
-	case ETCFRTSCursorState::BuildingPlacement:
-		return ProductionBuildingCursor.GetValue();
-
-	case ETCFRTSCursorState::BuildingPlacementInvalid:
-		return InvalidTargetCursor.GetValue();
-
-	case ETCFRTSCursorState::ProductionBuilding:
-		return ProductionBuildingCursor.GetValue();
-
-	case ETCFRTSCursorState::InvalidTarget:
-		return InvalidTargetCursor.GetValue();
-
-	case ETCFRTSCursorState::Default:
-	default:
-		return DefaultCursor.GetValue();
-	}
 }
 
 bool UTCFRTSHoverContextComponent::AreHoverContextsEquivalent(

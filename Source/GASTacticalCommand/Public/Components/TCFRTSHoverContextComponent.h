@@ -55,13 +55,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Hover")
 	bool bTraceComplex = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Hover")
-	FName ProductionBuildingActorTag = TEXT("RTS.ProductionBuilding");
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|RTS Cursor")
-	bool bUseCustomCursorWidget = true;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|RTS Cursor", meta = (EditCondition = "bUseCustomCursorWidget"))
 	TSubclassOf<UTCFRTSCursorWidget> CursorWidgetClass;
 
 	UPROPERTY()

@@ -220,19 +220,25 @@ ETCFRTSCursorState UTCFRTSHoverContextComponent::ResolveCursorState(
 		return ETCFRTSCursorState::ResourceNode;
 
 	case ETCFRTSHoverTargetType::Building:
-		const ATCFBuildingActor* Building;
-		Building = Cast<ATCFBuildingActor>(HoverContext.HoveredActor);
-		if (Building->GetBuildingRoleTags().HasTagExact(TCFGameplayTags::Building_Role_Research))
 		{
-			return ETCFRTSCursorState::ResearchBuilding;
-		}
+			const ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(HoverContext.HoveredActor);
+			if (!Building)
+			{
+				return ETCFRTSCursorState::BuildingDetails;
+			}
 
-		if (Building->GetBuildingRoleTags().HasTagExact(TCFGameplayTags::Building_Role_Production))
-		{
-			return ETCFRTSCursorState::ProductionBuilding;
+			if (Building->GetBuildingRoleTags().HasTagExact(TCFGameplayTags::Building_Role_Research))
+			{
+				return ETCFRTSCursorState::ResearchBuilding;
+			}
+
+			if (Building->GetBuildingRoleTags().HasTagExact(TCFGameplayTags::Building_Role_Production))
+			{
+				return ETCFRTSCursorState::ProductionBuilding;
+			}
+
+			return ETCFRTSCursorState::BuildingDetails;
 		}
-		
-		return ETCFRTSCursorState::BuildingDetails;
 
 	case ETCFRTSHoverTargetType::Ground:
 		return SelectionComponent && SelectionComponent->HasSelectedSquads()
@@ -278,7 +284,7 @@ bool UTCFRTSHoverContextComponent::AreHoverContextsEquivalent(
 
 void UTCFRTSHoverContextComponent::CreateCursorWidget()
 {
-	if (!bUseCustomCursorWidget || CursorWidget || !CursorWidgetClass || !PlayerController)
+	if (CursorWidget || !CursorWidgetClass || !PlayerController)
 	{
 		return;
 	}

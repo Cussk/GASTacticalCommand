@@ -1,41 +1,128 @@
 # GAS Tactical Command Framework
 
-A focused Unreal Engine Gameplay Ability System prototype exploring **squad-level RTS command abilities** instead of the usual hero/RPG ability setup.
+A focused Unreal Engine 5 C++ / Gameplay Ability System project exploring **GAS integration in an RTS-style framework**.
 
-The project uses GAS as a tactical rules and state layer for squads: command activation, costs, cooldowns, suppression, morale recovery, fortification, retreat state, affiliation filtering, and debug visibility. High-frequency RTS simulation work such as formation movement, pathfinding, projectile simulation, and large-scale steering is intentionally kept outside GAS.
+The project started as a squad-level tactical command prototype and is now expanding into a broader RTS MVP direction. GAS is used for gameplay rules, activation checks, costs, cooldowns, state tags, Gameplay Effects, unlock rules, and tactical command behavior. RTS-specific systems such as selection, movement, command routing, production queues, building placement, spawning, and world interaction stay in dedicated systems.
 
-## Project Goals
+## Current Stage
 
-This project is meant to demonstrate practical GAS proficiency in a less common gameplay context:
+**V1 is complete** as a tactical command framework prototype.
 
-- Squad-level Ability System Component ownership
-- RTS-focused attributes such as morale, suppression, cohesion, stamina, accuracy, defense, movement speed, and capture power
-- Gameplay Effects for tactical state changes, buffs, debuffs, costs, and cooldowns
-- Gameplay Tags for readable command rules and battlefield state
-- Data-driven command authoring through squad definitions and order definitions
-- Clean separation between command metadata, squad grants, GAS execution, targeting/query systems, and debug UI
-- Debug-first workflow for inspecting active effects, tags, attributes, order results, cooldowns, and relationships
+**V2 is in progress** as the RTS MVP expansion. Current V2 direction includes:
 
-The long-term direction could become a reusable tactical GAS command framework or plugin, but V1 is intentionally a compact vertical slice.
+- RTS camera and selection controls
+- Hover context and custom cursor feedback
+- Command routing for right-click and UI-driven actions
+- Basic squad attack behavior
+- Resource and building interaction
+- Gathering and production foundations
+- Building, squad production, and research rules
+- Continued GAS integration without forcing all RTS logic into GAS
 
-## Core Design Thesis
+## Core Thesis
+
+GAS is the **rules and state layer** for tactical RTS commands.
 
 GAS should answer:
 
-> Can this squad perform this command, what does it cost, what state does it apply, and what gameplay rules change while it is active?
+> Can this unit, squad, building, or player command source perform this action right now? What does it cost? What tags, cooldowns, requirements, and gameplay state changes apply?
 
-Other RTS systems should answer:
+Dedicated RTS systems should answer:
 
-> Where does the squad move, how do units steer, what does the formation look like, and how are many entities simulated efficiently?
+> Where does the actor move? How does selection work? How is a queue processed? Where does an actor spawn? How is placement preview validated? How are many entities simulated efficiently?
 
-This project uses GAS for **rules, state, costs, cooldowns, tags, effects, and tactical command behavior**. It does not try to make GAS responsible for full RTS simulation.
+This keeps GAS focused on the work it is good at while allowing RTS systems to stay simple, direct, and performance-aware.
 
-## Current Implemented Features
+## GAS Integration Rules
+
+### 1. GAS owns gameplay rule validation
+
+Gameplay Abilities should own or coordinate:
+
+- Activation requirements
+- Blocked and required tags
+- Cost Gameplay Effects
+- Cooldown Gameplay Effects
+- Temporary state tags
+- Buffs and debuffs
+- Ability-specific execution rules
+- Research, building level, or unlock requirements when applicable
+
+### 2. GAS should not own high-frequency RTS simulation
+
+GAS should not be responsible for:
+
+- Per-frame movement
+- Formation steering
+- Large-scale pathing
+- Continuous projectile simulation
+- Selection box logic
+- Cursor traces every frame
+- Production queue ticking
+- Raw actor spawning as the main implementation detail
+
+Those systems should live in RTS-focused components, subsystems, or actors.
+
+### 3. Production, construction, and research are GAS-backed, not GAS-owned
+
+Production, construction, and research actions should be exposed through UI and validated through GAS, but existing RTS systems should still execute the actual work.
+
+GAS handles:
+
+- Can this action start?
+- Are the required resources available?
+- Is the building in a valid state?
+- Is the required research complete?
+- Is the action blocked by tags?
+- Should a cost or cooldown be committed?
+- Should an unlock, state tag, or Gameplay Effect be applied?
+
+Production/build/research systems handle:
+
+- Queue slots
+- Timers
+- Placement previews
+- Construction site or building creation
+- Squad spawning
+- Rally point output
+- Completion events
+
+### 4. UI actions should map to data and abilities
+
+UI buttons should not hardcode gameplay rules.
+
+A selected squad, building, or player command source should expose available actions from granted abilities, data definitions, tags, and current state.
+
+Example:
+
+```text
+Selected Barracks UI
+    -> Player clicks Train Rifle Squad
+        -> Barracks ASC activates a production ability
+            -> Ability validates cost, tags, research, building state, and queue availability
+            -> Ability commits cost/cooldown
+            -> Production component starts queue/timer
+                -> Existing build/spawn component creates squad at rally point
+```
+
+### 5. Debug stays out of gameplay classes
+
+Gameplay classes expose state. Debug systems format and display it.
+
+The debug module depends on gameplay code, but gameplay code does not depend on the debug module.
+
+```text
+GASTacticalCommandDebug -> depends on -> GASTacticalCommand
+GASTacticalCommand      -> does not depend on -> GASTacticalCommandDebug
+```
+
+## Implemented V1 Features
 
 ### Squad Framework
 
 - Squad-level actor owns the Ability System Component
-- Squad AttributeSet includes tactical attributes such as:
+- Tactical AttributeSet includes:
+  - Health
   - Morale
   - Suppression
   - Cohesion
@@ -45,103 +132,40 @@ This project uses GAS for **rules, state, costs, cooldowns, tags, effects, and t
   - Movement Speed
   - Capture Power
 - Squad definitions grant startup abilities through data
-- Order definitions are metadata-only and do not duplicate GAS rules
-- Three squad types are currently represented by Blueprint variants:
-  - Rifle Squad
-  - Engineer Squad
-  - Heavy Weapons Squad
+- Order definitions stay focused on UI/catalog/targeting metadata
+- Rifle, Engineer, and Heavy Weapons squad variants
+- Squad selection and minimal squad-level movement
+- Squad integrity/life-state handling for death and future cohesion/morale presentation
 
-Later, squad BPs can be replaced by one base squad actor populated entirely from data assets, including meshes, animation blueprint, default attributes, role tags, ability grants, UI metadata, and visual setup.
+### GAS-Routed Tactical Commands
 
-### Order and Ability Flow
+Implemented command abilities:
 
-The command flow is intentionally GAS-aligned:
+- Rally
+- Suppressive Fire
+- Fortify Position
+- Tactical Retreat
 
-```text
-OrderDefinition
-    UI/catalog metadata
-    Targeting metadata
-    Order tag
+These demonstrate:
 
-SquadDefinition
-    Grants Gameplay Abilities
-    Uses input/order tags as the bridge
+- GAS cost and cooldown usage
+- Gameplay Tags for state and command blocking
+- Gameplay Effects for buffs, debuffs, costs, cooldowns, and tactical state
+- Area and self-targeted command flow
+- Relationship-aware target filtering
+- Metadata-driven order definitions without duplicating GAS rules
 
-OrderSubsystem / Order Component
-    Validates source and target shape/range
-    Finds granted ability by order tag
-    Asks GAS to activate the ability
+### Basic Combat
 
-Gameplay Ability
-    Owns activation rules
-    Owns required/blocked tags
-    Owns cost/cooldown
-    Owns command behavior
-
-Gameplay Effects
-    Own stat changes
-    Own granted state tags
-    Own costs and cooldown tags
-```
-
-This avoids fighting GAS or duplicating GAS rules in the order layer.
-
-### Implemented Commands
-
-#### Rally
-
-A self-targeted support command that recovers squad state.
-
-Demonstrates:
-
-- GAS cost
-- GAS cooldown
-- Self-applied recovery effects
-- Morale/suppression/cohesion changes
-- Metadata-only order definition
-
-#### Suppressive Fire
-
-An area-targeted command that applies pressure to enemy squads.
-
-Demonstrates:
-
-- Area targeting payload
-- Query subsystem usage
-- Relationship-based target filtering
-- Source state effects
-- Enemy target effects
-- Suppression, morale, and cohesion pressure
-- GAS cost/cooldown/state tags
-
-#### Fortify Position
-
-A self-targeted defensive posture command.
-
-Demonstrates:
-
-- Stationary requirement through GAS tags
-- Temporary defensive/accuracy/cohesion buffs
-- Fortified state tag
-- Cost/cooldown through Gameplay Effects
-- Data-authored posture state
-
-#### Tactical Retreat
-
-A self-targeted retreat posture command.
-
-Demonstrates:
-
-- Retreating state tag
-- Movement speed and defensive tradeoffs
-- Offensive/capture tradeoffs
-- Cost/cooldown through Gameplay Effects
-- Suppression recovery / cohesion tradeoff
-- Data-authored removal of conflicting posture effects using built-in GAS effect removal
+- Basic attack behavior
+- Ranged hit trace support
+- Melee sweep trace support
+- Temporary destroy-on-death behavior
+- Direction toward future squad integrity, cohesion, morale, and visual member loss
 
 ### Affiliation and Relationship Filtering
 
-The project includes an opt-in affiliation component so tactical actors can participate in relationship logic without hardcoding relationships onto squad actors.
+The project includes an opt-in affiliation component so squads, buildings, objectives, and future AI groups can participate in relationship rules.
 
 Current relationship categories:
 
@@ -166,225 +190,184 @@ TCFSquadQuerySubsystem
     Filters by relationship
 ```
 
-This is designed to support future use cases such as:
+This supports future player relationships, AI factions, neutral entities, commanders, buildings, capture objectives, and enemy targeting rules.
 
-- Player-owned squads
-- Allied players
-- Enemy players
-- Neutral entities
-- AI factions
-- AI groups
-- Buildings
-- Commanders
-- Capture objectives
+### Capture Points
 
-Suppressive Fire currently uses this layer to affect enemy squads only.
+V1 includes affiliation-based capture points and debug visibility for objective state.
 
 ### Debug Module
 
-The project has a separate debug module rather than putting debug formatting/rendering in gameplay classes.
+The project has a separate debug module with a native C++ debug HUD.
 
-Implemented debug features:
+Implemented debug visibility includes:
 
-- Native C++ on-screen debug HUD
-- Selected squad display
-- Squad attributes
+- Selected squad state
+- Attributes
 - Owned Gameplay Tags
-- Granted abilities and dynamic spec source tags
+- Granted abilities and source tags
 - Active Gameplay Effects and durations
 - Last submitted order/result
 - Affiliation data
 - Nearby squad relationship display
-- Live updates when switching selected squads
-- Live refresh for attributes, tags, cooldowns, and active effects
+- Capture point debug display
+- Live refresh while switching selected squads
 
-Debug ownership direction:
+## V2 RTS MVP Direction
+
+V2 expands the project from a tactical GAS command slice into a more complete RTS MVP foundation.
+
+Current and planned V2 areas:
+
+- RTS camera panning, edge movement, and zoom
+- Click and drag selection
+- Hover context
+- Custom RTS cursors
+- Contextual right-click routing
+- Basic attacks as abilities
+- Resource nodes
+- Worker/resource gathering
+- Building interaction
+- Production buildings
+- Squad spawning through building systems
+- Building construction
+- Research building and tech unlock direction
+- Squad levels
+- Match scoring and win conditions
+- Basic command UI
+
+## Production, Construction, and Research Direction
+
+Production, construction, and research should use generic GAS-backed action patterns.
+
+Recommended generic ability types:
 
 ```text
-GASTacticalCommandDebug -> depends on -> GASTacticalCommand
-GASTacticalCommand      -> does not depend on -> GASTacticalCommandDebug
+GA_ProduceSquad
+GA_ConstructBuilding
+GA_ResearchTechnology
 ```
 
-Gameplay classes expose state. The debug module formats and displays it.
+The ability validates and commits the action. The data definition describes the output.
 
-## Architecture Notes
+Example production definition fields:
 
-### Preferred Style
+```text
+Display Name
+Icon
+Description
+Output Actor / Squad Class
+Production Time
+Resource Cost
+Cost Gameplay Effect
+Cooldown Gameplay Effect
+Required Gameplay Tags
+Blocked Gameplay Tags
+Granted Completion Tags
+Required Building Level
+Required Research Tags
+Required Faction / Relationship Rules
+Queue Category
+Rally Point Behavior
+UI Category
+Cursor / Preview Metadata
+```
+
+### Building-Specific Production
+
+Production buildings own or receive the actions they can perform.
+
+```text
+Barracks ASC
+    -> Produce Rifle Squad
+    -> Produce Engineer Squad
+    -> Produce Heavy Weapons Squad
+
+Factory ASC
+    -> Produce Vehicle Squad
+    -> Produce Advanced Armor Squad
+
+Research Lab ASC
+    -> Research Improved Logistics
+    -> Research Advanced Targeting
+```
+
+### Player-Level Construction
+
+Global building placement should usually belong to the player, commander, or RTS command source.
+
+```text
+PlayerState / Commander ASC / RTS Command Source ASC
+    -> Construct Barracks
+    -> Construct Refinery
+    -> Construct Research Lab
+```
+
+Placement preview and terrain validation stay outside GAS. Confirmed construction activation goes through GAS.
+
+## Command and Ability Flow
+
+The command flow is intentionally GAS-aligned:
+
+```text
+OrderDefinition
+    UI/catalog metadata
+    Targeting metadata
+    Order tag
+
+SquadDefinition / BuildingDefinition / ProductionDefinition
+    Grants or describes available actions
+    Uses tags as the bridge between UI intent and GAS activation
+
+Command Router / Order Component / UI
+    Resolves selected source
+    Resolves target or action payload
+    Requests ability activation
+
+Gameplay Ability
+    Owns activation rules
+    Owns required/blocked tags
+    Owns cost/cooldown
+    Owns command behavior or start request
+
+Gameplay Effects
+    Own stat changes
+    Own granted state tags
+    Own costs and cooldown tags
+
+RTS Component / Subsystem
+    Handles movement, queueing, spawning, placement, or world behavior
+```
+
+## Architecture Style
 
 The project favors:
 
 - Components and subsystems over deep inheritance
-- Data-oriented structs and definitions where practical
-- Shallow class hierarchies
+- Data-driven definitions where practical
+- Shallow base classes
 - GAS-owned rules instead of duplicated gameplay checks
 - Event/timer/state-driven behavior over unnecessary ticking
 - Debug-specific systems instead of debug logic inside gameplay classes
 - Explicit ownership and data flow
+- Performance-aware Unreal C++ implementation
 
-### Pattern Parallels
+## Pattern Parallels
 
-The project uses traditional pattern ideas where they naturally fit Unreal architecture, without forcing pattern-heavy OOP:
+The project uses traditional pattern ideas where they naturally fit Unreal architecture:
 
 - **Command pattern parallel**: player order requests represent command intent
-- **Adapter**: the order subsystem adapts RTS order intent into GAS activation
-- **Strategy**: individual Gameplay Abilities own command behavior
+- **Adapter**: command routing adapts RTS intent into GAS activation
+- **Strategy**: Gameplay Abilities own command behavior
 - **Policy service**: relationship subsystem resolves tactical affiliation rules
-- **Observer/View Model**: debug subsystem observes selected squad/order state and builds display snapshots
-- **Component pattern**: affiliation, selection, movement, and debug bridge behavior are componentized
+- **Observer/View Model**: debug systems observe selected state and build display snapshots
+- **Component pattern**: affiliation, selection, movement, production, and integrity behavior are componentized
 
-Patterns are used only where they improve ownership, data flow, debugging, or extensibility.
-
-## Key Systems
-
-### Order Definitions
-
-Order definitions should stay metadata-focused:
-
-- Display name
-- Order tag
-- UI/catalog metadata
-- Targeting shape/type/range/radius
-- Debug visibility
-
-They should not own:
-
-- Ability class
-- Cost
-- Cooldown
-- Blocked tags
-- Required tags
-- Gameplay effects
-- Execution behavior
-
-### Squad Definitions
-
-Squad definitions grant the actual order abilities:
-
-```text
-AbilityClass: GA_Order_Rally
-InputTag: Order.Type.Rally
-AbilityLevel: 1
-```
-
-This keeps execution availability authored in one place.
-
-### Gameplay Abilities
-
-Gameplay Abilities own:
-
-- Activation requirements
-- Blocked tags
-- Cost GameplayEffect
-- Cooldown GameplayEffect
-- Execution behavior
-- Self/target effect application
-
-### Gameplay Effects
-
-Gameplay Effects own:
-
-- Attribute changes
-- State tags
-- Costs
-- Cooldown tags
-- Duration/infinite/instant policy
-- Removal of conflicting active effects where appropriate
-
-## Current V1 Status
-
-Completed or in progress:
-
-- [x] Squad-level ASC architecture
-- [x] Tactical AttributeSet
-- [x] Native Gameplay Tags for squad/order state
-- [x] Order definitions as metadata
-- [x] Squad definitions granting abilities
-- [x] Rally
-- [x] Suppressive Fire
-- [x] Fortify Position
-- [x] Tactical Retreat
-- [x] Relationship-aware query filtering
-- [x] Affiliation component
-- [x] Debug module and native debug HUD
-- [x] Rifle, Engineer, and Heavy Weapons squad variants
-- [ ] Minimal squad movement
-- [ ] Capture points
-- [ ] Cover zones
-- [ ] Basic enemy behavior
-- [ ] Gameplay Cue / visual feedback pass
-- [ ] Small playable V1 loop
-
-## Planned Near-Term Phases
-
-### Phase 12: Minimal Squad Movement Foundation
-
-Add selected squad click-to-move at the squad actor level.
-
-Planned scope:
-
-- Squad movement component
-- Player movement command component
-- Movement uses MovementSpeed attribute
-- Moving/Stationary GAS state effects
-- Fortify blocked while moving via required tags
-- Movement starts remove Fortify/Suppressing effects through built-in GE removal
-
-Out of scope:
-
-- Full formation movement
-- Individual soldier steering
-- Move attack
-- Multiplayer prediction
-- Advanced pathfinding
-
-### Phase 13: Capture Points
-
-Add the first objective loop after minimal movement exists.
-
-Planned scope:
-
-- Capture point actor
-- Occupying squad tracking
-- Capture progress
-- Contested state
-- CapturePower attribute usage
-- Affiliation ownership
-- Debug visibility
-
-### Later V1 Work
-
-Potential follow-up work:
-
-- Cover zone actors
-- Capture point UI/debug
-- Enemy squad test behavior
-- Basic win/loss condition
-- Gameplay Cues for ability activation and state feedback
-- Cleaner input/UI command palette
-- Data-driven squad spawning from buildings
-
-## Non-Goals for V1
-
-V1 intentionally avoids:
-
-- Full economy
-- Worker harvesting
-- Base construction
-- Tech trees
-- Large-scale AI
-- Complex multiplayer
-- Dozens of unit types
-- Full projectile ballistics
-- Individual soldier ASC usage
-- Full RTS campaign structure
-
-These may be useful later, but they are not needed to prove the GAS command architecture.
+Patterns are only useful here when they improve ownership, data flow, debugging, or extensibility.
 
 ## Development Notes
 
 ### Adding a New Order Ability
-
-Recommended flow:
 
 1. Add or confirm native gameplay tags.
 2. Create an order definition with metadata and targeting only.
@@ -392,51 +375,35 @@ Recommended flow:
 4. Create Gameplay Effects for cost, cooldown, state, and modifiers.
 5. Grant the ability from the squad definition using the order/input tag.
 6. Test activation, cost, cooldown, state tags, and debug visibility.
-7. Avoid adding command-specific rules to the order subsystem unless they are truly generic order validation.
+7. Keep command-specific rules out of the order subsystem unless they are truly generic validation rules.
 
 ### Adding a New Squad Type
-
-Recommended flow:
 
 1. Create or update a squad definition.
 2. Set role tag and base attributes.
 3. Grant appropriate order abilities.
-4. Create a temporary BP variant if needed.
+4. Create a temporary Blueprint variant if needed.
 5. Set affiliation values in the test map.
-6. Verify debug HUD displays role, attributes, abilities, effects, and relationships.
+6. Verify debug HUD display for role, attributes, abilities, effects, and relationships.
 
-Later, replace per-squad BP variants with one base actor populated from data.
+Long-term, squad variants can move toward one base squad actor populated by data assets.
 
-### Adding a New Relationship-Aware Query
+## To Be Implemented
 
-Recommended flow:
+### Adding a New Production Action
 
-1. Use `TCFSquadQuerySubsystem` for spatial squad discovery.
-2. Use `TCFRelationshipSubsystem` for relationship resolution.
-3. Pass an explicit relationship filter such as enemy-only or own-and-friendly.
-4. Keep relationship rules out of abilities.
+1. Create or update the production definition.
+2. Define cost, cooldown, required tags, blocked tags, building requirements, and output class.
+3. Grant or expose the action from the relevant building, player, or command source.
+4. Let GAS validate and commit the action.
+5. Let the production/build component own queueing, timing, and spawning.
+6. Add debug visibility for activation failure, cost failure, queue state, and completion.
 
-## V1 Status
+### Adding a New Research Unlock
 
-V1 is complete as a tactical command framework prototype.
-
-Implemented:
-
-- Data-driven squad definitions
-- Rifle, Engineer, and Heavy Weapons squad types
-- Squad selection
-- Minimal squad-level movement
-- GAS-routed order activation
-- Rally
-- Suppressive Fire
-- Fortify Position
-- Tactical Retreat
-- GAS-owned cost, cooldown, state tags, and stat effects
-- Affiliation component for owner/team/faction identity
-- Relationship subsystem for Own/Friendly/Neutral/Enemy resolution
-- Relationship-filtered tactical queries
-- Affiliation-based capture points
-- Native debug HUD
-- Squad, ability, effect, relationship, and capture point debug display
-
-V1 intentionally does not include production buildings, economy, advanced RTS pathfinding, enemy AI, match scoring, fog of war, or multiplayer replication polish. Those belong to V2 planning.
+1. Create or update the research definition.
+2. Define cost, duration, prerequisites, required tags, and completion tags.
+3. Activate the research action through a research building or command source.
+4. Commit the cost/cooldown through GAS.
+5. Complete through the research/production component.
+6. Grant unlock tags, ability sets, production actions, building actions, squad abilities, or era/tech milestones.

@@ -137,12 +137,6 @@ bool UTCFRTSBuildingPlacementComponent::ConfirmBuildingPlacement()
 
 	LastPlacedBuilding = PlacedBuilding;
 
-	OnBuildingPlacementConfirmed.Broadcast(
-		PendingBuildingDefinition,
-		CurrentPlacementLocation,
-		CurrentAnchorCell,
-		CurrentValidationResult);
-
 	OnBuildingPlaced.Broadcast(
 		PlacedBuilding,
 		PendingBuildingDefinition,

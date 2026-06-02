@@ -25,28 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
 	BuildingDefinition);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTCFBuildingPlacementCanceled);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
-	FOnTCFBuildingPlacementConfirmed,
-	UTCFBuildingDefinition*,
-	BuildingDefinition,
-	FVector,
-	PlacementLocation,
-	FIntPoint,
-	AnchorCell,
-	FTCFPlacementGridValidationResult,
-	ValidationResult);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
-	FOnTCFBuildingPlaced,
-	ATCFBuildingActor*,
-	PlacedBuilding,
-	UTCFBuildingDefinition*,
-	BuildingDefinition,
-	FVector,
-	PlacementLocation,
-	FIntPoint,
-	AnchorCell);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnTCFBuildingPlaced,	ATCFBuildingActor*,	PlacedBuilding,	UTCFBuildingDefinition*, BuildingDefinition, FVector, PlacementLocation, FIntPoint,	AnchorCell);
 
 UCLASS(ClassGroup = (TCF), meta = (BlueprintSpawnableComponent))
 class GASTACTICALCOMMAND_API UTCFRTSBuildingPlacementComponent : public UActorComponent
@@ -97,9 +76,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Building Placement")
 	FOnTCFBuildingPlacementCanceled OnBuildingPlacementCanceled;
-
-	UPROPERTY(BlueprintAssignable, Category = "TCF|Building Placement")
-	FOnTCFBuildingPlacementConfirmed OnBuildingPlacementConfirmed;
 	
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Building Placement")
 	FOnTCFBuildingPlaced OnBuildingPlaced;

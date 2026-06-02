@@ -2,13 +2,18 @@
 
 #include "Components/TCFRTSBuildingPlacementComponent.h"
 
+#include "Actors/TCFBuildingActor.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/TCFAffiliationComponent.h"
+#include "Components/TCFPlayerResourceBankComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFRTSSelectionBoxComponent.h"
 #include "Data/TCFBuildingDefinition.h"
 #include "Engine/StaticMeshActor.h"
 #include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInterface.h"
+#include "Player/TCFPlayerState.h"
 #include "Subsystems/TCFRTSPlacementGridSubsystem.h"
 #include "Types/TCFRTSControlTypes.h"
 
@@ -48,7 +53,10 @@ bool UTCFRTSBuildingPlacementComponent::BeginBuildingPlacement(UTCFBuildingDefin
 
 	PendingBuildingDefinition = BuildingDefinition;
 	bCurrentPlacementValid = false;
+	bCurrentCostValid = false;
 	CurrentValidationResult = FTCFPlacementGridValidationResult();
+	CurrentCostValidationResult = FTCFResourceTransactionResult();
+	LastPlacedBuilding = nullptr;
 	
 	if (SelectionBoxComponent)
 	{
@@ -71,7 +79,9 @@ void UTCFRTSBuildingPlacementComponent::CancelBuildingPlacement()
 
 	PendingBuildingDefinition = nullptr;
 	bCurrentPlacementValid = false;
+	bCurrentCostValid = false;
 	CurrentValidationResult = FTCFPlacementGridValidationResult();
+	CurrentCostValidationResult = FTCFResourceTransactionResult();
 
 	if (HoverContextComponent)
 	{
@@ -98,13 +108,47 @@ bool UTCFRTSBuildingPlacementComponent::ConfirmBuildingPlacement()
 		return false;
 	}
 
+	FTCFResourceTransactionResult SpendResult;
+	if (!TrySpendBuildingCost(SpendResult))
+	{
+		CurrentCostValidationResult = SpendResult;
+		bCurrentCostValid = false;
+		RefreshCursorOverride();
+		RefreshPreview();
+		return false;
+	}
+
+	ATCFBuildingActor* PlacedBuilding = SpawnPlacedBuilding();
+	if (!PlacedBuilding)
+	{
+		RefundBuildingCost();
+		return false;
+	}
+
+	if (PendingBuildingDefinition->bBlocksBuildingPlacement
+		&& !PlacedBuilding->HasReservedPlacementFootprint())
+	{
+		PlacedBuilding->Destroy();
+		RefundBuildingCost();
+
+		RefreshPlacement();
+		return false;
+	}
+
+	LastPlacedBuilding = PlacedBuilding;
+
 	OnBuildingPlacementConfirmed.Broadcast(
 		PendingBuildingDefinition,
 		CurrentPlacementLocation,
 		CurrentAnchorCell,
 		CurrentValidationResult);
 
-	// V2.6.4 will spend resources, spawn the building, and reserve the final footprint.
+	OnBuildingPlaced.Broadcast(
+		PlacedBuilding,
+		PendingBuildingDefinition,
+		CurrentPlacementLocation,
+		CurrentAnchorCell);
+
 	CancelBuildingPlacement();
 	return true;
 }
@@ -117,6 +161,11 @@ bool UTCFRTSBuildingPlacementComponent::IsPlacingBuilding() const
 bool UTCFRTSBuildingPlacementComponent::IsCurrentPlacementValid() const
 {
 	return bCurrentPlacementValid;
+}
+
+bool UTCFRTSBuildingPlacementComponent::IsCurrentCostValid() const
+{
+	return bCurrentCostValid;
 }
 
 UTCFBuildingDefinition* UTCFRTSBuildingPlacementComponent::GetPendingBuildingDefinition() const
@@ -139,6 +188,16 @@ FTCFPlacementGridValidationResult UTCFRTSBuildingPlacementComponent::GetCurrentV
 	return CurrentValidationResult;
 }
 
+FTCFResourceTransactionResult UTCFRTSBuildingPlacementComponent::GetCurrentCostValidationResult() const
+{
+	return CurrentCostValidationResult;
+}
+
+ATCFBuildingActor* UTCFRTSBuildingPlacementComponent::GetLastPlacedBuilding() const
+{
+	return LastPlacedBuilding;
+}
+
 void UTCFRTSBuildingPlacementComponent::TickComponent(
 	float DeltaTime,
 	ELevelTick TickType,
@@ -156,7 +215,10 @@ void UTCFRTSBuildingPlacementComponent::RefreshPlacement()
 		return;
 	}
 
-	bCurrentPlacementValid = UpdatePlacementFromTrace();
+	const bool bGridPlacementValid = UpdatePlacementFromTrace();
+	bCurrentCostValid = RefreshCostValidation();
+
+	bCurrentPlacementValid = bGridPlacementValid && bCurrentCostValid;
 
 	RefreshCursorOverride();
 	RefreshPreview();
@@ -414,6 +476,163 @@ FVector UTCFRTSBuildingPlacementComponent::ResolvePreviewScale() const
 	}
 
 	return PendingBuildingDefinition->BuildingVisualScale;
+}
+
+bool UTCFRTSBuildingPlacementComponent::RefreshCostValidation()
+{
+	if (!PendingBuildingDefinition)
+	{
+		CurrentCostValidationResult = FTCFResourceTransactionResult();
+		return false;
+	}
+
+	UTCFPlayerResourceBankComponent* ResourceBank = GetPlayerResourceBankComponent();
+	if (!ResourceBank)
+	{
+		CurrentCostValidationResult = FTCFResourceTransactionResult::Failure(
+			FGameplayTag(),
+			0,
+			1);
+		return false;
+	}
+
+	for (const FTCFResourceAmount& Cost : PendingBuildingDefinition->Cost)
+	{
+		if (!Cost.ResourceType.IsValid() || Cost.Amount <= 0)
+		{
+			continue;
+		}
+
+		const int32 CurrentAmount = ResourceBank->GetResourceAmount(Cost.ResourceType);
+		if (CurrentAmount < Cost.Amount)
+		{
+			CurrentCostValidationResult = FTCFResourceTransactionResult::Failure(
+				Cost.ResourceType,
+				CurrentAmount,
+				Cost.Amount);
+			return false;
+		}
+	}
+
+	CurrentCostValidationResult = FTCFResourceTransactionResult::Success();
+	return true;
+}
+
+bool UTCFRTSBuildingPlacementComponent::TrySpendBuildingCost(
+	FTCFResourceTransactionResult& OutSpendResult) const
+{
+	if (!PendingBuildingDefinition)
+	{
+		OutSpendResult = FTCFResourceTransactionResult();
+		return false;
+	}
+
+	UTCFPlayerResourceBankComponent* ResourceBank = GetPlayerResourceBankComponent();
+	if (!ResourceBank)
+	{
+		OutSpendResult = FTCFResourceTransactionResult::Failure(
+			FGameplayTag(),
+			0,
+			1);
+		return false;
+	}
+
+	return ResourceBank->TrySpendResources(PendingBuildingDefinition->Cost, OutSpendResult);
+}
+
+void UTCFRTSBuildingPlacementComponent::RefundBuildingCost() const
+{
+	if (!PendingBuildingDefinition)
+	{
+		return;
+	}
+
+	UTCFPlayerResourceBankComponent* ResourceBank = GetPlayerResourceBankComponent();
+	if (!ResourceBank)
+	{
+		return;
+	}
+
+	ResourceBank->AddResources(PendingBuildingDefinition->Cost);
+}
+
+ATCFBuildingActor* UTCFRTSBuildingPlacementComponent::SpawnPlacedBuilding() const
+{
+	if (!PendingBuildingDefinition || !GetWorld())
+	{
+		return nullptr;
+	}
+
+	TSubclassOf<ATCFBuildingActor> BuildingClass = PendingBuildingDefinition->GetBuildingActorClass();
+	if (!BuildingClass)
+	{
+		return nullptr;
+	}
+
+	FTransform SpawnTransform;
+	SpawnTransform.SetLocation(CurrentPlacementLocation);
+	SpawnTransform.SetRotation(FQuat::Identity);
+	SpawnTransform.SetScale3D(FVector::OneVector);
+
+	ATCFBuildingActor* PlacedBuilding = GetWorld()->SpawnActorDeferred<ATCFBuildingActor>(
+		BuildingClass,
+		SpawnTransform,
+		PlayerController,
+		nullptr,
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+	if (!PlacedBuilding)
+	{
+		return nullptr;
+	}
+
+	PlacedBuilding->ApplyBuildingDefinition(PendingBuildingDefinition, true);
+	ApplyPlacedBuildingAffiliation(PlacedBuilding);
+
+	UGameplayStatics::FinishSpawningActor(PlacedBuilding, SpawnTransform);
+
+	return PlacedBuilding;
+}
+
+void UTCFRTSBuildingPlacementComponent::ApplyPlacedBuildingAffiliation(
+	const ATCFBuildingActor* PlacedBuilding) const
+{
+	if (!PlacedBuilding)
+	{
+		return;
+	}
+
+	ATCFPlayerState* TCFPlayerState = GetTCFPlayerState();
+	if (!TCFPlayerState)
+	{
+		return;
+	}
+
+	UTCFAffiliationComponent* AffiliationComponent = PlacedBuilding->GetAffiliationComponent();
+	if (!AffiliationComponent)
+	{
+		return;
+	}
+
+	AffiliationComponent->SetOwnerId(TCFPlayerState->GetPlayerId());
+}
+
+ATCFPlayerState* UTCFRTSBuildingPlacementComponent::GetTCFPlayerState() const
+{
+	if (!PlayerController)
+	{
+		return nullptr;
+	}
+
+	return Cast<ATCFPlayerState>(PlayerController->PlayerState);
+}
+
+UTCFPlayerResourceBankComponent* UTCFRTSBuildingPlacementComponent::GetPlayerResourceBankComponent() const
+{
+	ATCFPlayerState* TCFPlayerState = GetTCFPlayerState();
+	return TCFPlayerState
+		? TCFPlayerState->GetPlayerResourceBankComponent()
+		: nullptr;
 }
 
 UTCFRTSPlacementGridSubsystem* UTCFRTSBuildingPlacementComponent::GetPlacementGridSubsystem() const

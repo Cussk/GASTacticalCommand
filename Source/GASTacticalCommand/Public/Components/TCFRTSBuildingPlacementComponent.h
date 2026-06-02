@@ -4,9 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Types/TCFEconomyTypes.h"
 #include "Types/TCFPlacementGridTypes.h"
 #include "TCFRTSBuildingPlacementComponent.generated.h"
 
+class UTCFPlayerResourceBankComponent;
+class ATCFPlayerState;
+class ATCFBuildingActor;
 class UTCFRTSSelectionBoxComponent;
 class APlayerController;
 class AStaticMeshActor;
@@ -33,6 +37,17 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
 	FTCFPlacementGridValidationResult,
 	ValidationResult);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
+	FOnTCFBuildingPlaced,
+	ATCFBuildingActor*,
+	PlacedBuilding,
+	UTCFBuildingDefinition*,
+	BuildingDefinition,
+	FVector,
+	PlacementLocation,
+	FIntPoint,
+	AnchorCell);
+
 UCLASS(ClassGroup = (TCF), meta = (BlueprintSpawnableComponent))
 class GASTACTICALCOMMAND_API UTCFRTSBuildingPlacementComponent : public UActorComponent
 {
@@ -55,6 +70,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Building Placement")
 	bool IsCurrentPlacementValid() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Building Placement")
+	bool IsCurrentCostValid() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Building Placement")
 	UTCFBuildingDefinition* GetPendingBuildingDefinition() const;
@@ -67,6 +85,12 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Building Placement")
 	FTCFPlacementGridValidationResult GetCurrentValidationResult() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Building Placement")
+	FTCFResourceTransactionResult GetCurrentCostValidationResult() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Building Placement")
+	ATCFBuildingActor* GetLastPlacedBuilding() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Building Placement")
 	FOnTCFBuildingPlacementStarted OnBuildingPlacementStarted;
@@ -76,6 +100,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Building Placement")
 	FOnTCFBuildingPlacementConfirmed OnBuildingPlacementConfirmed;
+	
+	UPROPERTY(BlueprintAssignable, Category = "TCF|Building Placement")
+	FOnTCFBuildingPlaced OnBuildingPlaced;
 
 protected:
 	virtual void BeginPlay() override;
@@ -119,12 +146,17 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<AStaticMeshActor> PreviewActor;
+	
+	UPROPERTY()
+	TObjectPtr<ATCFBuildingActor> LastPlacedBuilding;
 
 	FTCFPlacementGridValidationResult CurrentValidationResult;
+	FTCFResourceTransactionResult CurrentCostValidationResult;
 	FVector CurrentPlacementLocation = FVector::ZeroVector;
 	FVector CurrentPlacementNormal = FVector::UpVector;
 	FIntPoint CurrentAnchorCell = FIntPoint::ZeroValue;
 	bool bCurrentPlacementValid = false;
+	bool bCurrentCostValid = false;
 
 	void RefreshPlacement();
 	void RefreshCursorOverride() const;
@@ -138,6 +170,16 @@ private:
 	UStaticMesh* ResolvePreviewMesh() const;
 	UMaterialInterface* ResolvePreviewMaterial() const;
 	FVector ResolvePreviewScale() const;
+	
+	bool RefreshCostValidation();
+	bool TrySpendBuildingCost(FTCFResourceTransactionResult& OutSpendResult) const;
+	void RefundBuildingCost() const;
+
+	ATCFBuildingActor* SpawnPlacedBuilding() const;
+	void ApplyPlacedBuildingAffiliation(const ATCFBuildingActor* PlacedBuilding) const;
+
+	ATCFPlayerState* GetTCFPlayerState() const;
+	UTCFPlayerResourceBankComponent* GetPlayerResourceBankComponent() const;
 
 	UTCFRTSPlacementGridSubsystem* GetPlacementGridSubsystem() const;
 };

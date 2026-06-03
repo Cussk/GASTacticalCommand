@@ -29,7 +29,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TCF|Order Ability")
 	ATCFSquadActor* GetSourceSquad() const;
 
-protected:
+protected:	
 	virtual void ActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
@@ -65,6 +65,7 @@ protected:
 		float EffectLevel,
 		UObject* SourceObject = nullptr) const;
 
+	virtual bool CanActivateCurrentOrder() const;
 	virtual void HandleOrderActivated();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Order Ability")

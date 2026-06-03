@@ -39,6 +39,12 @@ void UTCFGameplayAbility_OrderBase::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+	
+	if (!CanActivateCurrentOrder())
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
 
 	if (bCommitAbilityOnOrderActivated && !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
@@ -158,6 +164,11 @@ int32 UTCFGameplayAbility_OrderBase::ApplyGameplayEffectsToTarget(
 	}
 
 	return AppliedCount;
+}
+
+bool UTCFGameplayAbility_OrderBase::CanActivateCurrentOrder() const
+{
+	return true;
 }
 
 void UTCFGameplayAbility_OrderBase::HandleOrderActivated()

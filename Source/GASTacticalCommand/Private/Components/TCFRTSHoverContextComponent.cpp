@@ -224,7 +224,13 @@ ETCFRTSCursorState UTCFRTSHoverContextComponent::ResolveCursorState(
 			const ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(HoverContext.HoveredActor);
 			if (!Building)
 			{
-				return ETCFRTSCursorState::BuildingDetails;
+				return ETCFRTSCursorState::InvalidTarget;
+			}
+			
+			if (HoverContext.RelationshipToPrimarySelection == ETCFSquadRelationship::Enemy
+				&& Building->IsAlive())
+			{
+				return ETCFRTSCursorState::AttackEnemy;
 			}
 
 			if (Building->GetBuildingRoleTags().HasTagExact(TCFGameplayTags::Building_Role_Research))

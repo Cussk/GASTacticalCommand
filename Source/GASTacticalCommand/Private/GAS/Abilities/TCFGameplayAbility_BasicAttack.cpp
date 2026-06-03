@@ -3,6 +3,7 @@
 #include "GAS/Abilities/TCFGameplayAbility_BasicAttack.h"
 
 #include "AbilitySystemComponent.h"
+#include "Actors/TCFBuildingActor.h"
 #include "Actors/TCFSquadActor.h"
 #include "Data/TCFOrderDefinition.h"
 #include "Subsystems/TCFRelationshipSubsystem.h"
@@ -16,29 +17,29 @@ UTCFGameplayAbility_BasicAttack::UTCFGameplayAbility_BasicAttack()
 void UTCFGameplayAbility_BasicAttack::HandleOrderActivated()
 {
 	ATCFSquadActor* SourceSquad = GetSourceSquad();
-	ATCFSquadActor* TargetSquad = GetTargetSquad();
+	AActor* TargetActor = GetTargetActor();
 
-	if (!IsValid(SourceSquad) || !IsValid(TargetSquad))
+	if (!IsValid(SourceSquad) || !IsValid(TargetActor))
 	{
 		return;
 	}
 
-	if (bRequireEnemyTarget && !IsValidEnemyTarget(*SourceSquad, *TargetSquad))
+	if (bRequireEnemyTarget && !IsValidEnemyTarget(*SourceSquad, *TargetActor))
 	{
 		return;
 	}
 
-	if (!IsTargetInRange(*SourceSquad, *TargetSquad))
+	if (!IsTargetInRange(*SourceSquad, *TargetActor))
 	{
 		return;
 	}
 
-	if (ShouldRequireLineOfSight() && !HasLineOfSightToTarget(*SourceSquad, *TargetSquad))
+	if (ShouldRequireLineOfSight() && !HasLineOfSightToTarget(*SourceSquad, *TargetActor))
 	{
 		return;
 	}
 
-	UAbilitySystemComponent* TargetAbilitySystem = TargetSquad->GetAbilitySystemComponent();
+	UAbilitySystemComponent* TargetAbilitySystem = GetTargetAbilitySystemComponent(TargetActor);
 	if (!TargetAbilitySystem)
 	{
 		return;
@@ -51,16 +52,31 @@ void UTCFGameplayAbility_BasicAttack::HandleOrderActivated()
 		this);
 }
 
-ATCFSquadActor* UTCFGameplayAbility_BasicAttack::GetTargetSquad() const
+AActor* UTCFGameplayAbility_BasicAttack::GetTargetActor() const
 {
 	if (CurrentOrderRequest.Target.TargetType != ETCFOrderTargetType::Actor)
 	{
 		return nullptr;
 	}
 
-	return Cast<ATCFSquadActor>(CurrentOrderRequest.Target.TargetActor);
+	return CurrentOrderRequest.Target.TargetActor;
 }
 
+UAbilitySystemComponent* UTCFGameplayAbility_BasicAttack::GetTargetAbilitySystemComponent(
+	AActor* TargetActor) const
+{
+	if (!IsValid(TargetActor))
+	{
+		return nullptr;
+	}
+
+	if (const IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(TargetActor))
+	{
+		return AbilitySystemInterface->GetAbilitySystemComponent();
+	}
+
+	return nullptr;
+}
 float UTCFGameplayAbility_BasicAttack::GetAttackRange() const
 {
 	if (CurrentOrderDefinition && CurrentOrderDefinition->Targeting.Range > 0.0f)
@@ -71,9 +87,33 @@ float UTCFGameplayAbility_BasicAttack::GetAttackRange() const
 	return FallbackAttackRange;
 }
 
+FVector UTCFGameplayAbility_BasicAttack::GetTargetRangeLocation(const AActor& TargetActor) const
+{
+	if (CurrentOrderRequest.Target.bUseTargetLocationForRange)
+	{
+		return CurrentOrderRequest.Target.TargetLocation;
+	}
+
+	if (const ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(&TargetActor))
+	{
+		if (const UPrimitiveComponent* InteractionComponent = Building->GetInteractionCollisionComponent())
+		{
+			const FVector SourceLocation = GetSourceSquad()
+				? GetSourceSquad()->GetActorLocation()
+				: TargetActor.GetActorLocation();
+
+			FVector ClosestPoint = InteractionComponent->Bounds.GetBox().GetClosestPointTo(SourceLocation);
+			ClosestPoint.Z = SourceLocation.Z;
+			return ClosestPoint;
+		}
+	}
+
+	return TargetActor.GetActorLocation();
+}
+
 bool UTCFGameplayAbility_BasicAttack::IsTargetInRange(
 	const ATCFSquadActor& SourceSquad,
-	const ATCFSquadActor& TargetSquad) const
+	const AActor& TargetActor) const
 {
 	const float AttackRange = GetAttackRange();
 	if (AttackRange <= 0.0f)
@@ -81,9 +121,9 @@ bool UTCFGameplayAbility_BasicAttack::IsTargetInRange(
 		return true;
 	}
 
-	const float DistanceSquared = FVector::DistSquared(
+	const float DistanceSquared = FVector::DistSquared2D(
 		SourceSquad.GetActorLocation(),
-		TargetSquad.GetActorLocation());
+		GetTargetRangeLocation(TargetActor));
 
 	return DistanceSquared <= FMath::Square(AttackRange);
 }
@@ -96,7 +136,7 @@ bool UTCFGameplayAbility_BasicAttack::ShouldRequireLineOfSight() const
 
 bool UTCFGameplayAbility_BasicAttack::HasLineOfSightToTarget(
 	const ATCFSquadActor& SourceSquad,
-	const ATCFSquadActor& TargetSquad) const
+	const AActor& TargetActor) const
 {
 	const UWorld* World = GetWorld();
 	if (!World)
@@ -105,7 +145,7 @@ bool UTCFGameplayAbility_BasicAttack::HasLineOfSightToTarget(
 	}
 
 	const FVector StartLocation = SourceSquad.GetActorLocation();
-	const FVector EndLocation = TargetSquad.GetActorLocation();
+	const FVector EndLocation = GetTargetRangeLocation(TargetActor);
 
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(TCFBasicAttackLineOfSight), false);
 	QueryParams.AddIgnoredActor(&SourceSquad);
@@ -124,12 +164,12 @@ bool UTCFGameplayAbility_BasicAttack::HasLineOfSightToTarget(
 	}
 
 	const AActor* HitActor = HitResult.GetActor();
-	return HitActor == &TargetSquad || HitActor->IsAttachedTo(&TargetSquad);
+	return HitActor == &TargetActor || HitActor->IsAttachedTo(&TargetActor);
 }
 
 bool UTCFGameplayAbility_BasicAttack::IsValidEnemyTarget(
 	const ATCFSquadActor& SourceSquad,
-	const ATCFSquadActor& TargetSquad) const
+	const AActor& TargetActor) const
 {
 	const UWorld* World = GetWorld();
 	const UTCFRelationshipSubsystem* RelationshipSubsystem = World
@@ -141,5 +181,5 @@ bool UTCFGameplayAbility_BasicAttack::IsValidEnemyTarget(
 		return false;
 	}
 
-	return RelationshipSubsystem->GetActorRelationship(&SourceSquad, &TargetSquad) == ETCFSquadRelationship::Enemy;
+	return RelationshipSubsystem->GetActorRelationship(&SourceSquad, &TargetActor) == ETCFSquadRelationship::Enemy;
 }

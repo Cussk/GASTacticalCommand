@@ -384,7 +384,7 @@ void ATCFBuildingActor::ApplyDefinitionVisuals() const
 		return;
 	}
 
-	ResolveVisualForCurrentRuntimeState();
+	ApplyVisualForCurrentRuntimeState();
 
 	BuildingVisual->SetRelativeScale3D(ResolveVisualScaleForCurrentRuntimeState());
 	InteractionCollision->SetBoxExtent(BuildingDefinition->InteractionBoxExtent);
@@ -543,7 +543,7 @@ void ATCFBuildingActor::HandleHealthAttributeChanged(const FOnAttributeChangeDat
 	}
 }
 
-void ATCFBuildingActor::ResolveVisualForCurrentRuntimeState() const
+void ATCFBuildingActor::ApplyVisualForCurrentRuntimeState() const
 {
 	if (RuntimeState == ETCFBuildingRuntimeState::UnderConstruction && BuildingDefinition->bUsePreviewMeshWhileUnderConstruction)
 	{

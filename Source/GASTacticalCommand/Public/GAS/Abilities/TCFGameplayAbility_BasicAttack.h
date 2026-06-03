@@ -39,11 +39,13 @@ protected:
 	TEnumAsByte<ECollisionChannel> LineOfSightTraceChannel = ECC_Visibility;
 
 private:
-	ATCFSquadActor* GetTargetSquad() const;
+	AActor* GetTargetActor() const;
+	UAbilitySystemComponent* GetTargetAbilitySystemComponent(AActor* TargetActor) const;
 
 	float GetAttackRange() const;
-	bool IsTargetInRange(const ATCFSquadActor& SourceSquad, const ATCFSquadActor& TargetSquad) const;
+	FVector GetTargetRangeLocation(const AActor& TargetActor) const;
+	bool IsTargetInRange(const ATCFSquadActor& SourceSquad, const AActor& TargetActor) const;
 	bool ShouldRequireLineOfSight() const;
-	bool HasLineOfSightToTarget(const ATCFSquadActor& SourceSquad, const ATCFSquadActor& TargetSquad) const;
-	bool IsValidEnemyTarget(const ATCFSquadActor& SourceSquad, const ATCFSquadActor& TargetSquad) const;
+	bool HasLineOfSightToTarget(const ATCFSquadActor& SourceSquad, const AActor& TargetActor) const;
+	bool IsValidEnemyTarget(const ATCFSquadActor& SourceSquad, const AActor& TargetActor) const;
 };

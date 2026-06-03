@@ -79,6 +79,9 @@ private:
 
 	float GetAttackRange() const;
 	FVector GetDesiredAttackMoveLocation() const;
+	
+	FVector GetClosestTargetInteractionPointToSquad() const;
+	float GetDistanceToTargetInteractionBounds2D() const;
 
 	bool SubmitBasicAttackOrder() const;
 	void MoveTowardTarget();

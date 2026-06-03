@@ -9,6 +9,7 @@
 #include "Subsystems/TCFRelationshipSubsystem.h"
 #include "TCFGameplayTags.h"
 #include "TimerManager.h"
+#include "Actors/TCFBuildingActor.h"
 
 UTCFSquadAttackCommandComponent::UTCFSquadAttackCommandComponent()
 {
@@ -153,11 +154,7 @@ bool UTCFSquadAttackCommandComponent::IsTargetInAttackRange() const
 		return true;
 	}
 
-	const float DistanceSquared = FVector::DistSquared2D(
-		SquadOwner->GetActorLocation(),
-		TargetActor->GetActorLocation());
-
-	return DistanceSquared <= FMath::Square(AttackRange);
+	return GetDistanceToTargetInteractionBounds2D() <= AttackRange;
 }
 
 float UTCFSquadAttackCommandComponent::GetAttackRange() const
@@ -187,10 +184,16 @@ FVector UTCFSquadAttackCommandComponent::GetDesiredAttackMoveLocation() const
 	}
 
 	const FVector SourceLocation = SquadOwner->GetActorLocation();
-	const FVector TargetLocation = TargetActor->GetActorLocation();
+	const FVector TargetLocation = GetClosestTargetInteractionPointToSquad();
 
 	FVector DirectionFromTargetToSource = SourceLocation - TargetLocation;
 	DirectionFromTargetToSource.Z = 0.0f;
+
+	if (DirectionFromTargetToSource.IsNearlyZero())
+	{
+		DirectionFromTargetToSource = SourceLocation - TargetActor->GetActorLocation();
+		DirectionFromTargetToSource.Z = 0.0f;
+	}
 
 	if (DirectionFromTargetToSource.IsNearlyZero())
 	{
@@ -202,10 +205,54 @@ FVector UTCFSquadAttackCommandComponent::GetDesiredAttackMoveLocation() const
 	}
 
 	const float DesiredDistance = FMath::Max(0.0f, GetAttackRange() - AttackRangePadding);
+
 	FVector MoveLocation = TargetLocation + DirectionFromTargetToSource * DesiredDistance;
 	MoveLocation.Z = SourceLocation.Z;
 
 	return MoveLocation;
+}
+
+FVector UTCFSquadAttackCommandComponent::GetClosestTargetInteractionPointToSquad() const
+{
+	if (!SquadOwner || !TargetActor)
+	{
+		return FVector::ZeroVector;
+	}
+
+	const ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(TargetActor);
+	if (!Building)
+	{
+		FVector ActorLocation = TargetActor->GetActorLocation();
+		ActorLocation.Z = SquadOwner->GetActorLocation().Z;
+		return ActorLocation;
+	}
+
+	const UPrimitiveComponent* InteractionComponent = Building->GetInteractionCollisionComponent();
+	if (!InteractionComponent)
+	{
+		FVector FallbackLocation = Building->GetActorLocation();
+		FallbackLocation.Z = SquadOwner->GetActorLocation().Z;
+		return FallbackLocation;
+	}
+
+	const FVector SourceLocation = SquadOwner->GetActorLocation();
+
+	FVector ClosestPoint = InteractionComponent->Bounds.GetBox().GetClosestPointTo(SourceLocation);
+	ClosestPoint.Z = SourceLocation.Z;
+
+	return ClosestPoint;
+}
+
+float UTCFSquadAttackCommandComponent::GetDistanceToTargetInteractionBounds2D() const
+{
+	if (!SquadOwner || !TargetActor)
+	{
+		return TNumericLimits<float>::Max();
+	}
+
+	return FVector::Dist2D(
+		SquadOwner->GetActorLocation(),
+		GetClosestTargetInteractionPointToSquad());
 }
 
 bool UTCFSquadAttackCommandComponent::SubmitBasicAttackOrder() const
@@ -228,7 +275,8 @@ bool UTCFSquadAttackCommandComponent::SubmitBasicAttackOrder() const
 	FTCFOrderTarget OrderTarget;
 	OrderTarget.TargetType = ETCFOrderTargetType::Actor;
 	OrderTarget.TargetActor = TargetActor;
-	OrderTarget.TargetLocation = TargetActor->GetActorLocation();
+	OrderTarget.TargetLocation = GetClosestTargetInteractionPointToSquad();
+	OrderTarget.bUseTargetLocationForRange = true;
 
 	FTCFSquadOrderRequest Request;
 	Request.OrderTag = BasicAttackOrderTag;

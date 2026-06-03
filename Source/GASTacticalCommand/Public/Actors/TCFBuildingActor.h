@@ -206,7 +206,7 @@ private:
 	void BindAttributeChangeDelegates();
 	void HandleHealthAttributeChanged(const FOnAttributeChangeData& ChangeData);
 
-	void ResolveVisualForCurrentRuntimeState() const;
+	void ApplyVisualForCurrentRuntimeState() const;
 	FVector ResolveVisualScaleForCurrentRuntimeState() const;
 
 	void DestroyBuildingActor();

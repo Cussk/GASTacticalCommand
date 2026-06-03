@@ -353,6 +353,12 @@ ETCFRTSCommandIntentType UTCFRTSCommandRouterComponent::ResolveIntentType(const 
 				return ETCFRTSCommandIntentType::Invalid;
 			}
 
+			if (HoverContext.RelationshipToPrimarySelection == ETCFSquadRelationship::Enemy
+				&& Building->IsAlive())
+			{
+				return ETCFRTSCommandIntentType::AttackTarget;
+			}
+
 			if (Building->CanReceiveConstructionWork()
 				&& (HoverContext.RelationshipToPrimarySelection == ETCFSquadRelationship::Own
 					|| HoverContext.RelationshipToPrimarySelection == ETCFSquadRelationship::Friendly))

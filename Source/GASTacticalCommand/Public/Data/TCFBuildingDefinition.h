@@ -57,6 +57,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Construction")
 	bool bCanReceiveWorkerConstruction = true;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Construction")
+	bool bUsePreviewMeshWhileUnderConstruction = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Placement", meta = (ClampMin = "1"))
 	FIntPoint FootprintSize = FIntPoint(2, 2);

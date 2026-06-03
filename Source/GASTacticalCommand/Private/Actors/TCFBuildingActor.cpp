@@ -53,6 +53,8 @@ void ATCFBuildingActor::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeAbilitySystem();
+	BindAttributeChangeDelegates();
+
 	InitializeFromDefinition();
 	TryReservePlacementFootprint();
 }
@@ -165,7 +167,9 @@ void ATCFBuildingActor::SetRuntimeState(ETCFBuildingRuntimeState NewRuntimeState
 	const ETCFBuildingRuntimeState OldRuntimeState = RuntimeState;
 	RuntimeState = NewRuntimeState;
 
+	ApplyDefinitionVisuals();
 	ApplyRuntimeStatePresentation();
+
 	OnRuntimeStateChanged.Broadcast(OldRuntimeState, RuntimeState);
 }
 
@@ -247,12 +251,69 @@ void ATCFBuildingActor::CompleteConstruction(AActor* CompletionSource)
 	}
 
 	SetRuntimeState(ETCFBuildingRuntimeState::Active);
+
+	ApplyDefinitionVisuals();
+	ApplyRuntimeStatePresentation();
+
 	OnConstructionCompleted.Broadcast(this, CompletionSource);
 }
 
 UTCFAffiliationComponent* ATCFBuildingActor::GetAffiliationComponent() const
 {
 	return AffiliationComponent;
+}
+
+bool ATCFBuildingActor::IsDestroyed() const
+{
+	return RuntimeState == ETCFBuildingRuntimeState::Destroyed;
+}
+
+bool ATCFBuildingActor::IsAlive() const
+{
+	return !IsDestroyed();
+}
+
+void ATCFBuildingActor::HandleBuildingHealthDepleted(AActor* DamageSource)
+{
+	if (!HasAuthority() || bHasHandledHealthDepleted || IsDestroyed())
+	{
+		return;
+	}
+
+	bHasHandledHealthDepleted = true;
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->CancelAllAbilities();
+	}
+
+	SetRuntimeState(ETCFBuildingRuntimeState::Destroyed);
+	ApplyRuntimeStatePresentation();
+
+	if (bDestroyActorOnHealthDepleted)
+	{
+		if (DestroyDelayAfterHealthDepleted <= 0.0f)
+		{
+			DestroyBuildingActor();
+			return;
+		}
+
+		FTimerHandle DestroyTimerHandle;
+		GetWorldTimerManager().SetTimer(
+			DestroyTimerHandle,
+			this,
+			&ATCFBuildingActor::DestroyBuildingActor,
+			DestroyDelayAfterHealthDepleted,
+			false);
+	}
+}
+
+void ATCFBuildingActor::DestroyBuildingActor()
+{
+	if (HasAuthority() && !IsActorBeingDestroyed())
+	{
+		Destroy();
+	}
 }
 
 void ATCFBuildingActor::OnRep_BuildingDefinition()
@@ -323,17 +384,9 @@ void ATCFBuildingActor::ApplyDefinitionVisuals() const
 		return;
 	}
 
-	if (BuildingDefinition->BuildingMesh)
-	{
-		BuildingVisual->SetStaticMesh(BuildingDefinition->BuildingMesh);
-	}
+	ResolveVisualForCurrentRuntimeState();
 
-	if (BuildingDefinition->BuildingMaterial)
-	{
-		BuildingVisual->SetMaterial(0, BuildingDefinition->BuildingMaterial);
-	}
-
-	BuildingVisual->SetRelativeScale3D(BuildingDefinition->BuildingVisualScale);
+	BuildingVisual->SetRelativeScale3D(ResolveVisualScaleForCurrentRuntimeState());
 	InteractionCollision->SetBoxExtent(BuildingDefinition->InteractionBoxExtent);
 }
 
@@ -463,4 +516,74 @@ void ATCFBuildingActor::ReleasePlacementFootprint()
 
 	bHasReservedPlacementFootprint = false;
 	ReservedPlacementAnchorCell = FIntPoint::ZeroValue;
+}
+
+void ATCFBuildingActor::BindAttributeChangeDelegates()
+{
+	if (!AbilitySystemComponent || !BuildingAttributeSet)
+	{
+		return;
+	}
+
+	AbilitySystemComponent
+		->GetGameplayAttributeValueChangeDelegate(UTCFBuildingAttributeSet::GetHealthAttribute())
+		.AddUObject(this, &ATCFBuildingActor::HandleHealthAttributeChanged);
+}
+
+void ATCFBuildingActor::HandleHealthAttributeChanged(const FOnAttributeChangeData& ChangeData)
+{
+	if (!HasAuthority() || bHasHandledHealthDepleted)
+	{
+		return;
+	}
+
+	if (ChangeData.NewValue <= 0.0f)
+	{
+		HandleBuildingHealthDepleted(nullptr);
+	}
+}
+
+void ATCFBuildingActor::ResolveVisualForCurrentRuntimeState() const
+{
+	if (RuntimeState == ETCFBuildingRuntimeState::UnderConstruction && BuildingDefinition->bUsePreviewMeshWhileUnderConstruction)
+	{
+		if (BuildingDefinition->PreviewMesh)
+		{
+			BuildingVisual->SetStaticMesh(BuildingDefinition->PreviewMesh);
+		}
+		
+		if (BuildingDefinition->ValidPreviewMaterial)
+		{
+			BuildingVisual->SetMaterial(0, BuildingDefinition->ValidPreviewMaterial);
+		}
+		
+		return;
+	}
+	
+	if (BuildingDefinition->BuildingMesh)
+	{
+		BuildingVisual->SetStaticMesh(BuildingDefinition->BuildingMesh);
+	}
+
+	if (BuildingDefinition->BuildingMaterial)
+	{
+		BuildingVisual->SetMaterial(0, BuildingDefinition->BuildingMaterial);
+	}
+}
+
+FVector ATCFBuildingActor::ResolveVisualScaleForCurrentRuntimeState() const
+{
+	if (!BuildingDefinition)
+	{
+		return FVector::OneVector;
+	}
+
+	if (RuntimeState == ETCFBuildingRuntimeState::UnderConstruction
+		&& BuildingDefinition->bUsePreviewMeshWhileUnderConstruction
+		&& !BuildingDefinition->PreviewVisualScale.Equals(FVector::OneVector))
+	{
+		return BuildingDefinition->PreviewVisualScale;
+	}
+
+	return BuildingDefinition->BuildingVisualScale;
 }

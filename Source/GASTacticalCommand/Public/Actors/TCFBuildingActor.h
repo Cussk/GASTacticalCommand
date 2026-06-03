@@ -8,6 +8,7 @@
 #include "Data/TCFBuildingDefinition.h"
 #include "TCFBuildingActor.generated.h"
 
+struct FOnAttributeChangeData;
 class UBoxComponent;
 class UStaticMeshComponent;
 class UTCFAffiliationComponent;
@@ -115,6 +116,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
 	UTCFAffiliationComponent* GetAffiliationComponent() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Health")
+	bool IsDestroyed() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Health")
+	bool IsAlive() const;
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Building|Health")
+	void HandleBuildingHealthDepleted(AActor* DamageSource);
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Building")
 	FOnTCFBuildingRuntimeStateChanged OnRuntimeStateChanged;
@@ -158,6 +168,12 @@ protected:
 	
 	UPROPERTY(ReplicatedUsing = OnRep_ConstructionWorkCompleted, BlueprintReadOnly, Category = "TCF|Building|Construction")
 	float ConstructionWorkCompleted = 0.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Building|Death")
+	bool bDestroyActorOnHealthDepleted = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Building|Death", meta = (ClampMin = "0.0"))
+	float DestroyDelayAfterHealthDepleted = 0.0f;
 
 	UFUNCTION()
 	void OnRep_BuildingDefinition();
@@ -172,6 +188,8 @@ private:
 	FIntPoint ReservedPlacementAnchorCell = FIntPoint::ZeroValue;
 	bool bHasReservedPlacementFootprint = false;
 	
+	bool bHasHandledHealthDepleted = false;
+	
 	void InitializeAbilitySystem();
 	void InitializeAttributesFromDefinition() const;
 	
@@ -184,4 +202,12 @@ private:
 
 	void TryReservePlacementFootprint();
 	void ReleasePlacementFootprint();
+	
+	void BindAttributeChangeDelegates();
+	void HandleHealthAttributeChanged(const FOnAttributeChangeData& ChangeData);
+
+	void ResolveVisualForCurrentRuntimeState() const;
+	FVector ResolveVisualScaleForCurrentRuntimeState() const;
+
+	void DestroyBuildingActor();
 };

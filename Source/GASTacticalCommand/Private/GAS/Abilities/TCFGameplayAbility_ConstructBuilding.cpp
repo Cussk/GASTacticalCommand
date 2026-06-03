@@ -30,19 +30,23 @@ bool UTCFGameplayAbility_ConstructBuilding::CanActivateAbility(
 	}
 
 	const UTCFPlayerConstructionComponent* ConstructionComponent = ResolveConstructionComponent(ActorInfo);
-	const FTCFBuildingConstructionRequest& ConstructionRequest = ConstructionComponent->GetPendingConstructionRequest();
-	
 	if (!ConstructionComponent)
 	{
 		return false;
 	}
-	
+
+	const FTCFBuildingConstructionRequest& ConstructionRequest = ConstructionComponent->GetPendingConstructionRequest();
+	if (!ConstructionRequest.IsValid())
+	{
+		return false;
+	}
+
 	FTCFConstructionAccessResult AccessResult;
 	if (!ConstructionComponent->CanAccessConstructionOption(ConstructionRequest.ConstructionOption, AccessResult))
 	{
 		return false;
 	}
-	
+
 	return ConstructionComponent->CanExecutePendingConstructionRequest();
 }
 

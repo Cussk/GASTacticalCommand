@@ -24,11 +24,6 @@ void ATCFPlayerState::BeginPlay()
 	{
 		CommanderAbilitySystemComponent->InitAbilityActorInfo(this, this);
 	}
-
-	if (HasAuthority() && PlayerConstructionComponent)
-	{
-		PlayerConstructionComponent->GrantConstructionAbility();
-	}
 }
 
 UAbilitySystemComponent* ATCFPlayerState::GetAbilitySystemComponent() const

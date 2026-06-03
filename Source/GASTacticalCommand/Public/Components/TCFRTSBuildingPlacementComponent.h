@@ -19,6 +19,7 @@ class UMaterialInterface;
 class UTCFBuildingDefinition;
 class UTCFRTSHoverContextComponent;
 class UTCFRTSPlacementGridSubsystem;
+class UTCFConstructionOptionDefinition;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
 	FOnTCFBuildingPlacementStarted,
@@ -37,7 +38,7 @@ public:
 	UTCFRTSBuildingPlacementComponent();
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Building Placement")
-	bool BeginBuildingPlacement(UTCFBuildingDefinition* BuildingDefinition);
+	bool BeginBuildingPlacement(UTCFConstructionOptionDefinition* ConstructionOption);
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Building Placement")
 	void CancelBuildingPlacement();
@@ -119,7 +120,7 @@ private:
 	TObjectPtr<UTCFRTSSelectionBoxComponent> SelectionBoxComponent;
 
 	UPROPERTY()
-	TObjectPtr<UTCFBuildingDefinition> PendingBuildingDefinition;
+	TObjectPtr<UTCFConstructionOptionDefinition> PendingConstructionOption;
 
 	UPROPERTY()
 	TObjectPtr<AStaticMeshActor> PreviewActor;

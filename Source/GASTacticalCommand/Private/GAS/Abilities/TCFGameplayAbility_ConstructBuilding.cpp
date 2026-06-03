@@ -6,6 +6,7 @@
 #include "Components/TCFPlayerConstructionComponent.h"
 #include "Components/TCFPlayerResourceBankComponent.h"
 #include "Data/TCFBuildingDefinition.h"
+#include "Data/TCFConstructionOptionDefinition.h"
 #include "GameFramework/Actor.h"
 #include "Player/TCFPlayerState.h"
 #include "Types/TCFBuildingConstructionTypes.h"
@@ -29,7 +30,20 @@ bool UTCFGameplayAbility_ConstructBuilding::CanActivateAbility(
 	}
 
 	const UTCFPlayerConstructionComponent* ConstructionComponent = ResolveConstructionComponent(ActorInfo);
-	return ConstructionComponent && ConstructionComponent->CanExecutePendingConstructionRequest();
+	const FTCFBuildingConstructionRequest& ConstructionRequest = ConstructionComponent->GetPendingConstructionRequest();
+	
+	if (!ConstructionComponent)
+	{
+		return false;
+	}
+	
+	FTCFConstructionAccessResult AccessResult;
+	if (!ConstructionComponent->CanAccessConstructionOption(ConstructionRequest.ConstructionOption, AccessResult))
+	{
+		return false;
+	}
+	
+	return ConstructionComponent->CanExecutePendingConstructionRequest();
 }
 
 bool UTCFGameplayAbility_ConstructBuilding::CheckCost(
@@ -55,9 +69,9 @@ bool UTCFGameplayAbility_ConstructBuilding::CheckCost(
 	}
 
 	const FTCFBuildingConstructionRequest& ConstructionRequest = ConstructionComponent->GetPendingConstructionRequest();
-	const UTCFBuildingDefinition* BuildingDefinition = ConstructionRequest.BuildingDefinition;
+	const UTCFConstructionOptionDefinition* ConstructionOptionDefinition = ConstructionRequest.ConstructionOption;
 
-	return BuildingDefinition && ResourceBank->CanAffordResources(BuildingDefinition->Cost);
+	return ConstructionOptionDefinition && ResourceBank->CanAffordResources(ConstructionOptionDefinition->GetEffectiveCost());
 }
 
 void UTCFGameplayAbility_ConstructBuilding::ApplyCost(
@@ -82,14 +96,14 @@ void UTCFGameplayAbility_ConstructBuilding::ApplyCost(
 	}
 
 	const FTCFBuildingConstructionRequest& ConstructionRequest = ConstructionComponent->GetPendingConstructionRequest();
-	const UTCFBuildingDefinition* BuildingDefinition = ConstructionRequest.BuildingDefinition;
-	if (!BuildingDefinition)
+	const UTCFConstructionOptionDefinition* ConstructionOptionDefinition = ConstructionRequest.ConstructionOption;
+	if (!ConstructionOptionDefinition)
 	{
 		return;
 	}
 
 	FTCFResourceTransactionResult SpendResult;
-	bResourceCostCommitted = ResourceBank->TrySpendResources(BuildingDefinition->Cost, SpendResult);
+	bResourceCostCommitted = ResourceBank->TrySpendResources(ConstructionOptionDefinition->GetEffectiveCost(), SpendResult);
 }
 
 void UTCFGameplayAbility_ConstructBuilding::ActivateAbility(

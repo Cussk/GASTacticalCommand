@@ -105,12 +105,6 @@ FText ATCFBuildingActor::GetDisplayName() const
 	return BuildingDefinition ? BuildingDefinition->DisplayName : FText::GetEmpty();
 }
 
-const TArray<FTCFResourceAmount>& ATCFBuildingActor::GetCost() const
-{
-	static const TArray<FTCFResourceAmount> EmptyCost;
-	return BuildingDefinition ? BuildingDefinition->Cost : EmptyCost;
-}
-
 FIntPoint ATCFBuildingActor::GetFootprintSize() const
 {
 	return BuildingDefinition ? BuildingDefinition->GetSafeFootprintSize() : FIntPoint(1, 1);

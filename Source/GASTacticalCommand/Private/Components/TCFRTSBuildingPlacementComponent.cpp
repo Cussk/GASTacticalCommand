@@ -10,6 +10,7 @@
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFRTSSelectionBoxComponent.h"
 #include "Data/TCFBuildingDefinition.h"
+#include "Data/TCFConstructionOptionDefinition.h"
 #include "Engine/StaticMeshActor.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -45,14 +46,14 @@ void UTCFRTSBuildingPlacementComponent::EndPlay(const EEndPlayReason::Type EndPl
 	Super::EndPlay(EndPlayReason);
 }
 
-bool UTCFRTSBuildingPlacementComponent::BeginBuildingPlacement(UTCFBuildingDefinition* BuildingDefinition)
+bool UTCFRTSBuildingPlacementComponent::BeginBuildingPlacement(UTCFConstructionOptionDefinition* ConstructionOption)
 {
-	if (!IsValid(BuildingDefinition))
+	if (!IsValid(ConstructionOption) || !IsValid(ConstructionOption->GetBuildingDefinition()))
 	{
 		return false;
 	}
 
-	PendingBuildingDefinition = BuildingDefinition;
+	PendingConstructionOption = ConstructionOption;
 	bCurrentPlacementValid = false;
 	bCurrentCostValid = false;
 	CurrentValidationResult = FTCFPlacementGridValidationResult();
@@ -67,18 +68,18 @@ bool UTCFRTSBuildingPlacementComponent::BeginBuildingPlacement(UTCFBuildingDefin
 	SetComponentTickEnabled(true);
 	RefreshPlacement();
 
-	OnBuildingPlacementStarted.Broadcast(PendingBuildingDefinition);
+	OnBuildingPlacementStarted.Broadcast(GetPendingBuildingDefinition());
 	return true;
 }
 
 void UTCFRTSBuildingPlacementComponent::CancelBuildingPlacement()
 {
-	if (!PendingBuildingDefinition)
+	if (!PendingConstructionOption)
 	{
 		return;
 	}
 
-	PendingBuildingDefinition = nullptr;
+	PendingConstructionOption = nullptr;
 	bCurrentPlacementValid = false;
 	bCurrentCostValid = false;
 	CurrentValidationResult = FTCFPlacementGridValidationResult();
@@ -97,7 +98,7 @@ void UTCFRTSBuildingPlacementComponent::CancelBuildingPlacement()
 
 bool UTCFRTSBuildingPlacementComponent::ConfirmBuildingPlacement()
 {
-	if (!PendingBuildingDefinition)
+	if (!PendingConstructionOption)
 	{
 		return false;
 	}
@@ -116,8 +117,8 @@ bool UTCFRTSBuildingPlacementComponent::ConfirmBuildingPlacement()
 	}
 
 	ATCFBuildingActor* PlacedBuilding = nullptr;
-	if (!ConstructionComponent->TryRequestBuildingConstruction(
-		PendingBuildingDefinition,
+	if (!ConstructionComponent->TryRequestBuildingConstructionOption(
+		PendingConstructionOption,
 		CurrentPlacementLocation,
 		CurrentAnchorCell,
 		CurrentValidationResult,
@@ -131,7 +132,7 @@ bool UTCFRTSBuildingPlacementComponent::ConfirmBuildingPlacement()
 
 	OnBuildingPlaced.Broadcast(
 		PlacedBuilding,
-		PendingBuildingDefinition,
+		GetPendingBuildingDefinition(),
 		CurrentPlacementLocation,
 		CurrentAnchorCell);
 
@@ -141,7 +142,7 @@ bool UTCFRTSBuildingPlacementComponent::ConfirmBuildingPlacement()
 
 bool UTCFRTSBuildingPlacementComponent::IsPlacingBuilding() const
 {
-	return PendingBuildingDefinition != nullptr;
+	return PendingConstructionOption != nullptr;
 }
 
 bool UTCFRTSBuildingPlacementComponent::IsCurrentPlacementValid() const
@@ -156,7 +157,9 @@ bool UTCFRTSBuildingPlacementComponent::IsCurrentCostValid() const
 
 UTCFBuildingDefinition* UTCFRTSBuildingPlacementComponent::GetPendingBuildingDefinition() const
 {
-	return PendingBuildingDefinition;
+	return PendingConstructionOption
+		? PendingConstructionOption->GetBuildingDefinition()
+		: nullptr;
 }
 
 FVector UTCFRTSBuildingPlacementComponent::GetCurrentPlacementLocation() const
@@ -196,7 +199,7 @@ void UTCFRTSBuildingPlacementComponent::TickComponent(
 
 void UTCFRTSBuildingPlacementComponent::RefreshPlacement()
 {
-	if (!PendingBuildingDefinition)
+	if (!PendingConstructionOption)
 	{
 		return;
 	}
@@ -212,7 +215,7 @@ void UTCFRTSBuildingPlacementComponent::RefreshPlacement()
 
 void UTCFRTSBuildingPlacementComponent::RefreshCursorOverride() const
 {
-	if (!HoverContextComponent || !PendingBuildingDefinition)
+	if (!HoverContextComponent || !PendingConstructionOption)
 	{
 		return;
 	}
@@ -225,7 +228,7 @@ void UTCFRTSBuildingPlacementComponent::RefreshCursorOverride() const
 
 void UTCFRTSBuildingPlacementComponent::RefreshPreview()
 {
-	if (!PendingBuildingDefinition)
+	if (!PendingConstructionOption)
 	{
 		HidePreview();
 		return;
@@ -356,6 +359,7 @@ bool UTCFRTSBuildingPlacementComponent::TraceGround(FHitResult& OutHitResult) co
 
 bool UTCFRTSBuildingPlacementComponent::UpdatePlacementFromTrace()
 {
+	const UTCFBuildingDefinition* PendingBuildingDefinition = GetPendingBuildingDefinition();
 	if (!PendingBuildingDefinition)
 	{
 		return false;
@@ -385,6 +389,7 @@ bool UTCFRTSBuildingPlacementComponent::UpdatePlacementFromTrace()
 		return false;
 	}
 
+	
 	const FIntPoint FootprintSize = PendingBuildingDefinition->GetSafeFootprintSize();
 
 	const bool bValid = PlacementGridSubsystem->ValidateFootprintAtWorldLocation(
@@ -405,6 +410,7 @@ bool UTCFRTSBuildingPlacementComponent::UpdatePlacementFromTrace()
 
 UStaticMesh* UTCFRTSBuildingPlacementComponent::ResolvePreviewMesh() const
 {
+	const UTCFBuildingDefinition* PendingBuildingDefinition = GetPendingBuildingDefinition();
 	if (!PendingBuildingDefinition)
 	{
 		return nullptr;
@@ -427,6 +433,7 @@ UStaticMesh* UTCFRTSBuildingPlacementComponent::ResolvePreviewMesh() const
 
 UMaterialInterface* UTCFRTSBuildingPlacementComponent::ResolvePreviewMaterial() const
 {
+	const UTCFBuildingDefinition* PendingBuildingDefinition = GetPendingBuildingDefinition();
 	if (!PendingBuildingDefinition)
 	{
 		return nullptr;
@@ -451,6 +458,7 @@ UMaterialInterface* UTCFRTSBuildingPlacementComponent::ResolvePreviewMaterial() 
 
 FVector UTCFRTSBuildingPlacementComponent::ResolvePreviewScale() const
 {
+	const UTCFBuildingDefinition* PendingBuildingDefinition = GetPendingBuildingDefinition();
 	if (!PendingBuildingDefinition)
 	{
 		return FVector(1.0f);
@@ -466,7 +474,8 @@ FVector UTCFRTSBuildingPlacementComponent::ResolvePreviewScale() const
 
 bool UTCFRTSBuildingPlacementComponent::RefreshCostValidation()
 {
-	if (!PendingBuildingDefinition)
+	const UTCFBuildingDefinition* PendingBuildingDefinition = GetPendingBuildingDefinition();
+	if (!PendingConstructionOption || !PendingBuildingDefinition)
 	{
 		CurrentCostValidationResult = FTCFResourceTransactionResult();
 		return false;
@@ -482,7 +491,7 @@ bool UTCFRTSBuildingPlacementComponent::RefreshCostValidation()
 		return false;
 	}
 
-	for (const FTCFResourceAmount& Cost : PendingBuildingDefinition->Cost)
+	for (const FTCFResourceAmount& Cost : PendingConstructionOption->GetEffectiveCost())
 	{
 		if (!Cost.ResourceType.IsValid() || Cost.Amount <= 0)
 		{

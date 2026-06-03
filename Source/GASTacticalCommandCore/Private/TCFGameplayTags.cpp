@@ -89,4 +89,21 @@ namespace TCFGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Building_Role_Production, "Building.Role.Production");
 	UE_DEFINE_GAMEPLAY_TAG(Building_Role_Research, "Building.Role.Research");
 	UE_DEFINE_GAMEPLAY_TAG(Building_Role_ResourceDropoff, "Building.Role.ResourceDropoff");
+	
+	// Tech Era
+	UE_DEFINE_GAMEPLAY_TAG(Tech_Era_Modern, "Tech.Era.Modern");
+	UE_DEFINE_GAMEPLAY_TAG(Tech_Era_Advanced, "Tech.Era.Advanced");
+	UE_DEFINE_GAMEPLAY_TAG(Tech_Era_Interdimensional, "Tech.Era.Interdimensional");
+
+	// Building Unlock
+	UE_DEFINE_GAMEPLAY_TAG(Unlock_Building_CommandCenter, "Unlock.Building.CommandCenter");
+	UE_DEFINE_GAMEPLAY_TAG(Unlock_Building_Barracks, "Unlock.Building.Barracks");
+	UE_DEFINE_GAMEPLAY_TAG(Unlock_Building_ResearchLab, "Unlock.Building.ResearchLab");
+	UE_DEFINE_GAMEPLAY_TAG(Unlock_Building_ResourceDropoff, "Unlock.Building.ResourceDropoff");
+
+	// Build Menu Category
+	UE_DEFINE_GAMEPLAY_TAG(UI_BuildMenu_Category_Core, "UI.BuildMenu.Category.Core");
+	UE_DEFINE_GAMEPLAY_TAG(UI_BuildMenu_Category_Production, "UI.BuildMenu.Category.Production");
+	UE_DEFINE_GAMEPLAY_TAG(UI_BuildMenu_Category_Research, "UI.BuildMenu.Category.Research");
+	UE_DEFINE_GAMEPLAY_TAG(UI_BuildMenu_Category_Economy, "UI.BuildMenu.Category.Economy");
 }

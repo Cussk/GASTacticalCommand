@@ -3,10 +3,50 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Types/TCFPlacementGridTypes.h"
 #include "TCFBuildingConstructionTypes.generated.h"
 
 class UTCFBuildingDefinition;
+class UTCFConstructionOptionDefinition;
+
+USTRUCT(BlueprintType)
+struct FTCFConstructionAccessResult
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Construction")
+	bool bCanAccess = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Construction")
+	bool bHasOption = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Construction")
+	bool bHasBuildingDefinition = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Construction")
+	bool bMeetsRequiredTags = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Construction")
+	bool bBlockedByTags = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Construction")
+	FGameplayTagContainer MissingRequiredTags;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Construction")
+	FGameplayTagContainer MatchingBlockedTags;
+
+	static FTCFConstructionAccessResult Success()
+	{
+		FTCFConstructionAccessResult Result;
+		Result.bCanAccess = true;
+		Result.bHasOption = true;
+		Result.bHasBuildingDefinition = true;
+		Result.bMeetsRequiredTags = true;
+		Result.bBlockedByTags = false;
+		return Result;
+	}
+};
 
 USTRUCT(BlueprintType)
 struct FTCFBuildingConstructionRequest
@@ -24,9 +64,14 @@ struct FTCFBuildingConstructionRequest
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Construction")
 	FTCFPlacementGridValidationResult PlacementValidationResult;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Construction")
+	TObjectPtr<UTCFConstructionOptionDefinition> ConstructionOption = nullptr;
 
 	bool IsValid() const
 	{
-		return BuildingDefinition != nullptr && PlacementValidationResult.bIsValid;
+		return ConstructionOption != nullptr
+			&& BuildingDefinition != nullptr
+			&& PlacementValidationResult.bIsValid;
 	}
 };

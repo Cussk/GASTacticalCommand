@@ -61,9 +61,6 @@ public:
 	FText GetDisplayName() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Building")
-	const TArray<FTCFResourceAmount>& GetCost() const;
-
-	UFUNCTION(BlueprintPure, Category = "TCF|Building")
 	FIntPoint GetFootprintSize() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Building")

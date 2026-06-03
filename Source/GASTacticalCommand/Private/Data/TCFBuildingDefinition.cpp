@@ -11,11 +11,6 @@ FIntPoint UTCFBuildingDefinition::GetSafeFootprintSize() const
 		FMath::Max(1, FootprintSize.Y));
 }
 
-float UTCFBuildingDefinition::GetSafeRequiredConstructionWork() const
-{
-	return FMath::Max(0.0f, RequiredConstructionWork);
-}
-
 TSubclassOf<ATCFBuildingActor> UTCFBuildingDefinition::GetBuildingActorClass() const
 {
 	if (BuildingActorClass)
@@ -24,4 +19,9 @@ TSubclassOf<ATCFBuildingActor> UTCFBuildingDefinition::GetBuildingActorClass() c
 	} 
 	
 	return ATCFBuildingActor::StaticClass();
+}
+
+float UTCFBuildingDefinition::GetSafeRequiredConstructionWork() const
+{
+	return FMath::Max(0.0f, RequiredConstructionWork);
 }

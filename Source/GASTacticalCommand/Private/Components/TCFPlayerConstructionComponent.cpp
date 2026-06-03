@@ -7,6 +7,8 @@
 #include "Components/TCFAffiliationComponent.h"
 #include "Components/TCFPlayerResourceBankComponent.h"
 #include "Data/TCFBuildingDefinition.h"
+#include "Data/TCFCommanderBuildCatalogDefinition.h"
+#include "Data/TCFConstructionOptionDefinition.h"
 #include "GAS/Abilities/TCFGameplayAbility_ConstructBuilding.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/TCFPlayerState.h"
@@ -21,8 +23,12 @@ UTCFPlayerConstructionComponent::UTCFPlayerConstructionComponent()
 void UTCFPlayerConstructionComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	GrantConstructionAbility();
+	
+	if (GetOwner()->HasAuthority())
+	{
+		GrantConstructionAbility();
+		GrantInitialCommanderTags();
+	}
 }
 
 void UTCFPlayerConstructionComponent::GrantConstructionAbility()
@@ -41,52 +47,6 @@ void UTCFPlayerConstructionComponent::GrantConstructionAbility()
 
 	ConstructionAbilitySpecHandle = CommanderASC->GiveAbility(
 		FGameplayAbilitySpec(ConstructBuildingAbilityClass, 1, INDEX_NONE, this));
-}
-
-bool UTCFPlayerConstructionComponent::TryRequestBuildingConstruction(
-	UTCFBuildingDefinition* BuildingDefinition,
-	FVector PlacementLocation,
-	FIntPoint AnchorCell,
-	const FTCFPlacementGridValidationResult& PlacementValidationResult,
-	ATCFBuildingActor*& OutPlacedBuilding)
-{
-	OutPlacedBuilding = nullptr;
-	LastPlacedBuilding = nullptr;
-
-	if (!IsValid(BuildingDefinition) || !PlacementValidationResult.bIsValid)
-	{
-		return false;
-	}
-
-	PendingConstructionRequest.BuildingDefinition = BuildingDefinition;
-	PendingConstructionRequest.PlacementLocation = PlacementLocation;
-	PendingConstructionRequest.AnchorCell = AnchorCell;
-	PendingConstructionRequest.PlacementValidationResult = PlacementValidationResult;
-
-	if (!CanExecutePendingConstructionRequest())
-	{
-		ClearPendingConstructionRequest();
-		return false;
-	}
-
-	UAbilitySystemComponent* CommanderASC = GetCommanderAbilitySystemComponent();
-	if (!CommanderASC || !ConstructBuildingAbilityClass)
-	{
-		ClearPendingConstructionRequest();
-		return false;
-	}
-
-	const bool bActivationStarted = CommanderASC->TryActivateAbilityByClass(ConstructBuildingAbilityClass);
-
-	OutPlacedBuilding = LastPlacedBuilding;
-	const bool bSucceeded = bActivationStarted && IsValid(OutPlacedBuilding);
-
-	if (!bSucceeded)
-	{
-		ClearPendingConstructionRequest();
-	}
-
-	return bSucceeded;
 }
 
 bool UTCFPlayerConstructionComponent::HasPendingConstructionRequest() const
@@ -213,8 +173,8 @@ bool UTCFPlayerConstructionComponent::ExecutePendingConstruction(ATCFBuildingAct
 
 void UTCFPlayerConstructionComponent::RefundPendingConstructionCost() const
 {
-	const UTCFBuildingDefinition* BuildingDefinition = PendingConstructionRequest.BuildingDefinition;
-	if (!BuildingDefinition)
+	const UTCFConstructionOptionDefinition* ConstructionOptionDefinition = PendingConstructionRequest.ConstructionOption;
+	if (!ConstructionOptionDefinition)
 	{
 		return;
 	}
@@ -225,12 +185,155 @@ void UTCFPlayerConstructionComponent::RefundPendingConstructionCost() const
 		return;
 	}
 
-	ResourceBank->AddResources(BuildingDefinition->Cost);
+	ResourceBank->AddResources(ConstructionOptionDefinition->GetEffectiveCost());
 }
 
 ATCFBuildingActor* UTCFPlayerConstructionComponent::GetLastPlacedBuilding() const
 {
 	return LastPlacedBuilding;
+}
+
+void UTCFPlayerConstructionComponent::GetVisibleConstructionOptions(
+	TArray<UTCFConstructionOptionDefinition*>& OutOptions) const
+{
+	OutOptions.Reset();
+
+	if (!BuildCatalog)
+	{
+		return;
+	}
+
+	TArray<UTCFConstructionOptionDefinition*> CatalogOptions;
+	BuildCatalog->GetConstructionOptions(CatalogOptions);
+
+	for (UTCFConstructionOptionDefinition* Option : CatalogOptions)
+	{
+		if (!IsValid(Option))
+		{
+			continue;
+		}
+
+		FTCFConstructionAccessResult AccessResult;
+		const bool bCanAccess = CanAccessConstructionOption(Option, AccessResult);
+
+		if (bCanAccess || Option->bShowWhenLocked)
+		{
+			OutOptions.Add(Option);
+		}
+	}
+
+	OutOptions.Sort([](
+		const UTCFConstructionOptionDefinition& Left,
+		const UTCFConstructionOptionDefinition& Right)
+	{
+		return Left.SortPriority < Right.SortPriority;
+	});
+}
+
+bool UTCFPlayerConstructionComponent::CanAccessConstructionOption(
+	UTCFConstructionOptionDefinition* ConstructionOption,
+	FTCFConstructionAccessResult& OutResult) const
+{
+	OutResult = FTCFConstructionAccessResult();
+
+	if (!IsValid(ConstructionOption))
+	{
+		return false;
+	}
+
+	OutResult.bHasOption = true;
+
+	UTCFBuildingDefinition* BuildingDefinition = ConstructionOption->GetBuildingDefinition();
+	if (!IsValid(BuildingDefinition))
+	{
+		return false;
+	}
+
+	OutResult.bHasBuildingDefinition = true;
+
+	const UAbilitySystemComponent* CommanderASC = GetCommanderAbilitySystemComponent();
+	FGameplayTagContainer OwnedTags;
+
+	if (CommanderASC)
+	{
+		CommanderASC->GetOwnedGameplayTags(OwnedTags);
+	}
+
+	for (const FGameplayTag& RequiredTag : ConstructionOption->RequiredCommanderTags)
+	{
+		if (RequiredTag.IsValid() && !OwnedTags.HasTagExact(RequiredTag))
+		{
+			OutResult.MissingRequiredTags.AddTag(RequiredTag);
+		}
+	}
+
+	for (const FGameplayTag& BlockedTag : ConstructionOption->BlockedCommanderTags)
+	{
+		if (BlockedTag.IsValid() && OwnedTags.HasTagExact(BlockedTag))
+		{
+			OutResult.MatchingBlockedTags.AddTag(BlockedTag);
+		}
+	}
+
+	OutResult.bMeetsRequiredTags = OutResult.MissingRequiredTags.IsEmpty();
+	OutResult.bBlockedByTags = !OutResult.MatchingBlockedTags.IsEmpty();
+	OutResult.bCanAccess = OutResult.bMeetsRequiredTags && !OutResult.bBlockedByTags;
+
+	return OutResult.bCanAccess;
+}
+
+bool UTCFPlayerConstructionComponent::TryRequestBuildingConstructionOption(
+	UTCFConstructionOptionDefinition* ConstructionOption,
+	FVector PlacementLocation,
+	FIntPoint AnchorCell,
+	const FTCFPlacementGridValidationResult& PlacementValidationResult,
+	ATCFBuildingActor*& OutPlacedBuilding)
+{
+	OutPlacedBuilding = nullptr;
+	LastPlacedBuilding = nullptr;
+
+	FTCFConstructionAccessResult AccessResult;
+	if (!CanAccessConstructionOption(ConstructionOption, AccessResult))
+	{
+		return false;
+	}
+
+	UTCFBuildingDefinition* BuildingDefinition = ConstructionOption->GetBuildingDefinition();
+	if (!IsValid(BuildingDefinition) || !PlacementValidationResult.bIsValid)
+	{
+		return false;
+	}
+
+	PendingConstructionRequest.ConstructionOption = ConstructionOption;
+	PendingConstructionRequest.BuildingDefinition = BuildingDefinition;
+	PendingConstructionRequest.PlacementLocation = PlacementLocation;
+	PendingConstructionRequest.AnchorCell = AnchorCell;
+	PendingConstructionRequest.PlacementValidationResult = PlacementValidationResult;
+
+	if (!CanExecutePendingConstructionRequest())
+	{
+		ClearPendingConstructionRequest();
+		return false;
+	}
+
+	UAbilitySystemComponent* CommanderASC = GetCommanderAbilitySystemComponent();
+	if (!CommanderASC || !ConstructBuildingAbilityClass)
+	{
+		ClearPendingConstructionRequest();
+		return false;
+	}
+
+	const bool bActivationStarted = CommanderASC->TryActivateAbilityByClass(ConstructBuildingAbilityClass);
+
+	OutPlacedBuilding = LastPlacedBuilding;
+	const bool bSucceeded = bActivationStarted && IsValid(OutPlacedBuilding);
+
+	if (!bSucceeded)
+	{
+		ClearPendingConstructionRequest();
+	}
+
+	return bSucceeded;
 }
 
 UTCFPlayerResourceBankComponent* UTCFPlayerConstructionComponent::GetResourceBankComponent() const
@@ -239,6 +342,23 @@ UTCFPlayerResourceBankComponent* UTCFPlayerConstructionComponent::GetResourceBan
 	return TCFPlayerState
 		? TCFPlayerState->GetPlayerResourceBankComponent()
 		: nullptr;
+}
+
+void UTCFPlayerConstructionComponent::GrantInitialCommanderTags()
+{
+	UAbilitySystemComponent* CommanderASC = GetCommanderAbilitySystemComponent();
+	if (!CommanderASC)
+	{
+		return;
+	}
+
+	for (const FGameplayTag& Tag : InitialCommanderTags)
+	{
+		if (Tag.IsValid())
+		{
+			CommanderASC->AddLooseGameplayTag(Tag);
+		}
+	}
 }
 
 ATCFPlayerState* UTCFPlayerConstructionComponent::GetTCFPlayerState() const
@@ -254,7 +374,7 @@ UAbilitySystemComponent* UTCFPlayerConstructionComponent::GetCommanderAbilitySys
 		: nullptr;
 }
 
-void UTCFPlayerConstructionComponent::ApplyPlacedBuildingAffiliation(ATCFBuildingActor* PlacedBuilding) const
+void UTCFPlayerConstructionComponent::ApplyPlacedBuildingAffiliation(const ATCFBuildingActor* PlacedBuilding) const
 {
 	if (!PlacedBuilding)
 	{

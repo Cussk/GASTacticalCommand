@@ -13,6 +13,7 @@ class ATCFPlayerState;
 class UAbilitySystemComponent;
 class UGameplayAbility;
 class UTCFPlayerResourceBankComponent;
+class UTCFCommanderBuildCatalogDefinition;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(
 	FOnTCFConstructionSitePlaced,
@@ -37,10 +38,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Construction")
 	void GrantConstructionAbility();
-
+	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Construction")
-	bool TryRequestBuildingConstruction(
-		UTCFBuildingDefinition* BuildingDefinition,
+	bool TryRequestBuildingConstructionOption(
+		UTCFConstructionOptionDefinition* ConstructionOption,
 		FVector PlacementLocation,
 		FIntPoint AnchorCell,
 		const FTCFPlacementGridValidationResult& PlacementValidationResult,
@@ -60,6 +61,14 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Construction")
 	ATCFBuildingActor* GetLastPlacedBuilding() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Construction")
+	void GetVisibleConstructionOptions(TArray<UTCFConstructionOptionDefinition*>& OutOptions) const;
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Construction")
+	bool CanAccessConstructionOption(
+		UTCFConstructionOptionDefinition* ConstructionOption,
+		FTCFConstructionAccessResult& OutResult) const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Construction")
 	UTCFPlayerResourceBankComponent* GetResourceBankComponent() const;
@@ -70,6 +79,12 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Construction")
 	TSubclassOf<UGameplayAbility> ConstructBuildingAbilityClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Construction")
+	TObjectPtr<UTCFCommanderBuildCatalogDefinition> BuildCatalog;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Construction")
+	FGameplayTagContainer InitialCommanderTags;
 
 private:
 	UPROPERTY()
@@ -77,9 +92,11 @@ private:
 
 	FTCFBuildingConstructionRequest PendingConstructionRequest;
 	FGameplayAbilitySpecHandle ConstructionAbilitySpecHandle;
+	
+	void GrantInitialCommanderTags();
 
 	ATCFPlayerState* GetTCFPlayerState() const;
 	UAbilitySystemComponent* GetCommanderAbilitySystemComponent() const;
 
-	void ApplyPlacedBuildingAffiliation(ATCFBuildingActor* PlacedBuilding) const;
+	void ApplyPlacedBuildingAffiliation(const ATCFBuildingActor* PlacedBuilding) const;
 };

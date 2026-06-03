@@ -2,9 +2,11 @@
 
 #include "Actors/TCFBuildingActor.h"
 
+#include "AbilitySystemComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TCFAffiliationComponent.h"
+#include "GAS/TCFBuildingAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "Subsystems/TCFRTSPlacementGridSubsystem.h"
 
@@ -28,6 +30,12 @@ ATCFBuildingActor::ATCFBuildingActor()
 	InteractionCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	InteractionCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	InteractionCollision->SetGenerateOverlapEvents(false);
+	
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+
+	BuildingAttributeSet = CreateDefaultSubobject<UTCFBuildingAttributeSet>(TEXT("BuildingAttributeSet"));
 
 	AffiliationComponent = CreateDefaultSubobject<UTCFAffiliationComponent>(TEXT("AffiliationComponent"));
 }
@@ -44,6 +52,7 @@ void ATCFBuildingActor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	InitializeAbilitySystem();
 	InitializeFromDefinition();
 	TryReservePlacementFootprint();
 }
@@ -81,8 +90,19 @@ void ATCFBuildingActor::ApplyBuildingDefinition(
 	}
 
 	InitializeConstructionStateFromDefinition();
+	InitializeAttributesFromDefinition();
 	ApplyDefinitionVisuals();
 	ApplyRuntimeStatePresentation();
+}
+
+UAbilitySystemComponent* ATCFBuildingActor::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+UTCFBuildingAttributeSet* ATCFBuildingActor::GetBuildingAttributeSet() const
+{
+	return BuildingAttributeSet;
 }
 
 UTCFBuildingDefinition* ATCFBuildingActor::GetBuildingDefinition() const
@@ -255,6 +275,28 @@ void ATCFBuildingActor::OnRep_ConstructionWorkCompleted(float OldConstructionWor
 		ConstructionWorkCompleted);
 }
 
+void ATCFBuildingActor::InitializeAbilitySystem()
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+}
+
+void ATCFBuildingActor::InitializeAttributesFromDefinition() const
+{
+	if (!HasAuthority() || !BuildingDefinition || !BuildingAttributeSet)
+	{
+		return;
+	}
+
+	const float SafeMaxHealth = FMath::Max(0.0f, BuildingDefinition->MaxHealth);
+
+	BuildingAttributeSet->InitMaxHealth(SafeMaxHealth);
+	BuildingAttributeSet->InitHealth(FMath::Clamp(BuildingDefinition->Health, 0.0f, SafeMaxHealth));
+	BuildingAttributeSet->InitDefense(FMath::Max(0.0f, BuildingDefinition->Defense));
+}
+
 void ATCFBuildingActor::InitializeFromDefinition()
 {
 	ApplyDefinitionVisuals();
@@ -270,6 +312,7 @@ void ATCFBuildingActor::InitializeFromDefinition()
 	}
 
 	InitializeConstructionStateFromDefinition();
+	InitializeAttributesFromDefinition();
 	ApplyRuntimeStatePresentation();
 }
 

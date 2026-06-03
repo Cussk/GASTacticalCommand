@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "GameFramework/Actor.h"
 #include "Data/TCFBuildingDefinition.h"
 #include "TCFBuildingActor.generated.h"
@@ -10,6 +11,8 @@
 class UBoxComponent;
 class UStaticMeshComponent;
 class UTCFAffiliationComponent;
+class UAbilitySystemComponent;
+class UTCFBuildingAttributeSet;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FOnTCFBuildingRuntimeStateChanged,
@@ -35,7 +38,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	CompletionSource);
 
 UCLASS()
-class GASTACTICALCOMMAND_API ATCFBuildingActor : public AActor
+class GASTACTICALCOMMAND_API ATCFBuildingActor : public AActor, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -47,6 +50,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Building")
 	void ApplyBuildingDefinition(UTCFBuildingDefinition* NewDefinition, bool bApplyInitialRuntimeState = true);
+	
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
+	UTCFBuildingAttributeSet* GetBuildingAttributeSet() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Building")
 	UTCFBuildingDefinition* GetBuildingDefinition() const;
@@ -132,6 +140,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFAffiliationComponent> AffiliationComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|GAS")
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|GAS")
+	TObjectPtr<UTCFBuildingAttributeSet> BuildingAttributeSet;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_BuildingDefinition, Category = "TCF|Building")
 	TObjectPtr<UTCFBuildingDefinition> BuildingDefinition;
@@ -157,6 +171,9 @@ protected:
 private:
 	FIntPoint ReservedPlacementAnchorCell = FIntPoint::ZeroValue;
 	bool bHasReservedPlacementFootprint = false;
+	
+	void InitializeAbilitySystem();
+	void InitializeAttributesFromDefinition() const;
 	
 	void InitializeFromDefinition();
 	void ApplyDefinitionVisuals() const;

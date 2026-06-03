@@ -90,4 +90,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Preview")
 	FVector PreviewVisualScale = FVector(1.0f);
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Attributes", meta = (ClampMin = "0.0"))
+	float MaxHealth = 500.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Attributes", meta = (ClampMin = "0.0"))
+	float Health = 500.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Attributes", meta = (ClampMin = "0.0"))
+	float Defense = 1.0f;
 };

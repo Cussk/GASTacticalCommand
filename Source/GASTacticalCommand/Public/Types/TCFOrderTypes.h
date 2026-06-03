@@ -30,6 +30,9 @@ struct FTCFOrderTarget
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TCF|Order")
 	TObjectPtr<AActor> TargetActor = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TCF|Order")
+	bool bUseTargetLocationForRange = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TCF|Order")
 	FVector TargetLocation = FVector::ZeroVector;
@@ -50,7 +53,9 @@ struct FTCFOrderTarget
 
 	bool HasLocationTarget() const
 	{
-		return TargetType == ETCFOrderTargetType::Location || TargetType == ETCFOrderTargetType::Area;
+		return TargetType == ETCFOrderTargetType::Location
+			|| TargetType == ETCFOrderTargetType::Area
+			|| bUseTargetLocationForRange;
 	}
 
 	bool HasDirectionTarget() const

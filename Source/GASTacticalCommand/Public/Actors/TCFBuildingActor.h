@@ -66,6 +66,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TCF|Building")
 	ETCFBuildingRuntimeState GetRuntimeState() const;
 	
+	UFUNCTION(BlueprintPure, Category = "TCF|Building|Interaction")
+	UPrimitiveComponent* GetInteractionCollisionComponent() const;
+	
 	UFUNCTION(BlueprintPure, Category = "TCF|Building|Placement")
 	bool HasReservedPlacementFootprint() const;
 

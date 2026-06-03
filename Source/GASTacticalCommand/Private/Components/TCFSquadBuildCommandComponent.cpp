@@ -169,11 +169,7 @@ bool UTCFSquadBuildCommandComponent::IsTargetInBuildRange() const
 		return true;
 	}
 
-	const float DistanceSquared = FVector::DistSquared2D(
-		SquadOwner->GetActorLocation(),
-		TargetBuilding->GetActorLocation());
-
-	return DistanceSquared <= FMath::Square(BuildRange);
+	return GetDistanceToBuildInteractionBounds2D() <= BuildRange;
 }
 
 float UTCFSquadBuildCommandComponent::GetBuildRange() const
@@ -203,10 +199,16 @@ FVector UTCFSquadBuildCommandComponent::GetDesiredBuildMoveLocation() const
 	}
 
 	const FVector SourceLocation = SquadOwner->GetActorLocation();
-	const FVector TargetLocation = TargetBuilding->GetActorLocation();
+	const FVector ClosestInteractionPoint = GetClosestInteractionPointToSquad();
 
-	FVector DirectionFromTargetToSource = SourceLocation - TargetLocation;
+	FVector DirectionFromTargetToSource = SourceLocation - ClosestInteractionPoint;
 	DirectionFromTargetToSource.Z = 0.0f;
+
+	if (DirectionFromTargetToSource.IsNearlyZero())
+	{
+		DirectionFromTargetToSource = SourceLocation - TargetBuilding->GetActorLocation();
+		DirectionFromTargetToSource.Z = 0.0f;
+	}
 
 	if (DirectionFromTargetToSource.IsNearlyZero())
 	{
@@ -218,10 +220,47 @@ FVector UTCFSquadBuildCommandComponent::GetDesiredBuildMoveLocation() const
 	}
 
 	const float DesiredDistance = FMath::Max(0.0f, GetBuildRange() - BuildRangePadding);
-	FVector MoveLocation = TargetLocation + DirectionFromTargetToSource * DesiredDistance;
+
+	FVector MoveLocation = ClosestInteractionPoint + DirectionFromTargetToSource * DesiredDistance;
 	MoveLocation.Z = SourceLocation.Z;
 
 	return MoveLocation;
+}
+
+FVector UTCFSquadBuildCommandComponent::GetClosestInteractionPointToSquad() const
+{
+	if (!SquadOwner || !TargetBuilding)
+	{
+		return FVector::ZeroVector;
+	}
+
+	UPrimitiveComponent* InteractionComponent = TargetBuilding->GetInteractionCollisionComponent();
+	if (!InteractionComponent)
+	{
+		FVector FallbackLocation = TargetBuilding->GetActorLocation();
+		FallbackLocation.Z = SquadOwner->GetActorLocation().Z;
+		return FallbackLocation;
+	}
+
+	const FVector SourceLocation = SquadOwner->GetActorLocation();
+
+	FVector ClosestPoint = InteractionComponent->Bounds.GetBox().GetClosestPointTo(SourceLocation);
+	ClosestPoint.Z = SourceLocation.Z;
+
+	return ClosestPoint;
+}
+
+float UTCFSquadBuildCommandComponent::GetDistanceToBuildInteractionBounds2D() const
+{
+	if (!SquadOwner || !TargetBuilding)
+	{
+		return TNumericLimits<float>::Max();
+	}
+
+	const FVector SourceLocation = SquadOwner->GetActorLocation();
+	const FVector ClosestPoint = GetClosestInteractionPointToSquad();
+
+	return FVector::Dist2D(SourceLocation, ClosestPoint);
 }
 
 bool UTCFSquadBuildCommandComponent::SubmitBuildOrder() const
@@ -244,7 +283,8 @@ bool UTCFSquadBuildCommandComponent::SubmitBuildOrder() const
 	FTCFOrderTarget OrderTarget;
 	OrderTarget.TargetType = ETCFOrderTargetType::Actor;
 	OrderTarget.TargetActor = TargetBuilding;
-	OrderTarget.TargetLocation = TargetBuilding->GetActorLocation();
+	OrderTarget.TargetLocation = GetClosestInteractionPointToSquad();
+	OrderTarget.bUseTargetLocationForRange = true;
 
 	FTCFSquadOrderRequest Request;
 	Request.OrderTag = BuildOrderTag;

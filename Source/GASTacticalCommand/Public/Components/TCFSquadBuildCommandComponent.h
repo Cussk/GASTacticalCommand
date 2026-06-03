@@ -82,6 +82,8 @@ private:
 
 	float GetBuildRange() const;
 	FVector GetDesiredBuildMoveLocation() const;
+	FVector GetClosestInteractionPointToSquad() const;
+	float GetDistanceToBuildInteractionBounds2D() const;
 
 	bool SubmitBuildOrder() const;
 	void MoveTowardBuilding();

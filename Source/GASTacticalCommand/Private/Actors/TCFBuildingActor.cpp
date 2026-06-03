@@ -115,6 +115,11 @@ ETCFBuildingRuntimeState ATCFBuildingActor::GetRuntimeState() const
 	return RuntimeState;
 }
 
+UPrimitiveComponent* ATCFBuildingActor::GetInteractionCollisionComponent() const
+{
+	return InteractionCollision;
+}
+
 bool ATCFBuildingActor::HasReservedPlacementFootprint() const
 {
 	return bHasReservedPlacementFootprint;

@@ -322,6 +322,12 @@ bool UTCFOrderSubsystem::IsTargetWithinRange(
 
 bool UTCFOrderSubsystem::TryGetTargetLocation(const FTCFOrderTarget& Target, FVector& OutLocation)
 {
+	if (Target.bUseTargetLocationForRange)
+	{
+		OutLocation = Target.TargetLocation;
+		return true;
+	}
+
 	if (Target.HasActorTarget())
 	{
 		OutLocation = Target.TargetActor->GetActorLocation();

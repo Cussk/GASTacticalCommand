@@ -33,5 +33,6 @@ protected:
 private:
 	ATCFBuildingActor* GetTargetBuilding() const;
 	bool IsValidWorker(const ATCFSquadActor& SourceSquad) const;
+	bool IsBuildTargetRelationshipAllowed(const ATCFSquadActor& SourceSquad, const ATCFBuildingActor& TargetBuilding) const;
 	float CalculateConstructionWork(const ATCFSquadActor& SourceSquad) const;
 };

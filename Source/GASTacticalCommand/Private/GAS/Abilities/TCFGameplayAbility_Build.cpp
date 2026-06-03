@@ -6,6 +6,7 @@
 #include "Actors/TCFSquadActor.h"
 #include "GAS/TCFSquadAttributeSet.h"
 #include "TCFGameplayTags.h"
+#include "Subsystems/TCFRelationshipSubsystem.h"
 
 UTCFGameplayAbility_Build::UTCFGameplayAbility_Build()
 {
@@ -24,6 +25,11 @@ bool UTCFGameplayAbility_Build::CanActivateCurrentOrder() const
 	}
 
 	if (bRequireWorkerRole && !IsValidWorker(*SourceSquad))
+	{
+		return false;
+	}
+
+	if (!IsBuildTargetRelationshipAllowed(*SourceSquad, *TargetBuilding))
 	{
 		return false;
 	}
@@ -70,6 +76,28 @@ bool UTCFGameplayAbility_Build::IsValidWorker(const ATCFSquadActor& SourceSquad)
 	return SourceSquad.GetRoleTag().MatchesTagExact(TCFGameplayTags::Squad_Role_Worker);
 }
 
+bool UTCFGameplayAbility_Build::IsBuildTargetRelationshipAllowed(
+	const ATCFSquadActor& SourceSquad,
+	const ATCFBuildingActor& TargetBuilding) const
+{
+	const UWorld* World = GetWorld();
+	const UTCFRelationshipSubsystem* RelationshipSubsystem = World
+		? World->GetSubsystem<UTCFRelationshipSubsystem>()
+		: nullptr;
+
+	if (!RelationshipSubsystem)
+	{
+		return false;
+	}
+
+	const ETCFSquadRelationship Relationship = RelationshipSubsystem->GetActorRelationship(
+		&SourceSquad,
+		&TargetBuilding);
+
+	return Relationship == ETCFSquadRelationship::Own
+		|| Relationship == ETCFSquadRelationship::Friendly;
+}
+
 float UTCFGameplayAbility_Build::CalculateConstructionWork(const ATCFSquadActor& SourceSquad) const
 {
 	float BuildRate = 1.0f;
@@ -77,6 +105,11 @@ float UTCFGameplayAbility_Build::CalculateConstructionWork(const ATCFSquadActor&
 	if (const UTCFSquadAttributeSet* AttributeSet = SourceSquad.GetSquadAttributeSet())
 	{
 		BuildRate = FMath::Max(0.0f, AttributeSet->GetBuildRate());
+	}
+
+	if (BuildRate <= 0.0f)
+	{
+		return 0.0f;
 	}
 
 	return FMath::Max(MinimumConstructionWork, BaseConstructionWorkPerActivation * BuildRate);

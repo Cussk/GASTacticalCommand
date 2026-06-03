@@ -63,9 +63,11 @@ private:
 	bool ExecuteCommandIntent(FTCFRTSCommandIntent& CommandIntent) const;
 	bool ExecuteAttackTargetIntent(const FTCFRTSCommandIntent& CommandIntent) const;
 	bool ExecuteGatherResourceIntent(const FTCFRTSCommandIntent& CommandIntent) const;
+	bool ExecuteBuildTargetIntent(const FTCFRTSCommandIntent& CommandIntent) const;
 	
 	void StopSelectedSquadAttackCommands() const;
 	void StopSelectedSquadGatherCommands() const;
+	void StopSelectedSquadBuildCommands() const;
 
 	ETCFRTSCommandIntentType ResolveIntentType(const FTCFRTSHoverContext& HoverContext) const;
 	FVector ResolveTargetLocation(const FTCFRTSHoverContext& HoverContext) const;

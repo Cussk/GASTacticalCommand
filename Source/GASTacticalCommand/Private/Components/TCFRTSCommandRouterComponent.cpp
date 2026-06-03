@@ -3,6 +3,7 @@
 #include "Components/TCFRTSCommandRouterComponent.h"
 
 #include "TCFGameplayTags.h"
+#include "Actors/TCFBuildingActor.h"
 #include "Actors/TCFResourceNodeActor.h"
 #include "Actors/TCFSquadActor.h"
 #include "Components/TCFPlayerMovementCommandComponent.h"
@@ -10,6 +11,7 @@
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFRTSOrderTargetingComponent.h"
 #include "Components/TCFSquadAttackCommandComponent.h"
+#include "Components/TCFSquadBuildCommandComponent.h"
 #include "Components/TCFSquadGatherCommandComponent.h"
 
 UTCFRTSCommandRouterComponent::UTCFRTSCommandRouterComponent()
@@ -93,6 +95,7 @@ bool UTCFRTSCommandRouterComponent::ExecuteCommandIntent(FTCFRTSCommandIntent& C
 	case ETCFRTSCommandIntentType::Move:
 		StopSelectedSquadAttackCommands();
 		StopSelectedSquadGatherCommands();
+		StopSelectedSquadBuildCommands();
 
 		return MovementCommandComponent
 			? MovementCommandComponent->MoveSelectedSquadsToLocation(CommandIntent.TargetLocation)
@@ -106,15 +109,24 @@ bool UTCFRTSCommandRouterComponent::ExecuteCommandIntent(FTCFRTSCommandIntent& C
 
 		StopSelectedSquadAttackCommands();
 		StopSelectedSquadGatherCommands();
+		StopSelectedSquadBuildCommands();
+
 		return MovementCommandComponent->MoveSelectedSquadsToLocation(CommandIntent.TargetLocation);
 
 	case ETCFRTSCommandIntentType::AttackTarget:
 		StopSelectedSquadGatherCommands();
+		StopSelectedSquadBuildCommands();
 		return ExecuteAttackTargetIntent(CommandIntent);
 
 	case ETCFRTSCommandIntentType::GatherResource:
 		StopSelectedSquadAttackCommands();
+		StopSelectedSquadBuildCommands();
 		return ExecuteGatherResourceIntent(CommandIntent);
+
+	case ETCFRTSCommandIntentType::BuildTarget:
+		StopSelectedSquadAttackCommands();
+		StopSelectedSquadGatherCommands();
+		return ExecuteBuildTargetIntent(CommandIntent);
 
 	case ETCFRTSCommandIntentType::ProductionBuildingInteraction:
 		// Building interaction/production UI is a later V2 phase.
@@ -202,6 +214,52 @@ bool UTCFRTSCommandRouterComponent::ExecuteGatherResourceIntent(const FTCFRTSCom
 	return bStartedAnyGatherCommand;
 }
 
+bool UTCFRTSCommandRouterComponent::ExecuteBuildTargetIntent(
+	const FTCFRTSCommandIntent& CommandIntent) const
+{
+	if (!SelectionComponent || !IsValid(CommandIntent.TargetActor))
+	{
+		return false;
+	}
+
+	ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(CommandIntent.TargetActor);
+	if (!Building || !Building->CanReceiveConstructionWork())
+	{
+		return false;
+	}
+
+	if (CommandIntent.RelationshipToPrimarySelection != ETCFSquadRelationship::Own
+		&& CommandIntent.RelationshipToPrimarySelection != ETCFSquadRelationship::Friendly)
+	{
+		return false;
+	}
+
+	TArray<ATCFSquadActor*> SelectedSquads;
+	SelectionComponent->GetSelectedSquads(SelectedSquads);
+
+	if (SelectedSquads.IsEmpty())
+	{
+		return false;
+	}
+
+	bool bStartedAnyBuildCommand = false;
+
+	for (ATCFSquadActor* SelectedSquad : SelectedSquads)
+	{
+		if (!IsValid(SelectedSquad))
+		{
+			continue;
+		}
+
+		if (UTCFSquadBuildCommandComponent* BuildCommandComponent = SelectedSquad->GetBuildCommandComponent())
+		{
+			bStartedAnyBuildCommand |= BuildCommandComponent->StartBuildCommand(Building);
+		}
+	}
+
+	return bStartedAnyBuildCommand;
+}
+
 void UTCFRTSCommandRouterComponent::StopSelectedSquadAttackCommands() const
 {
 	if (!SelectionComponent)
@@ -250,6 +308,30 @@ void UTCFRTSCommandRouterComponent::StopSelectedSquadGatherCommands() const
 	}
 }
 
+void UTCFRTSCommandRouterComponent::StopSelectedSquadBuildCommands() const
+{
+	if (!SelectionComponent)
+	{
+		return;
+	}
+
+	TArray<ATCFSquadActor*> SelectedSquads;
+	SelectionComponent->GetSelectedSquads(SelectedSquads);
+
+	for (ATCFSquadActor* SelectedSquad : SelectedSquads)
+	{
+		if (!IsValid(SelectedSquad))
+		{
+			continue;
+		}
+
+		if (UTCFSquadBuildCommandComponent* BuildCommandComponent = SelectedSquad->GetBuildCommandComponent())
+		{
+			BuildCommandComponent->StopBuildCommand();
+		}
+	}
+}
+
 ETCFRTSCommandIntentType UTCFRTSCommandRouterComponent::ResolveIntentType(const FTCFRTSHoverContext& HoverContext) const
 {
 	switch (HoverContext.TargetType)
@@ -264,7 +346,22 @@ ETCFRTSCommandIntentType UTCFRTSCommandRouterComponent::ResolveIntentType(const 
 		return ETCFRTSCommandIntentType::GatherResource;
 
 	case ETCFRTSHoverTargetType::Building:
-		return ETCFRTSCommandIntentType::ProductionBuildingInteraction;
+		{
+			const ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(HoverContext.HoveredActor);
+			if (!Building)
+			{
+				return ETCFRTSCommandIntentType::Invalid;
+			}
+
+			if (Building->CanReceiveConstructionWork()
+				&& (HoverContext.RelationshipToPrimarySelection == ETCFSquadRelationship::Own
+					|| HoverContext.RelationshipToPrimarySelection == ETCFSquadRelationship::Friendly))
+			{
+				return ETCFRTSCommandIntentType::BuildTarget;
+			}
+
+			return ETCFRTSCommandIntentType::ProductionBuildingInteraction;
+		}
 
 	case ETCFRTSHoverTargetType::Squad:
 		if (HoverContext.RelationshipToPrimarySelection == ETCFSquadRelationship::Enemy)

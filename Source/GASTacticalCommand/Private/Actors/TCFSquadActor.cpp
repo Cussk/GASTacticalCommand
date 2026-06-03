@@ -10,6 +10,7 @@
 #include "GameplayEffect.h"
 #include "Components/TCFAffiliationComponent.h"
 #include "Components/TCFSquadAttackCommandComponent.h"
+#include "Components/TCFSquadBuildCommandComponent.h"
 #include "Components/TCFSquadGatherCommandComponent.h"
 #include "Components/TCFSquadIntegrityStateComponent.h"
 #include "Components/TCFSquadMovementComponent.h"
@@ -34,6 +35,7 @@ ATCFSquadActor::ATCFSquadActor()
 	MovementComponent = CreateDefaultSubobject<UTCFSquadMovementComponent>(TEXT("MovementComponent"));
 	AttackCommandComponent = CreateDefaultSubobject<UTCFSquadAttackCommandComponent>(TEXT("AttackCommandComponent"));
 	GatherCommandComponent = CreateDefaultSubobject<UTCFSquadGatherCommandComponent>(TEXT("GatherCommandComponent"));
+	BuildCommandComponent = CreateDefaultSubobject<UTCFSquadBuildCommandComponent>(TEXT("BuildCommandComponent"));
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -66,6 +68,11 @@ UTCFSquadAttackCommandComponent* ATCFSquadActor::GetAttackCommandComponent() con
 UTCFSquadGatherCommandComponent* ATCFSquadActor::GetGatherCommandComponent() const
 {
 	return GatherCommandComponent;
+}
+
+UTCFSquadBuildCommandComponent* ATCFSquadActor::GetBuildCommandComponent() const
+{
+	return BuildCommandComponent;
 }
 
 UTCFSquadIntegrityStateComponent* ATCFSquadActor::GetIntegrityStateComponent() const

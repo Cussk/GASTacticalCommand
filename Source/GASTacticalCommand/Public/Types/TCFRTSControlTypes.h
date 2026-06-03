@@ -46,6 +46,7 @@ enum class ETCFRTSCommandIntentType : uint8
 	AttackTarget,
 	CapturePointMove,
 	GatherResource,
+	BuildTarget,
 	ProductionBuildingInteraction,
 	Invalid
 };

@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "TCFRTSSelectionBoxComponent.generated.h"
 
+class UTCFRTSHoverContextComponent;
 class UTCFRTSSelectionBoxWidget;
 class ATCFSquadActor;
 class APlayerController;
@@ -30,6 +31,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|RTS Selection")
 	bool IsDraggingSelection() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|RTS Selection")
+	bool IsClickSelection() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|RTS Selection")
 	void GetSelectionRectangle(FVector2D& OutStart, FVector2D& OutEnd) const;
@@ -43,8 +47,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UTCFRTSSelectionBoxWidget> SelectionBoxWidget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Selection", meta = (ClampMin = "1.0"))
-	float DragThresholdPixels = 8.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|RTS Selection", meta = (ClampMin = "0.0"))
+	float ClickDragThresholdPixels = 8.0f;
 
 private:
 	UPROPERTY()
@@ -52,6 +56,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UTCFPlayerSelectionComponent> SelectionComponent;
+	
+	UPROPERTY()
+	TObjectPtr<UTCFRTSHoverContextComponent> HoverContextComponent;
 
 	FVector2D DragStartScreenPosition = FVector2D::ZeroVector;
 	FVector2D DragEndScreenPosition = FVector2D::ZeroVector;
@@ -64,14 +71,11 @@ private:
 	ATCFSquadActor* GetSquadUnderCursor() const;
 	void GetSquadsInsideSelectionBox(TArray<ATCFSquadActor*>& OutSquads) const;
 	bool IsSquadInsideSelectionBox(const ATCFSquadActor& Squad) const;
-	
+	bool TryInspectHoveredBuilding() const;
+
 	bool GetSelectionScreenBounds(FVector2D& OutMinScreenPosition, FVector2D& OutMaxScreenPosition) const;
 	bool GetActorScreenBounds(const AActor& Actor, FVector2D& OutMinScreenPosition, FVector2D& OutMaxScreenPosition) const;
-	static bool DoScreenRectanglesOverlap(
-		const FVector2D& AMin,
-		const FVector2D& AMax,
-		const FVector2D& BMin,
-		const FVector2D& BMax);
+	static bool DoScreenRectanglesOverlap(const FVector2D& AMin, const FVector2D& AMax, const FVector2D& BMin, const FVector2D& BMax);
 	
 	void CreateSelectionBoxWidget();
 };

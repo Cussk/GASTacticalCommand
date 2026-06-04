@@ -8,6 +8,7 @@
 #include "Types/TCFAffiliationTypes.h"
 #include "TCFDebugSubsystem.generated.h"
 
+class ATCFBuildingActor;
 enum class ETCFBuildingRuntimeState : uint8;
 class UTCFRTSHoverContextComponent;
 class ATCFResourceNodeActor;
@@ -70,6 +71,9 @@ private:
 
 	UFUNCTION()
 	void HandleSelectedSquadChanged(ATCFSquadActor* SelectedSquad);
+	
+	UFUNCTION()
+	void HandleInspectedBuildingChanged(ATCFBuildingActor* InspectedBuilding);
 
 	UFUNCTION()
 	void HandleOrderSubmitted(FTCFSquadOrderRequest Request, FTCFOrderResult Result);
@@ -97,8 +101,11 @@ private:
 	void AddEconomyData(FTCFDebugSquadSnapshot& Snapshot) const;
 	void AddWorkerData(const ATCFSquadActor* SelectedSquad, FTCFDebugSquadSnapshot& Snapshot) const;
 	
-	void AddHoveredBuildingData(const ATCFSquadActor* SelectedSquad, FTCFDebugSquadSnapshot& Snapshot) const;
 	void AddBuildingEffectLines(const UAbilitySystemComponent& AbilitySystem, FTCFDebugBuildingSnapshot& BuildingSnapshot) const;
+	void AddDebugBuildingData(const ATCFSquadActor* SelectedSquad, FTCFDebugSquadSnapshot& Snapshot) const;
+	void FillBuildingSnapshot(const ATCFBuildingActor& Building, const ATCFSquadActor* SelectedSquad, const FString& Source, FTCFDebugBuildingSnapshot& BuildingSnapshot) const;
+
+	
 
 	static FString BuildResourceLine(FGameplayTag ResourceType, int32 Amount);
 	static FString BuildResourceNodeSummary(const ATCFResourceNodeActor* ResourceNode);

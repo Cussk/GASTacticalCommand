@@ -148,6 +148,7 @@ void UTCFDebugSubsystem::BindObservedComponents()
 	if (ObservedSelectionComponent)
 	{
 		ObservedSelectionComponent->OnSelectedSquadChanged.AddDynamic(this, &UTCFDebugSubsystem::HandleSelectedSquadChanged);
+		ObservedSelectionComponent->OnInspectedBuildingChanged.AddDynamic(this,	&UTCFDebugSubsystem::HandleInspectedBuildingChanged);
 	}
 
 	if (ObservedOrderComponent)
@@ -161,6 +162,7 @@ void UTCFDebugSubsystem::UnbindObservedComponents()
 	if (ObservedSelectionComponent)
 	{
 		ObservedSelectionComponent->OnSelectedSquadChanged.RemoveDynamic(this, &UTCFDebugSubsystem::HandleSelectedSquadChanged);
+		ObservedSelectionComponent->OnInspectedBuildingChanged.RemoveDynamic(this,	&UTCFDebugSubsystem::HandleInspectedBuildingChanged);
 	}
 
 	if (ObservedOrderComponent)
@@ -211,7 +213,7 @@ FTCFDebugSquadSnapshot UTCFDebugSubsystem::BuildSnapshot() const
 
 	const ATCFSquadActor* SelectedSquad = SelectionComponent->GetSelectedSquad();
 	
-	AddHoveredBuildingData(SelectedSquad, Snapshot);
+	AddDebugBuildingData(SelectedSquad, Snapshot);
 	
 	if (!IsValid(SelectedSquad))
 	{
@@ -636,83 +638,6 @@ void UTCFDebugSubsystem::AddWorkerData(
 	}
 }
 
-void UTCFDebugSubsystem::AddHoveredBuildingData(
-	const ATCFSquadActor* SelectedSquad,
-	FTCFDebugSquadSnapshot& Snapshot) const
-{
-	if (!ObservedHoverContextComponent)
-	{
-		return;
-	}
-
-	const FTCFRTSHoverContext& HoverContext = ObservedHoverContextComponent->GetCurrentHoverContext();
-	ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(HoverContext.HoveredActor);
-	if (!IsValid(Building))
-	{
-		return;
-	}
-
-	FTCFDebugBuildingSnapshot& BuildingSnapshot = Snapshot.HoveredBuilding;
-	BuildingSnapshot.bHasBuilding = true;
-	BuildingSnapshot.ActorName = Building->GetName();
-	BuildingSnapshot.DisplayName = Building->GetDisplayName();
-	BuildingSnapshot.RuntimeState = BuildingRuntimeStateToString(Building->GetRuntimeState());
-	BuildingSnapshot.BuildingTypeTag = Building->GetBuildingTypeTag();
-	BuildingSnapshot.BuildingRoleTags = Building->GetBuildingRoleTags();
-
-	BuildingSnapshot.ConstructionWorkCompleted = Building->GetConstructionWorkCompleted();
-	BuildingSnapshot.RequiredConstructionWork = Building->GetRequiredConstructionWork();
-	BuildingSnapshot.ConstructionProgressAlpha = Building->GetConstructionProgressAlpha();
-	BuildingSnapshot.bCanReceiveConstructionWork = Building->CanReceiveConstructionWork();
-
-	BuildingSnapshot.bHasReservedPlacementFootprint = Building->HasReservedPlacementFootprint();
-	BuildingSnapshot.ReservedPlacementAnchorCell = Building->GetReservedPlacementAnchorCell();
-
-	if (const UTCFAffiliationComponent* AffiliationComponent = Building->GetAffiliationComponent())
-	{
-		const FTCFAffiliationData& Affiliation = AffiliationComponent->GetAffiliation();
-
-		BuildingSnapshot.bHasAffiliation = true;
-		BuildingSnapshot.OwnerId = Affiliation.OwnerId;
-		BuildingSnapshot.TeamId = Affiliation.TeamId;
-		BuildingSnapshot.FactionTag = Affiliation.FactionTag;
-	}
-
-	if (SelectedSquad)
-	{
-		const UWorld* World = GetWorld();
-		const UTCFRelationshipSubsystem* RelationshipSubsystem = World
-			? World->GetSubsystem<UTCFRelationshipSubsystem>()
-			: nullptr;
-
-		if (RelationshipSubsystem)
-		{
-			BuildingSnapshot.RelationshipToSelectedSquad = RelationshipToString(
-				RelationshipSubsystem->GetActorRelationship(SelectedSquad, Building));
-		}
-	}
-
-	const UAbilitySystemComponent* AbilitySystem = Building->GetAbilitySystemComponent();
-	BuildingSnapshot.bASCValid = AbilitySystem != nullptr;
-
-	if (AbilitySystem)
-	{
-		FGameplayTagContainer OwnedTags;
-		AbilitySystem->GetOwnedGameplayTags(OwnedTags);
-		BuildingSnapshot.OwnedTags = OwnedTags.ToStringSimple();
-
-		AddBuildingEffectLines(*AbilitySystem, BuildingSnapshot);
-	}
-
-	const UTCFBuildingAttributeSet* AttributeSet = Building->GetBuildingAttributeSet();
-	if (AttributeSet)
-	{
-		BuildingSnapshot.Health = AttributeSet->GetHealth();
-		BuildingSnapshot.MaxHealth = AttributeSet->GetMaxHealth();
-		BuildingSnapshot.Defense = AttributeSet->GetDefense();
-	}
-}
-
 void UTCFDebugSubsystem::AddBuildingEffectLines(
 	const UAbilitySystemComponent& AbilitySystem,
 	FTCFDebugBuildingSnapshot& BuildingSnapshot) const
@@ -750,6 +675,106 @@ void UTCFDebugSubsystem::AddBuildingEffectLines(
 				*EffectName));
 		}
 	}
+}
+
+void UTCFDebugSubsystem::AddDebugBuildingData(
+	const ATCFSquadActor* SelectedSquad,
+	FTCFDebugSquadSnapshot& Snapshot) const
+{
+	ATCFBuildingActor* Building = ObservedSelectionComponent
+		? ObservedSelectionComponent->GetInspectedBuilding()
+		: nullptr;
+
+	if (IsValid(Building))
+	{
+		FillBuildingSnapshot(*Building, SelectedSquad, TEXT("Inspected"), Snapshot.HoveredBuilding);
+		return;
+	}
+
+	if (!ObservedHoverContextComponent)
+	{
+		return;
+	}
+
+	const FTCFRTSHoverContext& HoverContext = ObservedHoverContextComponent->GetCurrentHoverContext();
+	Building = Cast<ATCFBuildingActor>(HoverContext.HoveredActor);
+	if (IsValid(Building))
+	{
+		FillBuildingSnapshot(*Building, SelectedSquad, TEXT("Hovered"), Snapshot.HoveredBuilding);
+	}
+}
+
+void UTCFDebugSubsystem::FillBuildingSnapshot(const ATCFBuildingActor& Building, const ATCFSquadActor* SelectedSquad,
+	const FString& Source, FTCFDebugBuildingSnapshot& BuildingSnapshot) const
+{
+	if (!ObservedHoverContextComponent)
+	{
+		return;
+	}
+	
+	BuildingSnapshot.bHasBuilding = true;
+	BuildingSnapshot.Source = Source;
+	BuildingSnapshot.ActorName = Building.GetName();
+	BuildingSnapshot.DisplayName = Building.GetDisplayName();
+	BuildingSnapshot.RuntimeState = BuildingRuntimeStateToString(Building.GetRuntimeState());
+	BuildingSnapshot.BuildingTypeTag = Building.GetBuildingTypeTag();
+	BuildingSnapshot.BuildingRoleTags = Building.GetBuildingRoleTags();
+
+	BuildingSnapshot.ConstructionWorkCompleted = Building.GetConstructionWorkCompleted();
+	BuildingSnapshot.RequiredConstructionWork = Building.GetRequiredConstructionWork();
+	BuildingSnapshot.ConstructionProgressAlpha = Building.GetConstructionProgressAlpha();
+	BuildingSnapshot.bCanReceiveConstructionWork = Building.CanReceiveConstructionWork();
+
+	BuildingSnapshot.bHasReservedPlacementFootprint = Building.HasReservedPlacementFootprint();
+	BuildingSnapshot.ReservedPlacementAnchorCell = Building.GetReservedPlacementAnchorCell();
+
+	if (const UTCFAffiliationComponent* AffiliationComponent = Building.GetAffiliationComponent())
+	{
+		const FTCFAffiliationData& Affiliation = AffiliationComponent->GetAffiliation();
+
+		BuildingSnapshot.bHasAffiliation = true;
+		BuildingSnapshot.OwnerId = Affiliation.OwnerId;
+		BuildingSnapshot.TeamId = Affiliation.TeamId;
+		BuildingSnapshot.FactionTag = Affiliation.FactionTag;
+	}
+
+	if (SelectedSquad)
+	{
+		const UWorld* World = GetWorld();
+		const UTCFRelationshipSubsystem* RelationshipSubsystem = World
+			? World->GetSubsystem<UTCFRelationshipSubsystem>()
+			: nullptr;
+
+		if (RelationshipSubsystem)
+		{
+			BuildingSnapshot.RelationshipToSelectedSquad = RelationshipToString(
+				RelationshipSubsystem->GetActorRelationship(SelectedSquad, &Building));
+		}
+	}
+
+	const UAbilitySystemComponent* AbilitySystem = Building.GetAbilitySystemComponent();
+	BuildingSnapshot.bASCValid = AbilitySystem != nullptr;
+
+	if (AbilitySystem)
+	{
+		FGameplayTagContainer OwnedTags;
+		AbilitySystem->GetOwnedGameplayTags(OwnedTags);
+		BuildingSnapshot.OwnedTags = OwnedTags.ToStringSimple();
+
+		AddBuildingEffectLines(*AbilitySystem, BuildingSnapshot);
+	}
+
+	if (const UTCFBuildingAttributeSet* AttributeSet = Building.GetBuildingAttributeSet())
+	{
+		BuildingSnapshot.Health = AttributeSet->GetHealth();
+		BuildingSnapshot.MaxHealth = AttributeSet->GetMaxHealth();
+		BuildingSnapshot.Defense = AttributeSet->GetDefense();
+	}
+}
+
+void UTCFDebugSubsystem::HandleInspectedBuildingChanged(ATCFBuildingActor* InspectedBuilding)
+{
+	RefreshDebugSnapshot();
 }
 
 FString UTCFDebugSubsystem::BuildResourceLine(FGameplayTag ResourceType, int32 Amount)

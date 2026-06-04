@@ -534,7 +534,7 @@ FText UTCFDebugHUDWidget::BuildBuildingText() const
 
 	if (!Building.bHasBuilding)
 	{
-		return FText::FromString(TEXT("━━ HOVERED BUILDING ━━\nNone"));
+		return FText::FromString(TEXT("━━ BUILDING DEBUG ━━\nNone"));
 	}
 
 	const FString TypeTag = Building.BuildingTypeTag.IsValid()
@@ -560,7 +560,8 @@ FText UTCFDebugHUDWidget::BuildBuildingText() const
 	const float ProgressPercent = Building.ConstructionProgressAlpha * 100.0f;
 
 	return FText::FromString(FString::Printf(
-		TEXT("━━ HOVERED BUILDING ━━\nName: %s\nActor: %s\nState: %s\nType: %s\nRoles: %s\nASC: %s\nHealth: %.1f / %.1f\nDefense: %.2f\nConstruction: %.1f / %.1f (%.0f%%)\nCan Receive Work: %s\nFootprint Reserved: %s\nAnchor Cell: %s\nOwnerId: %d\nTeamId: %d\nFaction: %s\nRelationship To Selected: %s\nOwned Tags: %s\nActive Effects:\n%s"),
+		TEXT("━━ BUILDING DEBUG ━━\nSource: %s\nName: %s\nActor: %s\nState: %s\nType: %s\nRoles: %s\nASC: %s\nHealth: %.1f / %.1f\nDefense: %.2f\nConstruction: %.1f / %.1f (%.0f%%)\nCan Receive Work: %s\nFootprint Reserved: %s\nAnchor Cell: %s\nOwnerId: %d\nTeamId: %d\nFaction: %s\nRelationship To Selected: %s\nOwned Tags: %s\nActive Effects:\n%s"),
+		*Building.Source,
 		*Building.DisplayName.ToString(),
 		*Building.ActorName,
 		*Building.RuntimeState,

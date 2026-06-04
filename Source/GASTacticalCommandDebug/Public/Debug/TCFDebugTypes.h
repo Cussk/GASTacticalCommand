@@ -186,6 +186,9 @@ struct FTCFDebugBuildingSnapshot
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
 	TArray<FString> ActiveEffectLines;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString Source;
 };
 
 USTRUCT(BlueprintType)

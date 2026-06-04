@@ -3,6 +3,7 @@
 #include "Components/TCFPlayerSelectionComponent.h"
 
 #include "AbilitySystemComponent.h"
+#include "Actors/TCFBuildingActor.h"
 #include "Actors/TCFSquadActor.h"
 #include "Components/TCFSquadSelectionComponent.h"
 
@@ -20,6 +21,7 @@ bool UTCFPlayerSelectionComponent::TrySelectSquad(ATCFSquadActor* Squad)
 		return false;
 	}
 
+	ClearInspectedBuilding();
 	ClearSelection();
 
 	AddSquadInternal(Squad);
@@ -35,7 +37,8 @@ bool UTCFPlayerSelectionComponent::AddSquadToSelection(ATCFSquadActor* Squad)
 	{
 		return false;
 	}
-
+	
+	ClearInspectedBuilding();
 	CompactSelection();
 
 	if (SelectedSquads.Contains(Squad))
@@ -112,6 +115,7 @@ void UTCFPlayerSelectionComponent::SetSelectedSquads(const TArray<ATCFSquadActor
 
 	ATCFSquadActor* LastValidSquad = nullptr;
 
+	bool bHasValidIncomingSquad = false;
 	for (ATCFSquadActor* Squad : Squads)
 	{
 		if (!IsValid(Squad) || SelectedSquads.Contains(Squad))
@@ -119,10 +123,16 @@ void UTCFPlayerSelectionComponent::SetSelectedSquads(const TArray<ATCFSquadActor
 			continue;
 		}
 
+		bHasValidIncomingSquad = true;
 		AddSquadInternal(Squad);
 		LastValidSquad = Squad;
 	}
 
+	if (bHasValidIncomingSquad)
+	{
+		ClearInspectedBuilding();
+	}
+	
 	if (LastValidSquad)
 	{
 		SetPrimarySelectedSquad(LastValidSquad);
@@ -144,6 +154,8 @@ void UTCFPlayerSelectionComponent::ClearSelection()
 		SetSquadSelectedState(Squad, false);
 	}
 
+	ClearInspectedBuilding();
+	
 	SelectedSquads.Reset();
 	SetPrimarySelectedSquad(nullptr);
 	BroadcastSelectionChanged();
@@ -261,4 +273,83 @@ void UTCFPlayerSelectionComponent::SetSquadSelectedState(const ATCFSquadActor* S
 	}
 
 	SelectionComponent->SetSelected(bSelected);
+}
+
+bool UTCFPlayerSelectionComponent::TryInspectBuilding(ATCFBuildingActor* Building)
+{
+	if (!IsValid(Building) || !Building->IsAlive())
+	{
+		ClearSelection();
+		ClearInspectedBuilding();
+		return false;
+	}
+
+	ClearSelection();
+	SetInspectedBuilding(Building);
+	return true;
+}
+
+void UTCFPlayerSelectionComponent::ClearInspectedBuilding()
+{
+	SetInspectedBuilding(nullptr);
+}
+
+ATCFBuildingActor* UTCFPlayerSelectionComponent::GetInspectedBuilding() const
+{
+	return IsValid(InspectedBuilding) ? InspectedBuilding : nullptr;
+}
+
+bool UTCFPlayerSelectionComponent::HasInspectedBuilding() const
+{
+	return IsValid(InspectedBuilding);
+}
+
+UAbilitySystemComponent* UTCFPlayerSelectionComponent::GetInspectedBuildingAbilitySystem() const
+{
+	const ATCFBuildingActor* Building = GetInspectedBuilding();
+	return Building ? Building->GetAbilitySystemComponent() : nullptr;
+}
+
+void UTCFPlayerSelectionComponent::SetInspectedBuilding(ATCFBuildingActor* Building)
+{
+	ATCFBuildingActor* NewBuilding = IsValid(Building) ? Building : nullptr;
+	if (InspectedBuilding == NewBuilding)
+	{
+		return;
+	}
+
+	UnbindInspectedBuildingDestroyed();
+
+	InspectedBuilding = NewBuilding;
+
+	if (InspectedBuilding)
+	{
+		BindInspectedBuildingDestroyed(InspectedBuilding);
+	}
+
+	OnInspectedBuildingChanged.Broadcast(GetInspectedBuilding());
+}
+
+void UTCFPlayerSelectionComponent::BindInspectedBuildingDestroyed(ATCFBuildingActor* Building)
+{
+	if (IsValid(Building))
+	{
+		Building->OnDestroyed.AddDynamic(this, &UTCFPlayerSelectionComponent::HandleInspectedBuildingDestroyed);
+	}
+}
+
+void UTCFPlayerSelectionComponent::UnbindInspectedBuildingDestroyed()
+{
+	if (IsValid(InspectedBuilding))
+	{
+		InspectedBuilding->OnDestroyed.RemoveDynamic(this, &UTCFPlayerSelectionComponent::HandleInspectedBuildingDestroyed);
+	}
+}
+
+void UTCFPlayerSelectionComponent::HandleInspectedBuildingDestroyed(AActor* DestroyedActor)
+{
+	if (DestroyedActor == InspectedBuilding)
+	{
+		ClearInspectedBuilding();
+	}
 }

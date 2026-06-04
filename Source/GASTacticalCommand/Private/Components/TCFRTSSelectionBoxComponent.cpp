@@ -5,6 +5,8 @@
 #include "Actors/TCFSquadActor.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "EngineUtils.h"
+#include "Actors/TCFBuildingActor.h"
+#include "Components/TCFRTSHoverContextComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/TCFRTSSelectionBoxWidget.h"
 
@@ -22,6 +24,7 @@ void UTCFRTSSelectionBoxComponent::BeginPlay()
 
 	PlayerController = Cast<APlayerController>(GetOwner());
 	SelectionComponent = GetOwner() ? GetOwner()->FindComponentByClass<UTCFPlayerSelectionComponent>() : nullptr;
+	HoverContextComponent = GetOwner() ? GetOwner()->FindComponentByClass<UTCFRTSHoverContextComponent>() : nullptr;
 	
 	CreateSelectionBoxWidget();
 }
@@ -49,6 +52,23 @@ void UTCFRTSSelectionBoxComponent::EndSelection(bool bAppendSelection)
 	if (!SelectionComponent)
 	{
 		CancelSelection();
+		return;
+	}
+	
+	if (IsClickSelection())
+	{
+		CancelSelection();
+
+		if (TryInspectHoveredBuilding())
+		{
+			return;
+		}
+
+		if (!bAppendSelection && SelectionComponent)
+		{
+			SelectionComponent->ClearSelection();
+		}
+
 		return;
 	}
 
@@ -99,7 +119,25 @@ bool UTCFRTSSelectionBoxComponent::IsDraggingSelection() const
 		return false;
 	}
 
-	return FVector2D::Distance(DragStartScreenPosition, CurrentMousePosition) >= DragThresholdPixels;
+	return FVector2D::Distance(DragStartScreenPosition, CurrentMousePosition) >= ClickDragThresholdPixels;
+}
+
+bool UTCFRTSSelectionBoxComponent::IsClickSelection() const
+{
+	if (!PlayerController)
+	{
+		return false;
+	}
+
+	float MouseX = 0.0f;
+	float MouseY = 0.0f;
+	if (!PlayerController->GetMousePosition(MouseX, MouseY))
+	{
+		return false;
+	}
+
+	const FVector2D CurrentMousePosition(MouseX, MouseY);
+	return FVector2D::Distance(CurrentMousePosition, DragStartScreenPosition) <= ClickDragThresholdPixels;
 }
 
 void UTCFRTSSelectionBoxComponent::GetSelectionRectangle(FVector2D& OutStart, FVector2D& OutEnd) const
@@ -133,7 +171,7 @@ bool UTCFRTSSelectionBoxComponent::TryGetMouseScreenPosition(FVector2D& OutScree
 
 bool UTCFRTSSelectionBoxComponent::WasDragSelection() const
 {
-	return FVector2D::Distance(DragStartScreenPosition, DragEndScreenPosition) >= DragThresholdPixels;
+	return FVector2D::Distance(DragStartScreenPosition, DragEndScreenPosition) >= ClickDragThresholdPixels;
 }
 
 ATCFSquadActor* UTCFRTSSelectionBoxComponent::GetSquadUnderCursor() const
@@ -198,6 +236,24 @@ bool UTCFRTSSelectionBoxComponent::IsSquadInsideSelectionBox(const ATCFSquadActo
 		SelectionMax,
 		SquadMin,
 		SquadMax);
+}
+
+bool UTCFRTSSelectionBoxComponent::TryInspectHoveredBuilding() const
+{
+	if (!SelectionComponent || !HoverContextComponent)
+	{
+		return false;
+	}
+
+	const FTCFRTSHoverContext& HoverContext = HoverContextComponent->GetCurrentHoverContext();
+
+	ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(HoverContext.HoveredActor);
+	if (!IsValid(Building) || !Building->IsAlive())
+	{
+		return false;
+	}
+
+	return SelectionComponent->TryInspectBuilding(Building);
 }
 
 bool UTCFRTSSelectionBoxComponent::GetSelectionScreenBounds(

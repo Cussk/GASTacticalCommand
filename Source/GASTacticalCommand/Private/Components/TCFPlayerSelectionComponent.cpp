@@ -5,7 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "Actors/TCFBuildingActor.h"
 #include "Actors/TCFSquadActor.h"
-#include "Components/TCFSquadSelectionComponent.h"
+#include "Components/TCFSelectableHighlightComponent.h"
 
 UTCFPlayerSelectionComponent::UTCFPlayerSelectionComponent()
 {
@@ -266,13 +266,13 @@ void UTCFPlayerSelectionComponent::SetSquadSelectedState(const ATCFSquadActor* S
 		return;
 	}
 
-	UTCFSquadSelectionComponent* SelectionComponent = Squad->GetSquadSelectionComponent();
-	if (!SelectionComponent)
+	UTCFSelectableHighlightComponent* SelectableHighlightComponent = Squad->GetSelectableHighlightComponent();
+	if (!SelectableHighlightComponent)
 	{
 		return;
 	}
 
-	SelectionComponent->SetSelected(bSelected);
+	SelectableHighlightComponent->SetSelected(bSelected);
 }
 
 bool UTCFPlayerSelectionComponent::TryInspectBuilding(ATCFBuildingActor* Building)
@@ -318,6 +318,12 @@ void UTCFPlayerSelectionComponent::SetInspectedBuilding(ATCFBuildingActor* Build
 		return;
 	}
 
+	if (UTCFSelectableHighlightComponent* OldHighlight =
+		InspectedBuilding ? InspectedBuilding->FindComponentByClass<UTCFSelectableHighlightComponent>() : nullptr)
+	{
+		OldHighlight->SetSelected(false);
+	}
+
 	UnbindInspectedBuildingDestroyed();
 
 	InspectedBuilding = NewBuilding;
@@ -325,6 +331,12 @@ void UTCFPlayerSelectionComponent::SetInspectedBuilding(ATCFBuildingActor* Build
 	if (InspectedBuilding)
 	{
 		BindInspectedBuildingDestroyed(InspectedBuilding);
+
+		if (UTCFSelectableHighlightComponent* NewHighlight =
+			InspectedBuilding->FindComponentByClass<UTCFSelectableHighlightComponent>())
+		{
+			NewHighlight->SetSelected(true);
+		}
 	}
 
 	OnInspectedBuildingChanged.Broadcast(GetInspectedBuilding());

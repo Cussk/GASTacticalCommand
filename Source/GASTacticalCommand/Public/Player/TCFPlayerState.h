@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/PlayerState.h"
 #include "TCFPlayerState.generated.h"
 
@@ -26,6 +27,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Construction")
 	UTCFPlayerConstructionComponent* GetPlayerConstructionComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
+	UTCFAffiliationComponent* GetAffiliationComponent() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Affiliation")
+	int32 GetTeamId() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -38,4 +45,16 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFPlayerConstructionComponent> PlayerConstructionComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFAffiliationComponent> AffiliationComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Affiliation")
+	int32 InitialTeamId = 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Affiliation")
+	FGameplayTag InitialFactionTag;
+	
+private:
+	void InitializePlayerAffiliation() const;
 };

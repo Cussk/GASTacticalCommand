@@ -374,7 +374,7 @@ UAbilitySystemComponent* UTCFPlayerConstructionComponent::GetCommanderAbilitySys
 		: nullptr;
 }
 
-void UTCFPlayerConstructionComponent::ApplyPlacedBuildingAffiliation(const ATCFBuildingActor* PlacedBuilding) const
+void UTCFPlayerConstructionComponent::ApplyPlacedBuildingAffiliation(ATCFBuildingActor* PlacedBuilding) const
 {
 	if (!PlacedBuilding)
 	{
@@ -387,11 +387,13 @@ void UTCFPlayerConstructionComponent::ApplyPlacedBuildingAffiliation(const ATCFB
 		return;
 	}
 
-	UTCFAffiliationComponent* AffiliationComponent = PlacedBuilding->GetAffiliationComponent();
-	if (!AffiliationComponent)
+	const UTCFAffiliationComponent* PlayerAffiliation = TCFPlayerState->GetAffiliationComponent();
+	UTCFAffiliationComponent* BuildingAffiliation = PlacedBuilding->GetAffiliationComponent();
+
+	if (!PlayerAffiliation || !BuildingAffiliation)
 	{
 		return;
 	}
 
-	AffiliationComponent->SetOwnerId(TCFPlayerState->GetPlayerId());
+	BuildingAffiliation->SetAffiliation(PlayerAffiliation->GetAffiliation());
 }

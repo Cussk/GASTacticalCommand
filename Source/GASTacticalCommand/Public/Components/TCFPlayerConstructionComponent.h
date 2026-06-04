@@ -98,5 +98,5 @@ private:
 	ATCFPlayerState* GetTCFPlayerState() const;
 	UAbilitySystemComponent* GetCommanderAbilitySystemComponent() const;
 
-	void ApplyPlacedBuildingAffiliation(const ATCFBuildingActor* PlacedBuilding) const;
+	void ApplyPlacedBuildingAffiliation(ATCFBuildingActor* PlacedBuilding) const;
 };

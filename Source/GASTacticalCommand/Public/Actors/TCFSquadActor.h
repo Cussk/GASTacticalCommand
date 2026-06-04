@@ -14,7 +14,7 @@ class UTCFSquadAttackCommandComponent;
 class UTCFSquadIntegrityStateComponent;
 class UTCFSquadMovementComponent;
 class UTCFAffiliationComponent;
-class UTCFSquadSelectionComponent;
+class UTCFSelectableHighlightComponent;
 class UAbilitySystemComponent;
 class UGameplayEffect;
 class USceneComponent;
@@ -48,7 +48,7 @@ public:
 	UTCFSquadIntegrityStateComponent* GetIntegrityStateComponent() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Squad")
-	UTCFSquadSelectionComponent* GetSquadSelectionComponent() const;
+	UTCFSelectableHighlightComponent* GetSelectableHighlightComponent() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
 	UTCFAffiliationComponent* GetAffiliationComponent() const;
@@ -97,7 +97,7 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
-	TObjectPtr<UTCFSquadSelectionComponent> SquadSelectionComponent;
+	TObjectPtr<UTCFSelectableHighlightComponent> SelectableHighlightComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFSquadIntegrityStateComponent> IntegrityStateComponent;

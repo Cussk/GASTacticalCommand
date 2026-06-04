@@ -8,6 +8,7 @@
 #include "Data/TCFBuildingDefinition.h"
 #include "TCFBuildingActor.generated.h"
 
+class UTCFSelectableHighlightComponent;
 struct FOnAttributeChangeData;
 class UBoxComponent;
 class UStaticMeshComponent;
@@ -77,6 +78,9 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "TCF|Building|Interaction")
 	UPrimitiveComponent* GetInteractionCollisionComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
+	UTCFSelectableHighlightComponent* GetSelectionHighlightComponent() const;
 	
 	UFUNCTION(BlueprintPure, Category = "TCF|Building|Placement")
 	bool HasReservedPlacementFootprint() const;
@@ -150,6 +154,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFAffiliationComponent> AffiliationComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFSelectableHighlightComponent> SelectionHighlightComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

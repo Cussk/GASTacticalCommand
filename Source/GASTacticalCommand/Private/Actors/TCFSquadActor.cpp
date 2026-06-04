@@ -14,7 +14,7 @@
 #include "Components/TCFSquadGatherCommandComponent.h"
 #include "Components/TCFSquadIntegrityStateComponent.h"
 #include "Components/TCFSquadMovementComponent.h"
-#include "Components/TCFSquadSelectionComponent.h"
+#include "Components/TCFSelectableHighlightComponent.h"
 #include "GASTacticalCommand/GASTacticalCommand.h"
 #include "Subsystems/TCFSquadQuerySubsystem.h"
 
@@ -43,11 +43,9 @@ ATCFSquadActor::ATCFSquadActor()
 
 	SquadAttributeSet = CreateDefaultSubobject<UTCFSquadAttributeSet>(TEXT("SquadAttributeSet"));
 	
-	SquadSelectionComponent = CreateDefaultSubobject<UTCFSquadSelectionComponent>(TEXT("SquadSelectionComponent"));
+	SelectableHighlightComponent = CreateDefaultSubobject<UTCFSelectableHighlightComponent>(TEXT("SelectableHighlightComponent"));
 	IntegrityStateComponent = CreateDefaultSubobject<UTCFSquadIntegrityStateComponent>(TEXT("IntegrityStateComponent"));
 	AffiliationComponent = CreateDefaultSubobject<UTCFAffiliationComponent>(TEXT("AffiliationComponent"));
-	
-	SquadVisual->SetCustomDepthStencilValue(CUSTOM_DEPTH_GREEN);
 }
 
 UAbilitySystemComponent* ATCFSquadActor::GetAbilitySystemComponent() const
@@ -80,9 +78,9 @@ UTCFSquadIntegrityStateComponent* ATCFSquadActor::GetIntegrityStateComponent() c
 	return IntegrityStateComponent;
 }
 
-UTCFSquadSelectionComponent* ATCFSquadActor::GetSquadSelectionComponent() const
+UTCFSelectableHighlightComponent* ATCFSquadActor::GetSelectableHighlightComponent() const
 {
-	return SquadSelectionComponent;
+	return SelectableHighlightComponent;
 }
 
 UTCFAffiliationComponent* ATCFSquadActor::GetAffiliationComponent() const

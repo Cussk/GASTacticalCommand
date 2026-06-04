@@ -252,4 +252,13 @@ struct FTCFDebugSquadSnapshot
 	
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
 	FTCFDebugBuildingSnapshot HoveredBuilding;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString SquadSource;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bInspectionOnly = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bCommandable = false;
 };

@@ -11,7 +11,7 @@ class ATCFSquadActor;
 class UAbilitySystemComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTCFSelectedSquadChanged, ATCFSquadActor*, SelectedSquad);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInspectedSquadChanged, ATCFSquadActor*, SelectedSquad);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTCFOnInspectedSquadChanged, ATCFSquadActor*, SelectedSquad);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTCFSelectionCountChanged, int32, SelectedCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTCFInspectedBuildingChanged,ATCFBuildingActor*,InspectedBuilding);
 
@@ -96,7 +96,7 @@ public:
 	FOnTCFInspectedBuildingChanged OnInspectedBuildingChanged;
 	
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Selection")
-	FOnInspectedSquadChanged OnInspectedSquadChanged;
+	FTCFOnInspectedSquadChanged OnInspectedSquadChanged;
 
 private:
 	UPROPERTY(VisibleInstanceOnly, Category = "TCF|Selection")

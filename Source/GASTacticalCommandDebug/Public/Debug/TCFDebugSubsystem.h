@@ -73,6 +73,9 @@ private:
 	void HandleSelectedSquadChanged(ATCFSquadActor* SelectedSquad);
 	
 	UFUNCTION()
+	void HandleInspectedSquadChanged(ATCFSquadActor* InspectedSquad);
+	
+	UFUNCTION()
 	void HandleInspectedBuildingChanged(ATCFBuildingActor* InspectedBuilding);
 
 	UFUNCTION()

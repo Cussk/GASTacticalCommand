@@ -362,7 +362,7 @@ void UTCFPlayerSelectionComponent::ClearInspectedSquad()
 
 ATCFSquadActor* UTCFPlayerSelectionComponent::GetInspectedSquad() const
 {
-	return InspectedSquad;
+	return IsValid(InspectedSquad) ? InspectedSquad : nullptr;
 }
 
 bool UTCFPlayerSelectionComponent::HasInspectedSquad() const

@@ -131,6 +131,11 @@ void UTCFDebugSubsystem::HandleSelectedSquadChanged(ATCFSquadActor* SelectedSqua
 	RefreshDebugSnapshot();
 }
 
+void UTCFDebugSubsystem::HandleInspectedSquadChanged(ATCFSquadActor* InspectedSquad)
+{
+	RefreshDebugSnapshot();
+}
+
 void UTCFDebugSubsystem::HandleOrderSubmitted(FTCFSquadOrderRequest Request, FTCFOrderResult Result)
 {
 	CurrentSnapshot.LastOrder = BuildOrderSnapshot(Request, Result);
@@ -148,6 +153,7 @@ void UTCFDebugSubsystem::BindObservedComponents()
 	if (ObservedSelectionComponent)
 	{
 		ObservedSelectionComponent->OnSelectedSquadChanged.AddDynamic(this, &UTCFDebugSubsystem::HandleSelectedSquadChanged);
+		ObservedSelectionComponent->OnInspectedSquadChanged.AddDynamic(this, &UTCFDebugSubsystem::HandleInspectedSquadChanged);
 		ObservedSelectionComponent->OnInspectedBuildingChanged.AddDynamic(this,	&UTCFDebugSubsystem::HandleInspectedBuildingChanged);
 	}
 
@@ -162,6 +168,7 @@ void UTCFDebugSubsystem::UnbindObservedComponents()
 	if (ObservedSelectionComponent)
 	{
 		ObservedSelectionComponent->OnSelectedSquadChanged.RemoveDynamic(this, &UTCFDebugSubsystem::HandleSelectedSquadChanged);
+		ObservedSelectionComponent->OnInspectedSquadChanged.RemoveDynamic(this, &UTCFDebugSubsystem::HandleInspectedSquadChanged);
 		ObservedSelectionComponent->OnInspectedBuildingChanged.RemoveDynamic(this,	&UTCFDebugSubsystem::HandleInspectedBuildingChanged);
 	}
 
@@ -212,26 +219,33 @@ FTCFDebugSquadSnapshot UTCFDebugSubsystem::BuildSnapshot() const
 	AddEconomyData(Snapshot);
 
 	const ATCFSquadActor* SelectedSquad = SelectionComponent->GetSelectedSquad();
-	
-	AddDebugBuildingData(SelectedSquad, Snapshot);
-	
-	if (!IsValid(SelectedSquad))
+	const ATCFSquadActor* InspectedSquad = SelectionComponent->GetInspectedSquad();
+
+	const bool bHasSelectedSquad = IsValid(SelectedSquad);
+	const ATCFSquadActor* DebugSquad = bHasSelectedSquad ? SelectedSquad : InspectedSquad;
+
+	AddDebugBuildingData(DebugSquad, Snapshot);
+
+	if (!IsValid(DebugSquad))
 	{
 		return Snapshot;
 	}
 
+	Snapshot.SquadSource = bHasSelectedSquad ? TEXT("Selected") : TEXT("Inspected");
+	Snapshot.bInspectionOnly = !bHasSelectedSquad;
+	Snapshot.bCommandable = bHasSelectedSquad;
 	Snapshot.bHasSelectedSquad = true;
-	Snapshot.ActorName = SelectedSquad->GetName();
-	Snapshot.DisplayName = SelectedSquad->GetDisplayName();
-	Snapshot.bInitialized = SelectedSquad->IsInitialized();
-	Snapshot.RoleTag = SelectedSquad->GetRoleTag();
+	Snapshot.ActorName = DebugSquad->GetName();
+	Snapshot.DisplayName = DebugSquad->GetDisplayName();
+	Snapshot.bInitialized = DebugSquad->IsInitialized();
+	Snapshot.RoleTag = DebugSquad->GetRoleTag();
 	
-	AddAffiliationData(*SelectedSquad, Snapshot);
-	AddRelationshipLines(*SelectedSquad, Snapshot);
-	AddNearestCapturePointData(*SelectedSquad, Snapshot);
-	AddWorkerData(SelectedSquad, Snapshot);
+	AddAffiliationData(*DebugSquad, Snapshot);
+	AddRelationshipLines(*DebugSquad, Snapshot);
+	AddNearestCapturePointData(*DebugSquad, Snapshot);
+	AddWorkerData(DebugSquad, Snapshot);
 
-	if (const UAbilitySystemComponent* AbilitySystem = SelectedSquad->GetAbilitySystemComponent())
+	if (const UAbilitySystemComponent* AbilitySystem = DebugSquad->GetAbilitySystemComponent())
 	{
 		FGameplayTagContainer OwnedTags;
 		AbilitySystem->GetOwnedGameplayTags(OwnedTags);
@@ -241,7 +255,7 @@ FTCFDebugSquadSnapshot UTCFDebugSubsystem::BuildSnapshot() const
 		AddActiveEffectLines(*AbilitySystem, Snapshot);
 	}
 
-	AddAttributeLines(*SelectedSquad, Snapshot);
+	AddAttributeLines(*DebugSquad, Snapshot);
 
 	return Snapshot;
 }
@@ -582,6 +596,11 @@ void UTCFDebugSubsystem::AddWorkerData(
 	Snapshot.Worker.WorkerLines.Add(FString::Printf(
 		TEXT("Worker Role: %s"),
 		Snapshot.Worker.bIsWorker ? TEXT("Yes") : TEXT("No")));
+	
+	if (Snapshot.bInspectionOnly)
+	{
+		Snapshot.Worker.CommandLines.Add(TEXT("Inspection Only: true"));
+	}
 
 	const UTCFSquadGatherCommandComponent* GatherCommandComponent = SelectedSquad->GetGatherCommandComponent();
 	if (GatherCommandComponent && GatherCommandComponent->HasGatherCommand())

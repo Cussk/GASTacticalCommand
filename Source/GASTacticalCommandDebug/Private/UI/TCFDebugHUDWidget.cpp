@@ -397,11 +397,13 @@ FText UTCFDebugHUDWidget::BuildSquadText() const
 {
 	if (!Snapshot.bHasSelectedSquad)
 	{
-		return FText::FromString(TEXT("━━ SELECTED SQUAD ━━\nNone"));
+		return FText::FromString(TEXT("━━ SQUAD DEBUG ━━\nNone"));
 	}
 
 	return FText::FromString(FString::Printf(
-		TEXT("━━ SELECTED SQUAD ━━\nName: %s\nActor: %s\nRole: %s\nInitialized: %s"),
+		TEXT("━━ SQUAD DEBUG ━━\nSource: %s\nCommandable: %s\nName: %s\nActor: %s\nRole: %s\nInitialized: %s"),
+		*Snapshot.SquadSource,
+		Snapshot.bCommandable ? TEXT("true") : TEXT("false"),
 		*Snapshot.DisplayName.ToString(),
 		*Snapshot.ActorName,
 		*Snapshot.RoleTag.ToString(),

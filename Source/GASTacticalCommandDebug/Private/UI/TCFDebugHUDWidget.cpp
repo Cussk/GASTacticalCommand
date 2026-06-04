@@ -94,6 +94,35 @@ TSharedRef<SWidget> UTCFDebugHUDWidget::RebuildWidget()
 					]
 				]
 		]
+	]
+		
+		// Right-side building panel
+	+ SOverlay::Slot()
+	.HAlign(HAlign_Right)
+	.VAlign(VAlign_Top)
+	.Padding(0.0f, 300.0f, 14.0f, 0.0f)
+	[
+		SNew(SBox)
+		.WidthOverride(380.0f)
+		[
+			SNew(SBorder)
+				.Padding(2.0f)
+				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+				.BorderBackgroundColor(BackgroundFrame)
+				[
+					SNew(SBorder)
+					.Padding(10.0f)
+					.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+					.BorderBackgroundColor(WorkerBackground)
+					[
+						SAssignNew(BuildingText, STextBlock)
+						.ColorAndOpacity(BodyColor)
+						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
+						.AutoWrapText(true)
+						.WrapTextAt(430.0f)
+					]
+				]
+		]
 	];
 }
 
@@ -285,6 +314,7 @@ void UTCFDebugHUDWidget::ReleaseSlateResources(bool bReleaseChildren)
 	AffiliationText.Reset();
 	RelationshipText.Reset();
 	CapturePointText.Reset();
+	BuildingText.Reset();
 }
 
 void UTCFDebugHUDWidget::RefreshText() const
@@ -337,6 +367,11 @@ void UTCFDebugHUDWidget::RefreshText() const
 	if (CapturePointText)
 	{
 		CapturePointText->SetText(BuildCapturePointText());
+	}
+	
+	if (BuildingText)
+	{
+		BuildingText->SetText(BuildBuildingText());
 	}
 
 	if (OrderText)
@@ -491,6 +526,62 @@ FText UTCFDebugHUDWidget::BuildCapturePointText() const
 		CapturePoint.OccupyingSquadCount,
 		CapturePoint.CaptureRadius,
 		CapturePoint.DistanceFromSelectedSquad));
+}
+
+FText UTCFDebugHUDWidget::BuildBuildingText() const
+{
+	const FTCFDebugBuildingSnapshot& Building = Snapshot.HoveredBuilding;
+
+	if (!Building.bHasBuilding)
+	{
+		return FText::FromString(TEXT("━━ HOVERED BUILDING ━━\nNone"));
+	}
+
+	const FString TypeTag = Building.BuildingTypeTag.IsValid()
+		? Building.BuildingTypeTag.ToString()
+		: TEXT("None");
+
+	const FString RoleTags = Building.BuildingRoleTags.IsEmpty()
+		? TEXT("None")
+		: Building.BuildingRoleTags.ToStringSimple();
+
+	const FString Faction = Building.FactionTag.IsValid()
+		? Building.FactionTag.ToString()
+		: TEXT("None");
+
+	const FString OwnedTags = Building.OwnedTags.IsEmpty()
+		? TEXT("None")
+		: Building.OwnedTags;
+
+	const FString Effects = Building.ActiveEffectLines.IsEmpty()
+		? TEXT("None")
+		: JoinLines(Building.ActiveEffectLines);
+
+	const float ProgressPercent = Building.ConstructionProgressAlpha * 100.0f;
+
+	return FText::FromString(FString::Printf(
+		TEXT("━━ HOVERED BUILDING ━━\nName: %s\nActor: %s\nState: %s\nType: %s\nRoles: %s\nASC: %s\nHealth: %.1f / %.1f\nDefense: %.2f\nConstruction: %.1f / %.1f (%.0f%%)\nCan Receive Work: %s\nFootprint Reserved: %s\nAnchor Cell: %s\nOwnerId: %d\nTeamId: %d\nFaction: %s\nRelationship To Selected: %s\nOwned Tags: %s\nActive Effects:\n%s"),
+		*Building.DisplayName.ToString(),
+		*Building.ActorName,
+		*Building.RuntimeState,
+		*TypeTag,
+		*RoleTags,
+		Building.bASCValid ? TEXT("Valid") : TEXT("Missing"),
+		Building.Health,
+		Building.MaxHealth,
+		Building.Defense,
+		Building.ConstructionWorkCompleted,
+		Building.RequiredConstructionWork,
+		ProgressPercent,
+		Building.bCanReceiveConstructionWork ? TEXT("true") : TEXT("false"),
+		Building.bHasReservedPlacementFootprint ? TEXT("true") : TEXT("false"),
+		*Building.ReservedPlacementAnchorCell.ToString(),
+		Building.OwnerId,
+		Building.TeamId,
+		*Faction,
+		Building.RelationshipToSelectedSquad.IsEmpty() ? TEXT("None") : *Building.RelationshipToSelectedSquad,
+		*OwnedTags,
+		*Effects));
 }
 
 FString UTCFDebugHUDWidget::JoinLines(const TArray<FString>& Lines)

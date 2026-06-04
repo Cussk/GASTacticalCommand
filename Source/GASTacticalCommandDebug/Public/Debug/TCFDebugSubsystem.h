@@ -8,6 +8,8 @@
 #include "Types/TCFAffiliationTypes.h"
 #include "TCFDebugSubsystem.generated.h"
 
+enum class ETCFBuildingRuntimeState : uint8;
+class UTCFRTSHoverContextComponent;
 class ATCFResourceNodeActor;
 enum class ETCFCapturePointState : uint8;
 class ATCFSquadActor;
@@ -58,6 +60,9 @@ private:
 
 	UPROPERTY()
 	FTCFDebugSquadSnapshot CurrentSnapshot;
+	
+	UPROPERTY()
+	TObjectPtr<UTCFRTSHoverContextComponent> ObservedHoverContextComponent;
 
 	FTimerHandle RefreshTimerHandle;
 
@@ -91,7 +96,12 @@ private:
 	
 	void AddEconomyData(FTCFDebugSquadSnapshot& Snapshot) const;
 	void AddWorkerData(const ATCFSquadActor* SelectedSquad, FTCFDebugSquadSnapshot& Snapshot) const;
+	
+	void AddHoveredBuildingData(const ATCFSquadActor* SelectedSquad, FTCFDebugSquadSnapshot& Snapshot) const;
+	void AddBuildingEffectLines(const UAbilitySystemComponent& AbilitySystem, FTCFDebugBuildingSnapshot& BuildingSnapshot) const;
 
 	static FString BuildResourceLine(FGameplayTag ResourceType, int32 Amount);
 	static FString BuildResourceNodeSummary(const ATCFResourceNodeActor* ResourceNode);
+	
+	static FString BuildingRuntimeStateToString(ETCFBuildingRuntimeState RuntimeState);
 };

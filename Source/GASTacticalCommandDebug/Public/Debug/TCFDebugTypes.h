@@ -114,6 +114,81 @@ struct FTCFDebugCapturePointSnapshot
 };
 
 USTRUCT(BlueprintType)
+struct FTCFDebugBuildingSnapshot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bHasBuilding = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString ActorName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FText DisplayName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString RuntimeState;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FGameplayTag BuildingTypeTag;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FGameplayTagContainer BuildingRoleTags;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bASCValid = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float Health = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float MaxHealth = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float Defense = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float ConstructionWorkCompleted = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float RequiredConstructionWork = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float ConstructionProgressAlpha = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bCanReceiveConstructionWork = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bHasReservedPlacementFootprint = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FIntPoint ReservedPlacementAnchorCell = FIntPoint::ZeroValue;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bHasAffiliation = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 OwnerId = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 TeamId = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FGameplayTag FactionTag;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString RelationshipToSelectedSquad;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString OwnedTags;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	TArray<FString> ActiveEffectLines;
+};
+
+USTRUCT(BlueprintType)
 struct FTCFDebugSquadSnapshot
 {
 	GENERATED_BODY()
@@ -171,4 +246,7 @@ struct FTCFDebugSquadSnapshot
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
 	FTCFDebugWorkerSnapshot Worker;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FTCFDebugBuildingSnapshot HoveredBuilding;
 };

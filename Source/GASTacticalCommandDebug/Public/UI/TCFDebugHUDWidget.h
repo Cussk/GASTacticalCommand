@@ -45,6 +45,7 @@ private:
 	TSharedPtr<STextBlock> CapturePointText;
 	TSharedPtr<STextBlock> EconomyText;
 	TSharedPtr<STextBlock> WorkerText;
+	TSharedPtr<STextBlock> BuildingText;
 
 	void RefreshText() const;
 
@@ -61,6 +62,7 @@ private:
 	FText BuildAffiliationText() const;
 	FText BuildRelationshipText() const;
 	FText BuildCapturePointText() const;
+	FText BuildBuildingText() const;
 
 	static FString JoinLines(const TArray<FString>& Lines);
 };

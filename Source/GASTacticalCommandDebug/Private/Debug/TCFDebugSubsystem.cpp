@@ -11,13 +11,18 @@
 #include "GameplayEffect.h"
 #include "TCFGameplayTags.h"
 #include "TimerManager.h"
+#include "Actors/TCFBuildingActor.h"
 #include "Actors/TCFCapturePointActor.h"
 #include "Actors/TCFResourceNodeActor.h"
 #include "Components/TCFAffiliationComponent.h"
 #include "Components/TCFCapturePointComponent.h"
 #include "Components/TCFPlayerResourceBankComponent.h"
+#include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFSquadAttackCommandComponent.h"
+#include "Components/TCFSquadBuildCommandComponent.h"
 #include "Components/TCFSquadGatherCommandComponent.h"
+#include "Data/TCFBuildingDefinition.h"
+#include "GAS/TCFBuildingAttributeSet.h"
 #include "Player/TCFPlayerState.h"
 #include "Subsystems/TCFRelationshipSubsystem.h"
 #include "Subsystems/TCFSquadQuerySubsystem.h"
@@ -39,6 +44,7 @@ void UTCFDebugSubsystem::RegisterPlayerController(APlayerController* PlayerContr
 
 	ObservedSelectionComponent = PlayerController->FindComponentByClass<UTCFPlayerSelectionComponent>();
 	ObservedOrderComponent = PlayerController->FindComponentByClass<UTCFPlayerOrderSubmissionComponent>();
+	ObservedHoverContextComponent = PlayerController->FindComponentByClass<UTCFRTSHoverContextComponent>();
 
 	BindObservedComponents();
 	RefreshDebugSnapshot();
@@ -58,6 +64,7 @@ void UTCFDebugSubsystem::UnregisterPlayerController(APlayerController* PlayerCon
 	ObservedPlayerController = nullptr;
 	ObservedSelectionComponent = nullptr;
 	ObservedOrderComponent = nullptr;
+	ObservedHoverContextComponent = nullptr;
 }
 
 void UTCFDebugSubsystem::ShowDebugHUD()
@@ -203,6 +210,9 @@ FTCFDebugSquadSnapshot UTCFDebugSubsystem::BuildSnapshot() const
 	AddEconomyData(Snapshot);
 
 	const ATCFSquadActor* SelectedSquad = SelectionComponent->GetSelectedSquad();
+	
+	AddHoveredBuildingData(SelectedSquad, Snapshot);
+	
 	if (!IsValid(SelectedSquad))
 	{
 		return Snapshot;
@@ -600,6 +610,146 @@ void UTCFDebugSubsystem::AddWorkerData(
 	{
 		Snapshot.Worker.CommandLines.Add(TEXT("Attack Command: Idle"));
 	}
+	
+	const UTCFSquadBuildCommandComponent* BuildCommandComponent = SelectedSquad->GetBuildCommandComponent();
+	if (BuildCommandComponent && BuildCommandComponent->HasBuildCommand())
+	{
+		const ATCFBuildingActor* TargetBuilding = BuildCommandComponent->GetTargetBuilding();
+
+		Snapshot.Worker.CommandLines.Add(TEXT("Build Command: Active"));
+		Snapshot.Worker.CommandLines.Add(FString::Printf(
+			TEXT("Build Target: %s"),
+			TargetBuilding ? *TargetBuilding->GetName() : TEXT("Invalid")));
+
+		if (TargetBuilding)
+		{
+			Snapshot.Worker.CommandLines.Add(FString::Printf(
+				TEXT("Build Progress: %.1f / %.1f (%.0f%%)"),
+				TargetBuilding->GetConstructionWorkCompleted(),
+				TargetBuilding->GetRequiredConstructionWork(),
+				TargetBuilding->GetConstructionProgressAlpha() * 100.0f));
+		}
+	}
+	else
+	{
+		Snapshot.Worker.CommandLines.Add(TEXT("Build Command: Idle"));
+	}
+}
+
+void UTCFDebugSubsystem::AddHoveredBuildingData(
+	const ATCFSquadActor* SelectedSquad,
+	FTCFDebugSquadSnapshot& Snapshot) const
+{
+	if (!ObservedHoverContextComponent)
+	{
+		return;
+	}
+
+	const FTCFRTSHoverContext& HoverContext = ObservedHoverContextComponent->GetCurrentHoverContext();
+	ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(HoverContext.HoveredActor);
+	if (!IsValid(Building))
+	{
+		return;
+	}
+
+	FTCFDebugBuildingSnapshot& BuildingSnapshot = Snapshot.HoveredBuilding;
+	BuildingSnapshot.bHasBuilding = true;
+	BuildingSnapshot.ActorName = Building->GetName();
+	BuildingSnapshot.DisplayName = Building->GetDisplayName();
+	BuildingSnapshot.RuntimeState = BuildingRuntimeStateToString(Building->GetRuntimeState());
+	BuildingSnapshot.BuildingTypeTag = Building->GetBuildingTypeTag();
+	BuildingSnapshot.BuildingRoleTags = Building->GetBuildingRoleTags();
+
+	BuildingSnapshot.ConstructionWorkCompleted = Building->GetConstructionWorkCompleted();
+	BuildingSnapshot.RequiredConstructionWork = Building->GetRequiredConstructionWork();
+	BuildingSnapshot.ConstructionProgressAlpha = Building->GetConstructionProgressAlpha();
+	BuildingSnapshot.bCanReceiveConstructionWork = Building->CanReceiveConstructionWork();
+
+	BuildingSnapshot.bHasReservedPlacementFootprint = Building->HasReservedPlacementFootprint();
+	BuildingSnapshot.ReservedPlacementAnchorCell = Building->GetReservedPlacementAnchorCell();
+
+	if (const UTCFAffiliationComponent* AffiliationComponent = Building->GetAffiliationComponent())
+	{
+		const FTCFAffiliationData& Affiliation = AffiliationComponent->GetAffiliation();
+
+		BuildingSnapshot.bHasAffiliation = true;
+		BuildingSnapshot.OwnerId = Affiliation.OwnerId;
+		BuildingSnapshot.TeamId = Affiliation.TeamId;
+		BuildingSnapshot.FactionTag = Affiliation.FactionTag;
+	}
+
+	if (SelectedSquad)
+	{
+		const UWorld* World = GetWorld();
+		const UTCFRelationshipSubsystem* RelationshipSubsystem = World
+			? World->GetSubsystem<UTCFRelationshipSubsystem>()
+			: nullptr;
+
+		if (RelationshipSubsystem)
+		{
+			BuildingSnapshot.RelationshipToSelectedSquad = RelationshipToString(
+				RelationshipSubsystem->GetActorRelationship(SelectedSquad, Building));
+		}
+	}
+
+	const UAbilitySystemComponent* AbilitySystem = Building->GetAbilitySystemComponent();
+	BuildingSnapshot.bASCValid = AbilitySystem != nullptr;
+
+	if (AbilitySystem)
+	{
+		FGameplayTagContainer OwnedTags;
+		AbilitySystem->GetOwnedGameplayTags(OwnedTags);
+		BuildingSnapshot.OwnedTags = OwnedTags.ToStringSimple();
+
+		AddBuildingEffectLines(*AbilitySystem, BuildingSnapshot);
+	}
+
+	const UTCFBuildingAttributeSet* AttributeSet = Building->GetBuildingAttributeSet();
+	if (AttributeSet)
+	{
+		BuildingSnapshot.Health = AttributeSet->GetHealth();
+		BuildingSnapshot.MaxHealth = AttributeSet->GetMaxHealth();
+		BuildingSnapshot.Defense = AttributeSet->GetDefense();
+	}
+}
+
+void UTCFDebugSubsystem::AddBuildingEffectLines(
+	const UAbilitySystemComponent& AbilitySystem,
+	FTCFDebugBuildingSnapshot& BuildingSnapshot) const
+{
+	const UWorld* World = GetWorld();
+	const float WorldTime = World ? World->GetTimeSeconds() : 0.0f;
+
+	const FGameplayEffectQuery Query;
+	const TArray<FActiveGameplayEffectHandle> ActiveEffectHandles = AbilitySystem.GetActiveEffects(Query);
+
+	for (const FActiveGameplayEffectHandle& Handle : ActiveEffectHandles)
+	{
+		const FActiveGameplayEffect* ActiveEffect = AbilitySystem.GetActiveGameplayEffect(Handle);
+		if (!ActiveEffect || !ActiveEffect->Spec.Def)
+		{
+			continue;
+		}
+
+		const FString EffectName = ActiveEffect->Spec.Def->GetName();
+		const float Duration = ActiveEffect->GetDuration();
+		const float TimeRemaining = ActiveEffect->GetTimeRemaining(WorldTime);
+
+		if (Duration > 0.0f)
+		{
+			BuildingSnapshot.ActiveEffectLines.Add(FString::Printf(
+				TEXT("%s | %.1fs / %.1fs"),
+				*EffectName,
+				FMath::Max(0.0f, TimeRemaining),
+				Duration));
+		}
+		else
+		{
+			BuildingSnapshot.ActiveEffectLines.Add(FString::Printf(
+				TEXT("%s | Infinite/Instant"),
+				*EffectName));
+		}
+	}
 }
 
 FString UTCFDebugSubsystem::BuildResourceLine(FGameplayTag ResourceType, int32 Amount)
@@ -636,6 +786,27 @@ FString UTCFDebugSubsystem::BuildResourceNodeSummary(const ATCFResourceNodeActor
 		ResourceNode->GetCurrentAmount(),
 		ResourceNode->GetMaxAmount(),
 		ResourceNode->IsDepleted() ? TEXT("Depleted") : TEXT("Available"));
+}
+
+FString UTCFDebugSubsystem::BuildingRuntimeStateToString(ETCFBuildingRuntimeState RuntimeState)
+{
+	switch (RuntimeState)
+	{
+	case ETCFBuildingRuntimeState::Inactive:
+		return TEXT("Inactive");
+
+	case ETCFBuildingRuntimeState::UnderConstruction:
+		return TEXT("UnderConstruction");
+
+	case ETCFBuildingRuntimeState::Active:
+		return TEXT("Active");
+
+	case ETCFBuildingRuntimeState::Destroyed:
+		return TEXT("Destroyed");
+
+	default:
+		return TEXT("Unknown");
+	}
 }
 
 

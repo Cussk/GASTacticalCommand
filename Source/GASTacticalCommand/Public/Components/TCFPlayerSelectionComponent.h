@@ -11,6 +11,7 @@ class ATCFSquadActor;
 class UAbilitySystemComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTCFSelectedSquadChanged, ATCFSquadActor*, SelectedSquad);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInspectedSquadChanged, ATCFSquadActor*, SelectedSquad);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTCFSelectionCountChanged, int32, SelectedCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTCFInspectedBuildingChanged,ATCFBuildingActor*,InspectedBuilding);
 
@@ -56,6 +57,18 @@ public:
 	bool HasSelectedSquads() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
+	bool TryInspectSquad(ATCFSquadActor* Squad);
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
+	void ClearInspectedSquad();
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
+	ATCFSquadActor* GetInspectedSquad() const;
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
+	bool HasInspectedSquad() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
 	bool TryInspectBuilding(ATCFBuildingActor* Building);
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Selection")
@@ -81,6 +94,9 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Selection")
 	FOnTCFInspectedBuildingChanged OnInspectedBuildingChanged;
+	
+	UPROPERTY(BlueprintAssignable, Category = "TCF|Selection")
+	FOnInspectedSquadChanged OnInspectedSquadChanged;
 
 private:
 	UPROPERTY(VisibleInstanceOnly, Category = "TCF|Selection")
@@ -91,14 +107,21 @@ private:
 	
 	UPROPERTY(VisibleInstanceOnly, Category = "TCF|Selection")
 	TObjectPtr<ATCFBuildingActor> InspectedBuilding;
+	
+	UPROPERTY(VisibleInstanceOnly, Category = "TCF|Selection")
+	TObjectPtr<ATCFSquadActor> InspectedSquad;
 
 	void AddSquadInternal(ATCFSquadActor* Squad);
 	void RemoveSquadInternal(ATCFSquadActor* Squad);
 	void CompactSelection();
 	void SetPrimarySelectedSquad(ATCFSquadActor* Squad);
 	void BroadcastSelectionChanged() const;
+	
+	bool IsOwnSquad(const ATCFSquadActor* Squad) const;
 
 	static void SetSquadSelectedState(const ATCFSquadActor* Squad, bool bSelected);
+	
+	void SetInspectedSquad(ATCFSquadActor* Squad);
 	
 	void SetInspectedBuilding(ATCFBuildingActor* Building);
 	void BindInspectedBuildingDestroyed(ATCFBuildingActor* Building);

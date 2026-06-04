@@ -15,7 +15,6 @@
 #include "Components/TCFSquadIntegrityStateComponent.h"
 #include "Components/TCFSquadMovementComponent.h"
 #include "Components/TCFSelectableHighlightComponent.h"
-#include "GASTacticalCommand/GASTacticalCommand.h"
 #include "Subsystems/TCFSquadQuerySubsystem.h"
 
 ATCFSquadActor::ATCFSquadActor()

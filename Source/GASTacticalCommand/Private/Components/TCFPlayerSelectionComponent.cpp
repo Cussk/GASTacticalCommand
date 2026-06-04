@@ -6,6 +6,8 @@
 #include "Actors/TCFBuildingActor.h"
 #include "Actors/TCFSquadActor.h"
 #include "Components/TCFSelectableHighlightComponent.h"
+#include "Player/TCFPlayerState.h"
+#include "Subsystems/TCFRelationshipSubsystem.h"
 
 UTCFPlayerSelectionComponent::UTCFPlayerSelectionComponent()
 {
@@ -18,10 +20,18 @@ bool UTCFPlayerSelectionComponent::TrySelectSquad(ATCFSquadActor* Squad)
 	if (!IsValid(Squad))
 	{
 		ClearSelection();
+		ClearInspectedBuilding();
+		ClearInspectedSquad();
 		return false;
 	}
 
+	if (!IsOwnSquad(Squad))
+	{
+		return TryInspectSquad(Squad);
+	}
+
 	ClearInspectedBuilding();
+	ClearInspectedSquad();
 	ClearSelection();
 
 	AddSquadInternal(Squad);
@@ -33,7 +43,7 @@ bool UTCFPlayerSelectionComponent::TrySelectSquad(ATCFSquadActor* Squad)
 
 bool UTCFPlayerSelectionComponent::AddSquadToSelection(ATCFSquadActor* Squad)
 {
-	if (!IsValid(Squad))
+	if (!IsValid(Squad) || !IsOwnSquad(Squad))
 	{
 		return false;
 	}
@@ -90,7 +100,7 @@ bool UTCFPlayerSelectionComponent::RemoveSquadFromSelection(ATCFSquadActor* Squa
 
 bool UTCFPlayerSelectionComponent::ToggleSquadSelection(ATCFSquadActor* Squad)
 {
-	if (!IsValid(Squad))
+	if (!IsValid(Squad) || !IsOwnSquad(Squad))
 	{
 		return false;
 	}
@@ -115,22 +125,30 @@ void UTCFPlayerSelectionComponent::SetSelectedSquads(const TArray<ATCFSquadActor
 
 	ATCFSquadActor* LastValidSquad = nullptr;
 
-	bool bHasValidIncomingSquad = false;
+	bool bHasOwnIncomingSquad = false;
+
 	for (ATCFSquadActor* Squad : Squads)
 	{
-		if (!IsValid(Squad) || SelectedSquads.Contains(Squad))
+		if (!IsValid(Squad) || !IsOwnSquad(Squad))
 		{
 			continue;
 		}
 
-		bHasValidIncomingSquad = true;
+		bHasOwnIncomingSquad = true;
+
+		if (SelectedSquads.Contains(Squad))
+		{
+			continue;
+		}
+
 		AddSquadInternal(Squad);
 		LastValidSquad = Squad;
 	}
 
-	if (bHasValidIncomingSquad)
+	if (bHasOwnIncomingSquad)
 	{
 		ClearInspectedBuilding();
+		ClearInspectedSquad();
 	}
 	
 	if (LastValidSquad)
@@ -155,6 +173,7 @@ void UTCFPlayerSelectionComponent::ClearSelection()
 	}
 
 	ClearInspectedBuilding();
+	ClearInspectedSquad();
 	
 	SelectedSquads.Reset();
 	SetPrimarySelectedSquad(nullptr);
@@ -259,6 +278,27 @@ void UTCFPlayerSelectionComponent::BroadcastSelectionChanged() const
 	OnSelectionCountChanged.Broadcast(GetSelectedSquadCount());
 }
 
+bool UTCFPlayerSelectionComponent::IsOwnSquad(const ATCFSquadActor* Squad) const
+{
+	if (!IsValid(Squad))
+	{
+		return false;
+	}
+
+	const UWorld* World = GetWorld();
+	const UTCFRelationshipSubsystem* RelationshipSubsystem = World ? World->GetSubsystem<UTCFRelationshipSubsystem>() : nullptr;
+
+	const APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+	const ATCFPlayerState* TCFPlayerState = PlayerController ? Cast<ATCFPlayerState>(PlayerController->PlayerState) : nullptr;
+
+	if (!RelationshipSubsystem || !TCFPlayerState)
+	{
+		return false;
+	}
+
+	return RelationshipSubsystem->GetActorRelationship(TCFPlayerState, Squad) == ETCFSquadRelationship::Own;
+}
+
 void UTCFPlayerSelectionComponent::SetSquadSelectedState(const ATCFSquadActor* Squad, const bool bSelected)
 {
 	if (!IsValid(Squad))
@@ -273,6 +313,61 @@ void UTCFPlayerSelectionComponent::SetSquadSelectedState(const ATCFSquadActor* S
 	}
 
 	SelectableHighlightComponent->SetSelected(bSelected);
+}
+
+void UTCFPlayerSelectionComponent::SetInspectedSquad(ATCFSquadActor* Squad)
+{
+	ATCFSquadActor* NewSquad = IsValid(Squad) ? Squad : nullptr;
+	if (InspectedSquad == NewSquad)
+	{
+		return;
+	}
+
+	if (UTCFSelectableHighlightComponent* OldHighlight =
+		InspectedSquad ? InspectedSquad->FindComponentByClass<UTCFSelectableHighlightComponent>() : nullptr)
+	{
+		OldHighlight->SetSelected(false);
+	}
+
+	InspectedSquad = NewSquad;
+
+	if (UTCFSelectableHighlightComponent* NewHighlight =
+		InspectedSquad ? InspectedSquad->FindComponentByClass<UTCFSelectableHighlightComponent>() : nullptr)
+	{
+		NewHighlight->SetSelected(true);
+	}
+
+	OnInspectedSquadChanged.Broadcast(GetInspectedSquad());
+}
+
+bool UTCFPlayerSelectionComponent::TryInspectSquad(ATCFSquadActor* Squad)
+{
+	if (!IsValid(Squad))
+	{
+		ClearSelection();
+		ClearInspectedSquad();
+		return false;
+	}
+
+	ClearSelection();
+	ClearInspectedBuilding();
+	SetInspectedSquad(Squad);
+	return true;
+}
+
+void UTCFPlayerSelectionComponent::ClearInspectedSquad()
+{
+	SetInspectedSquad(nullptr);
+}
+
+ATCFSquadActor* UTCFPlayerSelectionComponent::GetInspectedSquad() const
+{
+	return InspectedSquad;
+}
+
+bool UTCFPlayerSelectionComponent::HasInspectedSquad() const
+{
+	return IsValid(InspectedSquad);
 }
 
 bool UTCFPlayerSelectionComponent::TryInspectBuilding(ATCFBuildingActor* Building)

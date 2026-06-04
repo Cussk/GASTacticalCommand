@@ -31,9 +31,6 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|RTS Selection")
 	bool IsDraggingSelection() const;
-	
-	UFUNCTION(BlueprintPure, Category = "TCF|RTS Selection")
-	bool IsClickSelection() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|RTS Selection")
 	void GetSelectionRectangle(FVector2D& OutStart, FVector2D& OutEnd) const;
@@ -66,7 +63,6 @@ private:
 	bool bSelectionActive = false;
 
 	bool TryGetMouseScreenPosition(FVector2D& OutScreenPosition) const;
-	bool WasDragSelection() const;
 
 	ATCFSquadActor* GetSquadUnderCursor() const;
 	void GetSquadsInsideSelectionBox(TArray<ATCFSquadActor*>& OutSquads) const;

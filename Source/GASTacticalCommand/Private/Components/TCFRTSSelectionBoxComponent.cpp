@@ -44,20 +44,30 @@ void UTCFRTSSelectionBoxComponent::EndSelection(bool bAppendSelection)
 {
 	if (!bSelectionActive)
 	{
-		return;
-	}
-
-	TryGetMouseScreenPosition(DragEndScreenPosition);
-
-	if (!SelectionComponent)
-	{
 		CancelSelection();
 		return;
 	}
-	
-	if (IsClickSelection())
+
+	if (!IsDraggingSelection())
 	{
 		CancelSelection();
+
+		if (ATCFSquadActor* SquadUnderCursor = GetSquadUnderCursor())
+		{
+			if (SelectionComponent)
+			{
+				if (bAppendSelection)
+				{
+					SelectionComponent->ToggleSquadSelection(SquadUnderCursor);
+				}
+				else
+				{
+					SelectionComponent->TrySelectSquad(SquadUnderCursor);
+				}
+			}
+
+			return;
+		}
 
 		if (TryInspectHoveredBuilding())
 		{
@@ -71,29 +81,13 @@ void UTCFRTSSelectionBoxComponent::EndSelection(bool bAppendSelection)
 
 		return;
 	}
+	
+	TArray<ATCFSquadActor*> SquadsInsideBox;
+	GetSquadsInsideSelectionBox(SquadsInsideBox);
 
-	if (WasDragSelection())
+	if (SelectionComponent)
 	{
-		TArray<ATCFSquadActor*> SquadsInBox;
-		GetSquadsInsideSelectionBox(SquadsInBox);
-		SelectionComponent->SetSelectedSquads(SquadsInBox, bAppendSelection);
-	}
-	else
-	{
-		ATCFSquadActor* SquadUnderCursor = GetSquadUnderCursor();
-
-		if (bAppendSelection)
-		{
-			SelectionComponent->ToggleSquadSelection(SquadUnderCursor);
-		}
-		else if (SquadUnderCursor)
-		{
-			SelectionComponent->TrySelectSquad(SquadUnderCursor);
-		}
-		else
-		{
-			SelectionComponent->ClearSelection();
-		}
+		SelectionComponent->SetSelectedSquads(SquadsInsideBox, bAppendSelection);
 	}
 
 	CancelSelection();
@@ -119,25 +113,7 @@ bool UTCFRTSSelectionBoxComponent::IsDraggingSelection() const
 		return false;
 	}
 
-	return FVector2D::Distance(DragStartScreenPosition, CurrentMousePosition) >= ClickDragThresholdPixels;
-}
-
-bool UTCFRTSSelectionBoxComponent::IsClickSelection() const
-{
-	if (!PlayerController)
-	{
-		return false;
-	}
-
-	float MouseX = 0.0f;
-	float MouseY = 0.0f;
-	if (!PlayerController->GetMousePosition(MouseX, MouseY))
-	{
-		return false;
-	}
-
-	const FVector2D CurrentMousePosition(MouseX, MouseY);
-	return FVector2D::Distance(CurrentMousePosition, DragStartScreenPosition) <= ClickDragThresholdPixels;
+	return FVector2D::Distance(DragStartScreenPosition, CurrentMousePosition) > ClickDragThresholdPixels;
 }
 
 void UTCFRTSSelectionBoxComponent::GetSelectionRectangle(FVector2D& OutStart, FVector2D& OutEnd) const
@@ -167,11 +143,6 @@ bool UTCFRTSSelectionBoxComponent::TryGetMouseScreenPosition(FVector2D& OutScree
 
 	OutScreenPosition = FVector2D(MouseX, MouseY);
 	return true;
-}
-
-bool UTCFRTSSelectionBoxComponent::WasDragSelection() const
-{
-	return FVector2D::Distance(DragStartScreenPosition, DragEndScreenPosition) >= ClickDragThresholdPixels;
 }
 
 ATCFSquadActor* UTCFRTSSelectionBoxComponent::GetSquadUnderCursor() const

@@ -112,6 +112,22 @@ float ATCFSquadActor::GetSelectionRadius() const
 	return SquadDefinition ? SquadDefinition->SelectionRadius : 0.0f;
 }
 
+void ATCFSquadActor::ApplySquadDefinition(UTCFSquadDefinition* NewDefinition)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (bInitialized)
+	{
+		return;
+	}
+
+	SquadDefinition = NewDefinition;
+	InitializeFromDefinition();
+}
+
 bool ATCFSquadActor::IsInitialized() const
 {
 	return bInitialized;
@@ -180,16 +196,16 @@ void ATCFSquadActor::InitializeAttributesFromDefinition() const
 
 	SquadAttributeSet->InitMaxHealth(Defaults.MaxHealth);
 	SquadAttributeSet->InitHealth(FMath::Clamp(Defaults.Health, 0.0f,	Defaults.MaxHealth));
-	SquadAttributeSet->SetMorale(Defaults.Morale);
-	SquadAttributeSet->SetSuppression(Defaults.Suppression);
-	SquadAttributeSet->SetCohesion(Defaults.Cohesion);
-	SquadAttributeSet->SetStamina(Defaults.Stamina);
-	SquadAttributeSet->SetAccuracy(Defaults.Accuracy);
-	SquadAttributeSet->SetDefense(Defaults.Defense);
-	SquadAttributeSet->SetMovementSpeed(Defaults.MovementSpeed);
-	SquadAttributeSet->SetCapturePower(Defaults.CapturePower);
-	SquadAttributeSet->SetGatherRate(Defaults.GatherRate);
-	SquadAttributeSet->SetBuildRate(Defaults.BuildRate);
+	SquadAttributeSet->InitMorale(Defaults.Morale);
+	SquadAttributeSet->InitSuppression(Defaults.Suppression);
+	SquadAttributeSet->InitCohesion(Defaults.Cohesion);
+	SquadAttributeSet->InitStamina(Defaults.Stamina);
+	SquadAttributeSet->InitAccuracy(Defaults.Accuracy);
+	SquadAttributeSet->InitDefense(Defaults.Defense);
+	SquadAttributeSet->InitMovementSpeed(Defaults.MovementSpeed);
+	SquadAttributeSet->InitCapturePower(Defaults.CapturePower);
+	SquadAttributeSet->InitGatherRate(Defaults.GatherRate);
+	SquadAttributeSet->InitBuildRate(Defaults.BuildRate);
 }
 
 void ATCFSquadActor::GrantStartupTags() const

@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TCFAffiliationComponent.h"
+#include "Components/TCFBuildingProductionComponent.h"
 #include "Components/TCFSelectableHighlightComponent.h"
 #include "GAS/TCFBuildingAttributeSet.h"
 #include "Net/UnrealNetwork.h"
@@ -40,6 +41,7 @@ ATCFBuildingActor::ATCFBuildingActor()
 
 	AffiliationComponent = CreateDefaultSubobject<UTCFAffiliationComponent>(TEXT("AffiliationComponent"));
 	SelectionHighlightComponent = CreateDefaultSubobject<UTCFSelectableHighlightComponent>(TEXT("SelectionHighlightComponent"));
+	ProductionComponent = CreateDefaultSubobject<UTCFBuildingProductionComponent>(TEXT("ProductionComponent"));
 }
 
 void ATCFBuildingActor::OnConstruction(const FTransform& Transform)
@@ -147,6 +149,11 @@ UPrimitiveComponent* ATCFBuildingActor::GetInteractionCollisionComponent() const
 UTCFSelectableHighlightComponent* ATCFBuildingActor::GetSelectionHighlightComponent() const
 {
 	return SelectionHighlightComponent;
+}
+
+UTCFBuildingProductionComponent* ATCFBuildingActor::GetProductionComponent() const
+{
+	return ProductionComponent;
 }
 
 bool ATCFBuildingActor::HasReservedPlacementFootprint() const

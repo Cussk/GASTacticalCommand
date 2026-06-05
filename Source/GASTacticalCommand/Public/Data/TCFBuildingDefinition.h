@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "GameplayTagContainer.h"
-#include "Types/TCFEconomyTypes.h"
 #include "TCFBuildingDefinition.generated.h"
 
+class UTCFProductionCatalogDefinition;
 class ATCFBuildingActor;
 class UMaterialInterface;
 class UStaticMesh;
@@ -102,4 +102,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Attributes", meta = (ClampMin = "0.0"))
 	float Defense = 1.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Building|Production")
+	TObjectPtr<UTCFProductionCatalogDefinition> ProductionCatalog;
 };

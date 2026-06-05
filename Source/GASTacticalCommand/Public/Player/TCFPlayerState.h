@@ -11,6 +11,7 @@
 class UAbilitySystemComponent;
 class UTCFPlayerConstructionComponent;
 class UTCFPlayerResourceBankComponent;
+class UTCFAffiliationComponent;
 
 UCLASS()
 class GASTACTICALCOMMAND_API ATCFPlayerState : public APlayerState, public IAbilitySystemInterface

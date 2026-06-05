@@ -8,6 +8,7 @@
 #include "Data/TCFBuildingDefinition.h"
 #include "TCFBuildingActor.generated.h"
 
+class UTCFBuildingProductionComponent;
 class UTCFSelectableHighlightComponent;
 struct FOnAttributeChangeData;
 class UBoxComponent;
@@ -81,6 +82,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
 	UTCFSelectableHighlightComponent* GetSelectionHighlightComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Components")
+	UTCFBuildingProductionComponent* GetProductionComponent() const;
 	
 	UFUNCTION(BlueprintPure, Category = "TCF|Building|Placement")
 	bool HasReservedPlacementFootprint() const;
@@ -157,6 +161,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
 	TObjectPtr<UTCFSelectableHighlightComponent> SelectionHighlightComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|Components")
+	TObjectPtr<UTCFBuildingProductionComponent> ProductionComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "TCF|GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

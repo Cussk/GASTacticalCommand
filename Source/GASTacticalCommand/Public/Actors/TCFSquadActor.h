@@ -67,6 +67,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Squad")
 	float GetSelectionRadius() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Squad")
+	void ApplySquadDefinition(UTCFSquadDefinition* NewDefinition);
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Squad")
 	bool IsInitialized() const;

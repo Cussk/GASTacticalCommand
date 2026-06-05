@@ -3,12 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "Components/ActorComponent.h"
+#include "Types/TCFProductionTypes.h"
 #include "TCFBuildingProductionComponent.generated.h"
 
 class ATCFBuildingActor;
 class ATCFPlayerState;
 class ATCFSquadActor;
+class UGameplayAbility;
+class UTCFPlayerResourceBankComponent;
 class UTCFProductionCatalogDefinition;
 class UTCFProductionOptionDefinition;
 
@@ -34,18 +38,44 @@ public:
 	bool CanUseProductionOption(
 		UTCFProductionOptionDefinition* ProductionOption,
 		ATCFPlayerState* RequestingPlayerState) const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
+	bool RequestProduction(
+		UTCFProductionOptionDefinition* ProductionOption,
+		ATCFPlayerState* RequestingPlayerState);
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production")
+	bool HasPendingProductionRequest() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production")
+	const FTCFProductionRequest& GetPendingProductionRequest() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
-	bool TrySpawnProducedSquad(
-		UTCFProductionOptionDefinition* ProductionOption,
-		ATCFPlayerState* RequestingPlayerState,
-		ATCFSquadActor*& OutSquad);
+	void ClearPendingProductionRequest();
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production")
+	bool CanExecutePendingProductionRequest() const;
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
+	bool ExecutePendingProduction(ATCFSquadActor*& OutSquad);
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
+	void RefundPendingProductionCost();
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production")
+	UTCFPlayerResourceBankComponent* GetResourceBankForPendingRequest() const;
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
+	void InitializeProductionAbility();
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Production")
 	FOnTCFProducedSquadSpawned OnProducedSquadSpawned;
 
 protected:
 	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Production|GAS")
+	TSubclassOf<UGameplayAbility> ProductionAbilityClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Production")
 	TSubclassOf<ATCFSquadActor> DefaultSquadActorClass;
@@ -56,9 +86,19 @@ protected:
 private:
 	UPROPERTY()
 	TObjectPtr<ATCFBuildingActor> BuildingOwner;
+	
+	UPROPERTY()
+	FTCFProductionRequest PendingProductionRequest;
+
+	FGameplayAbilitySpecHandle ProductionAbilityHandle;
 
 	UTCFProductionCatalogDefinition* GetProductionCatalog() const;
 	bool IsRequesterOwner(const ATCFPlayerState* RequestingPlayerState) const;
 	FTransform ResolveSpawnTransform(const UTCFProductionOptionDefinition& ProductionOption) const;
 	void ApplySpawnedSquadAffiliation(ATCFSquadActor& Squad, const ATCFPlayerState& RequestingPlayerState) const;
+	
+	bool TryActivateProductionAbility();
+	bool DoesRequesterMeetCommanderTagRequirements(const UTCFProductionOptionDefinition& ProductionOption, const ATCFPlayerState& RequestingPlayerState) const;
+	
+	bool TrySpawnProducedSquad(UTCFProductionOptionDefinition* ProductionOption, ATCFPlayerState* RequestingPlayerState, ATCFSquadActor*& OutSquad);
 };

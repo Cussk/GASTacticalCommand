@@ -2,6 +2,8 @@
 
 #include "Components/TCFBuildingProductionComponent.h"
 
+#include "AbilitySystemComponent.h"
+#include "GameplayAbilitySpec.h"
 #include "Actors/TCFBuildingActor.h"
 #include "Actors/TCFSquadActor.h"
 #include "Components/PrimitiveComponent.h"
@@ -14,6 +16,7 @@
 #include "Player/TCFPlayerState.h"
 #include "Subsystems/TCFRelationshipSubsystem.h"
 #include "TCFGameplayTags.h"
+#include "Components/TCFPlayerResourceBankComponent.h"
 
 UTCFBuildingProductionComponent::UTCFBuildingProductionComponent()
 {
@@ -71,11 +74,161 @@ bool UTCFBuildingProductionComponent::CanUseProductionOption(
 	{
 		return false;
 	}
+	
+	if (!DoesRequesterMeetCommanderTagRequirements(*ProductionOption, *RequestingPlayerState))
+	{
+		return false;
+	}
 
 	const TSubclassOf<ATCFSquadActor> SquadClass =
 		ProductionOption->GetResolvedSquadActorClass(DefaultSquadActorClass);
 
 	return SquadClass != nullptr;
+}
+
+bool UTCFBuildingProductionComponent::RequestProduction(
+	UTCFProductionOptionDefinition* ProductionOption,
+	ATCFPlayerState* RequestingPlayerState)
+{
+	if (HasPendingProductionRequest())
+	{
+		return false;
+	}
+
+	if (!CanUseProductionOption(ProductionOption, RequestingPlayerState))
+	{
+		return false;
+	}
+
+	PendingProductionRequest.ProductionOption = ProductionOption;
+	PendingProductionRequest.RequestingPlayerState = RequestingPlayerState;
+
+	if (!TryActivateProductionAbility())
+	{
+		ClearPendingProductionRequest();
+		return false;
+	}
+
+	return true;
+}
+
+bool UTCFBuildingProductionComponent::HasPendingProductionRequest() const
+{
+	return PendingProductionRequest.IsValid();
+}
+
+const FTCFProductionRequest& UTCFBuildingProductionComponent::GetPendingProductionRequest() const
+{
+	return PendingProductionRequest;
+}
+
+void UTCFBuildingProductionComponent::ClearPendingProductionRequest()
+{
+	PendingProductionRequest = FTCFProductionRequest();
+}
+
+bool UTCFBuildingProductionComponent::CanExecutePendingProductionRequest() const
+{
+	return HasPendingProductionRequest()
+		&& CanUseProductionOption(
+			PendingProductionRequest.ProductionOption,
+			PendingProductionRequest.RequestingPlayerState);
+}
+
+bool UTCFBuildingProductionComponent::ExecutePendingProduction(ATCFSquadActor*& OutSquad)
+{
+	OutSquad = nullptr;
+
+	if (!CanExecutePendingProductionRequest())
+	{
+		return false;
+	}
+
+	return TrySpawnProducedSquad(
+		PendingProductionRequest.ProductionOption,
+		PendingProductionRequest.RequestingPlayerState,
+		OutSquad);
+}
+
+UTCFPlayerResourceBankComponent* UTCFBuildingProductionComponent::GetResourceBankForPendingRequest() const
+{
+	const ATCFPlayerState* RequestingPlayerState = PendingProductionRequest.RequestingPlayerState;
+	return RequestingPlayerState
+		? RequestingPlayerState->GetPlayerResourceBankComponent()
+		: nullptr;
+}
+
+void UTCFBuildingProductionComponent::InitializeProductionAbility()
+{
+	if (!BuildingOwner || !BuildingOwner->HasAuthority() || !ProductionAbilityClass)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* AbilitySystem = BuildingOwner->GetAbilitySystemComponent();
+	if (!AbilitySystem || ProductionAbilityHandle.IsValid())
+	{
+		return;
+	}
+
+	FGameplayAbilitySpec AbilitySpec(ProductionAbilityClass, 1);
+	ProductionAbilityHandle = AbilitySystem->GiveAbility(AbilitySpec);
+}
+
+bool UTCFBuildingProductionComponent::TryActivateProductionAbility()
+{
+	if (!BuildingOwner)
+	{
+		return false;
+	}
+
+	UAbilitySystemComponent* AbilitySystem = BuildingOwner->GetAbilitySystemComponent();
+	if (!AbilitySystem)
+	{
+		return false;
+	}
+
+	if (!ProductionAbilityHandle.IsValid())
+	{
+		InitializeProductionAbility();
+	}
+
+	return ProductionAbilityHandle.IsValid()
+		&& AbilitySystem->TryActivateAbility(ProductionAbilityHandle);
+}
+
+bool UTCFBuildingProductionComponent::DoesRequesterMeetCommanderTagRequirements(
+	const UTCFProductionOptionDefinition& ProductionOption,
+	const ATCFPlayerState& RequestingPlayerState) const
+{
+	const UAbilitySystemComponent* CommanderASC = RequestingPlayerState.GetAbilitySystemComponent();
+	if (!CommanderASC)
+	{
+		return ProductionOption.RequiredCommanderTags.IsEmpty()
+			&& ProductionOption.BlockedCommanderTags.IsEmpty();
+	}
+
+	FGameplayTagContainer OwnedTags;
+	CommanderASC->GetOwnedGameplayTags(OwnedTags);
+
+	if (!OwnedTags.HasAll(ProductionOption.RequiredCommanderTags))
+	{
+		return false;
+	}
+
+	return ProductionOption.BlockedCommanderTags.IsEmpty()
+		|| !OwnedTags.HasAny(ProductionOption.BlockedCommanderTags);
+}
+
+void UTCFBuildingProductionComponent::RefundPendingProductionCost()
+{
+	UTCFPlayerResourceBankComponent* ResourceBank = GetResourceBankForPendingRequest();
+	const UTCFProductionOptionDefinition* ProductionOption = PendingProductionRequest.ProductionOption;
+
+	if (ResourceBank && ProductionOption)
+	{
+		ResourceBank->AddResources(ProductionOption->Cost);
+	}
 }
 
 bool UTCFBuildingProductionComponent::TrySpawnProducedSquad(

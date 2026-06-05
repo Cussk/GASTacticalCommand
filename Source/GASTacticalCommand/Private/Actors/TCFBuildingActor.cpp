@@ -57,6 +57,12 @@ void ATCFBuildingActor::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeAbilitySystem();
+	
+	if (ProductionComponent)
+	{
+		ProductionComponent->InitializeProductionAbility();
+	}
+	
 	BindAttributeChangeDelegates();
 
 	InitializeFromDefinition();

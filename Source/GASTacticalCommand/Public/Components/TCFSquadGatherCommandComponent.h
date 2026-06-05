@@ -78,6 +78,9 @@ private:
 	bool IsGatherCommandStillValid() const;
 	bool IsWorkerSquad() const;
 	bool IsTargetInGatherRange() const;
+	
+	FVector GetClosestResourceInteractionPointToSquad() const;
+	float GetDistanceToResourceInteractionBounds2D() const;
 
 	float GetGatherRange() const;
 	FVector GetDesiredGatherMoveLocation() const;

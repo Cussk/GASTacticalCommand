@@ -147,11 +147,42 @@ bool UTCFSquadGatherCommandComponent::IsTargetInGatherRange() const
 		return true;
 	}
 
-	const float DistanceSquared = FVector::DistSquared2D(
-		SquadOwner->GetActorLocation(),
-		TargetResourceNode->GetActorLocation());
+	return GetDistanceToResourceInteractionBounds2D() <= GatherRange;
+}
 
-	return DistanceSquared <= FMath::Square(GatherRange);
+FVector UTCFSquadGatherCommandComponent::GetClosestResourceInteractionPointToSquad() const
+{
+	if (!SquadOwner || !TargetResourceNode)
+	{
+		return FVector::ZeroVector;
+	}
+
+	const UPrimitiveComponent* InteractionComponent = TargetResourceNode->GetInteractionCollisionComponent();
+	if (!InteractionComponent)
+	{
+		FVector FallbackLocation = TargetResourceNode->GetActorLocation();
+		FallbackLocation.Z = SquadOwner->GetActorLocation().Z;
+		return FallbackLocation;
+	}
+
+	const FVector SourceLocation = SquadOwner->GetActorLocation();
+
+	FVector ClosestPoint = InteractionComponent->Bounds.GetBox().GetClosestPointTo(SourceLocation);
+	ClosestPoint.Z = SourceLocation.Z;
+
+	return ClosestPoint;
+}
+
+float UTCFSquadGatherCommandComponent::GetDistanceToResourceInteractionBounds2D() const
+{
+	if (!SquadOwner || !TargetResourceNode)
+	{
+		return TNumericLimits<float>::Max();
+	}
+
+	return FVector::Dist2D(
+		SquadOwner->GetActorLocation(),
+		GetClosestResourceInteractionPointToSquad());
 }
 
 float UTCFSquadGatherCommandComponent::GetGatherRange() const
@@ -181,10 +212,16 @@ FVector UTCFSquadGatherCommandComponent::GetDesiredGatherMoveLocation() const
 	}
 
 	const FVector SourceLocation = SquadOwner->GetActorLocation();
-	const FVector TargetLocation = TargetResourceNode->GetActorLocation();
+	const FVector TargetLocation = GetClosestResourceInteractionPointToSquad();
 
 	FVector DirectionFromTargetToSource = SourceLocation - TargetLocation;
 	DirectionFromTargetToSource.Z = 0.0f;
+
+	if (DirectionFromTargetToSource.IsNearlyZero())
+	{
+		DirectionFromTargetToSource = SourceLocation - TargetResourceNode->GetActorLocation();
+		DirectionFromTargetToSource.Z = 0.0f;
+	}
 
 	if (DirectionFromTargetToSource.IsNearlyZero())
 	{
@@ -196,6 +233,7 @@ FVector UTCFSquadGatherCommandComponent::GetDesiredGatherMoveLocation() const
 	}
 
 	const float DesiredDistance = FMath::Max(0.0f, GetGatherRange() - GatherRangePadding);
+
 	FVector MoveLocation = TargetLocation + DirectionFromTargetToSource * DesiredDistance;
 	MoveLocation.Z = SourceLocation.Z;
 
@@ -222,7 +260,8 @@ bool UTCFSquadGatherCommandComponent::SubmitGatherOrder() const
 	FTCFOrderTarget OrderTarget;
 	OrderTarget.TargetType = ETCFOrderTargetType::Actor;
 	OrderTarget.TargetActor = TargetResourceNode;
-	OrderTarget.TargetLocation = TargetResourceNode->GetActorLocation();
+	OrderTarget.TargetLocation = GetClosestResourceInteractionPointToSquad();
+	OrderTarget.bUseTargetLocationForRange = true;
 
 	FTCFSquadOrderRequest Request;
 	Request.OrderTag = GatherOrderTag;

@@ -36,6 +36,9 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Resource Node|Interaction")
+	UPrimitiveComponent* GetInteractionCollisionComponent() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Resource Node")
 	void ApplyResourceNodeDefinition(UTCFResourceNodeDefinition* NewDefinition, bool bResetAmount = true);

@@ -59,6 +59,11 @@ void ATCFResourceNodeActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(ATCFResourceNodeActor, bDepleted);
 }
 
+UPrimitiveComponent* ATCFResourceNodeActor::GetInteractionCollisionComponent() const
+{
+	return InteractionCollision;
+}
+
 void ATCFResourceNodeActor::ApplyResourceNodeDefinition(
 	UTCFResourceNodeDefinition* NewDefinition,
 	bool bResetAmount)

@@ -558,33 +558,45 @@ FText UTCFDebugHUDWidget::BuildBuildingText() const
 	const FString Effects = Building.ActiveEffectLines.IsEmpty()
 		? TEXT("None")
 		: JoinLines(Building.ActiveEffectLines);
+	
+	const FString ProductionQueueText = Building.ProductionQueueLines.IsEmpty()
+	? TEXT("None")
+	: JoinLines(Building.ProductionQueueLines);
 
 	const float ProgressPercent = Building.ConstructionProgressAlpha * 100.0f;
 
 	return FText::FromString(FString::Printf(
-		TEXT("━━ BUILDING DEBUG ━━\nSource: %s\nName: %s\nActor: %s\nState: %s\nType: %s\nRoles: %s\nASC: %s\nHealth: %.1f / %.1f\nDefense: %.2f\nConstruction: %.1f / %.1f (%.0f%%)\nCan Receive Work: %s\nFootprint Reserved: %s\nAnchor Cell: %s\nOwnerId: %d\nTeamId: %d\nFaction: %s\nRelationship To Selected: %s\nOwned Tags: %s\nActive Effects:\n%s"),
-		*Building.Source,
-		*Building.DisplayName.ToString(),
-		*Building.ActorName,
-		*Building.RuntimeState,
-		*TypeTag,
-		*RoleTags,
-		Building.bASCValid ? TEXT("Valid") : TEXT("Missing"),
-		Building.Health,
-		Building.MaxHealth,
-		Building.Defense,
-		Building.ConstructionWorkCompleted,
-		Building.RequiredConstructionWork,
-		ProgressPercent,
-		Building.bCanReceiveConstructionWork ? TEXT("true") : TEXT("false"),
-		Building.bHasReservedPlacementFootprint ? TEXT("true") : TEXT("false"),
-		*Building.ReservedPlacementAnchorCell.ToString(),
-		Building.OwnerId,
-		Building.TeamId,
-		*Faction,
-		Building.RelationshipToSelectedSquad.IsEmpty() ? TEXT("None") : *Building.RelationshipToSelectedSquad,
-		*OwnedTags,
-		*Effects));
+	TEXT("━━ BUILDING DEBUG ━━\nSource: %s\nName: %s\nActor: %s\nState: %s\nType: %s\nRoles: %s\nASC: %s\nHealth: %.1f / %.1f\nDefense: %.2f\nConstruction: %.1f / %.1f (%.0f%%)\nCan Receive Work: %s\nFootprint Reserved: %s\nAnchor Cell: %s\nOwnerId: %d\nTeamId: %d\nFaction: %s\nRelationship To Selected: %s\nOwned Tags: %s\nActive Effects:\n%s\n\n━━ PRODUCTION ━━\nProduction Component: %s\nProduction Queue: %d / %d\nActive Production: %s\nActive Progress: %.1f / %.1f (%.0f%%)\nProduction Queue Items:\n%s"),
+	*Building.Source,
+	*Building.DisplayName.ToString(),
+	*Building.ActorName,
+	*Building.RuntimeState,
+	*TypeTag,
+	*RoleTags,
+	Building.bASCValid ? TEXT("Valid") : TEXT("Missing"),
+	Building.Health,
+	Building.MaxHealth,
+	Building.Defense,
+	Building.ConstructionWorkCompleted,
+	Building.RequiredConstructionWork,
+	ProgressPercent,
+	Building.bCanReceiveConstructionWork ? TEXT("true") : TEXT("false"),
+	Building.bHasReservedPlacementFootprint ? TEXT("true") : TEXT("false"),
+	*Building.ReservedPlacementAnchorCell.ToString(),
+	Building.OwnerId,
+	Building.TeamId,
+	*Faction,
+	Building.RelationshipToSelectedSquad.IsEmpty() ? TEXT("None") : *Building.RelationshipToSelectedSquad,
+	*OwnedTags,
+	*Effects,
+	Building.bHasProductionComponent ? TEXT("Valid") : TEXT("Missing"),
+	Building.ProductionQueueCount,
+	Building.MaxProductionQueueSize,
+	Building.ActiveProductionName.IsEmpty() ? TEXT("None") : *Building.ActiveProductionName,
+	Building.ActiveProductionCompletedWork,
+	Building.ActiveProductionRequiredWork,
+	Building.ActiveProductionProgressAlpha * 100.0f,
+	*ProductionQueueText));
 }
 
 FString UTCFDebugHUDWidget::JoinLines(const TArray<FString>& Lines)

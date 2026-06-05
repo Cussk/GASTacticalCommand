@@ -57,9 +57,6 @@ public:
 	bool CanExecutePendingProductionRequest() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
-	bool ExecutePendingProduction(ATCFSquadActor*& OutSquad);
-
-	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
 	void RefundPendingProductionCost();
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Production")
@@ -67,12 +64,37 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
 	void InitializeProductionAbility();
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
+	bool EnqueuePendingProduction();
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production|Queue")
+	bool HasProductionQueueSpace() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production|Queue")
+	bool HasQueuedProduction() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production|Queue")
+	int32 GetProductionQueueCount() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production|Queue")
+	int32 GetMaxQueueSize() const;
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Production|Queue")
+	void GetProductionQueue(TArray<FTCFProductionQueueItem>& OutQueue) const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production|Queue")
+	bool TryGetActiveProductionItem(FTCFProductionQueueItem& OutQueueItem) const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Production|Queue")
+	float GetActiveProductionProgressAlpha() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Production")
 	FOnTCFProducedSquadSpawned OnProducedSquadSpawned;
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Production|GAS")
 	TSubclassOf<UGameplayAbility> ProductionAbilityClass;
@@ -82,6 +104,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Production", meta = (ClampMin = "0.0"))
 	float SpawnPadding = 150.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Production|Queue", meta = (ClampMin = "1"))
+	int32 MaxQueueSize = 5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Production|Queue", meta = (ClampMin = "0.05"))
+	float ProductionUpdateInterval = 0.25f;
 
 private:
 	UPROPERTY()
@@ -89,8 +117,12 @@ private:
 	
 	UPROPERTY()
 	FTCFProductionRequest PendingProductionRequest;
+	
+	UPROPERTY()
+	TArray<FTCFProductionQueueItem> ProductionQueue;
 
 	FGameplayAbilitySpecHandle ProductionAbilityHandle;
+	FTimerHandle ProductionTimerHandle;
 
 	UTCFProductionCatalogDefinition* GetProductionCatalog() const;
 	bool IsRequesterOwner(const ATCFPlayerState* RequestingPlayerState) const;
@@ -101,4 +133,16 @@ private:
 	bool DoesRequesterMeetCommanderTagRequirements(const UTCFProductionOptionDefinition& ProductionOption, const ATCFPlayerState& RequestingPlayerState) const;
 	
 	bool TrySpawnProducedSquad(UTCFProductionOptionDefinition* ProductionOption, ATCFPlayerState* RequestingPlayerState, ATCFSquadActor*& OutSquad);
+
+	void StartProductionTimerIfNeeded();
+	void StopProductionTimer();
+	void HandleProductionTimerTick();
+	void AdvanceActiveProduction(float DeltaSeconds);
+	void CompleteActiveProduction();
+
+	bool SpawnProductionQueueItem(
+		const FTCFProductionQueueItem& QueueItem,
+		ATCFSquadActor*& OutSquad);
+
+	float GetProductionRateMultiplier(const FTCFProductionQueueItem& QueueItem) const;
 };

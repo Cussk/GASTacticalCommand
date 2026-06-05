@@ -31,6 +31,13 @@ void UTCFBuildingProductionComponent::BeginPlay()
 	BuildingOwner = Cast<ATCFBuildingActor>(GetOwner());
 }
 
+void UTCFBuildingProductionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	StopProductionTimer();
+	
+	Super::EndPlay(EndPlayReason);
+}
+
 void UTCFBuildingProductionComponent::GetProductionOptions(
 	TArray<UTCFProductionOptionDefinition*>& OutOptions) const
 {
@@ -74,7 +81,7 @@ bool UTCFBuildingProductionComponent::CanUseProductionOption(
 	{
 		return false;
 	}
-	
+
 	if (!DoesRequesterMeetCommanderTagRequirements(*ProductionOption, *RequestingPlayerState))
 	{
 		return false;
@@ -90,7 +97,7 @@ bool UTCFBuildingProductionComponent::RequestProduction(
 	UTCFProductionOptionDefinition* ProductionOption,
 	ATCFPlayerState* RequestingPlayerState)
 {
-	if (HasPendingProductionRequest())
+	if (HasPendingProductionRequest() || !HasProductionQueueSpace())
 	{
 		return false;
 	}
@@ -135,21 +142,6 @@ bool UTCFBuildingProductionComponent::CanExecutePendingProductionRequest() const
 			PendingProductionRequest.RequestingPlayerState);
 }
 
-bool UTCFBuildingProductionComponent::ExecutePendingProduction(ATCFSquadActor*& OutSquad)
-{
-	OutSquad = nullptr;
-
-	if (!CanExecutePendingProductionRequest())
-	{
-		return false;
-	}
-
-	return TrySpawnProducedSquad(
-		PendingProductionRequest.ProductionOption,
-		PendingProductionRequest.RequestingPlayerState,
-		OutSquad);
-}
-
 UTCFPlayerResourceBankComponent* UTCFBuildingProductionComponent::GetResourceBankForPendingRequest() const
 {
 	const ATCFPlayerState* RequestingPlayerState = PendingProductionRequest.RequestingPlayerState;
@@ -173,6 +165,78 @@ void UTCFBuildingProductionComponent::InitializeProductionAbility()
 
 	FGameplayAbilitySpec AbilitySpec(ProductionAbilityClass, 1);
 	ProductionAbilityHandle = AbilitySystem->GiveAbility(AbilitySpec);
+}
+
+bool UTCFBuildingProductionComponent::EnqueuePendingProduction()
+{
+	if (!CanExecutePendingProductionRequest() || !HasProductionQueueSpace())
+	{
+		return false;
+	}
+
+	const UTCFProductionOptionDefinition* ProductionOption = PendingProductionRequest.ProductionOption;
+	if (!ProductionOption)
+	{
+		return false;
+	}
+
+	FTCFProductionQueueItem QueueItem;
+	QueueItem.ProductionOption = PendingProductionRequest.ProductionOption;
+	QueueItem.RequestingPlayerState = PendingProductionRequest.RequestingPlayerState;
+	QueueItem.CompletedProductionWork = 0.0f;
+	QueueItem.RequiredProductionWork = ProductionOption->GetSafeProductionTime();
+
+	ProductionQueue.Add(QueueItem);
+	StartProductionTimerIfNeeded();
+
+	return true;
+}
+
+bool UTCFBuildingProductionComponent::HasProductionQueueSpace() const
+{
+	return MaxQueueSize <= 0 || ProductionQueue.Num() < MaxQueueSize;
+}
+
+bool UTCFBuildingProductionComponent::HasQueuedProduction() const
+{
+	return ProductionQueue.Num() > 0;
+}
+
+int32 UTCFBuildingProductionComponent::GetProductionQueueCount() const
+{
+	return ProductionQueue.Num();
+}
+
+int32 UTCFBuildingProductionComponent::GetMaxQueueSize() const
+{
+	return MaxQueueSize;
+}
+
+void UTCFBuildingProductionComponent::GetProductionQueue(
+	TArray<FTCFProductionQueueItem>& OutQueue) const
+{
+	OutQueue = ProductionQueue;
+}
+
+bool UTCFBuildingProductionComponent::TryGetActiveProductionItem(
+	FTCFProductionQueueItem& OutQueueItem) const
+{
+	if (ProductionQueue.IsEmpty())
+	{
+		OutQueueItem = FTCFProductionQueueItem();
+		return false;
+	}
+
+	OutQueueItem = ProductionQueue[0];
+	return OutQueueItem.IsValid();
+}
+
+float UTCFBuildingProductionComponent::GetActiveProductionProgressAlpha() const
+{
+	FTCFProductionQueueItem ActiveItem;
+	return TryGetActiveProductionItem(ActiveItem)
+		? ActiveItem.GetProgressAlpha()
+		: 0.0f;
 }
 
 bool UTCFBuildingProductionComponent::TryActivateProductionAbility()
@@ -276,6 +340,117 @@ bool UTCFBuildingProductionComponent::TrySpawnProducedSquad(
 	OnProducedSquadSpawned.Broadcast(SpawnedSquad, ProductionOption);
 
 	return true;
+}
+
+void UTCFBuildingProductionComponent::StartProductionTimerIfNeeded()
+{
+	if (!BuildingOwner || !BuildingOwner->HasAuthority() || ProductionQueue.IsEmpty())
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World || World->GetTimerManager().IsTimerActive(ProductionTimerHandle))
+	{
+		return;
+	}
+
+	World->GetTimerManager().SetTimer(
+		ProductionTimerHandle,
+		this,
+		&UTCFBuildingProductionComponent::HandleProductionTimerTick,
+		ProductionUpdateInterval,
+		true);
+}
+
+void UTCFBuildingProductionComponent::StopProductionTimer()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(ProductionTimerHandle);
+	}
+}
+
+void UTCFBuildingProductionComponent::HandleProductionTimerTick()
+{
+	if (!BuildingOwner || !BuildingOwner->HasAuthority())
+	{
+		StopProductionTimer();
+		return;
+	}
+
+	if (ProductionQueue.IsEmpty())
+	{
+		StopProductionTimer();
+		return;
+	}
+
+	AdvanceActiveProduction(ProductionUpdateInterval);
+
+	if (ProductionQueue.IsEmpty())
+	{
+		StopProductionTimer();
+	}
+}
+
+void UTCFBuildingProductionComponent::AdvanceActiveProduction(float DeltaSeconds)
+{
+	if (ProductionQueue.IsEmpty())
+	{
+		return;
+	}
+
+	FTCFProductionQueueItem& ActiveItem = ProductionQueue[0];
+	if (!ActiveItem.IsValid())
+	{
+		ProductionQueue.RemoveAt(0);
+		return;
+	}
+
+	const float ProductionRateMultiplier = GetProductionRateMultiplier(ActiveItem);
+	ActiveItem.CompletedProductionWork += FMath::Max(0.0f, DeltaSeconds) * ProductionRateMultiplier;
+
+	if (ActiveItem.IsComplete())
+	{
+		CompleteActiveProduction();
+	}
+}
+
+void UTCFBuildingProductionComponent::CompleteActiveProduction()
+{
+	if (ProductionQueue.IsEmpty())
+	{
+		return;
+	}
+
+	const FTCFProductionQueueItem CompletedItem = ProductionQueue[0];
+	ProductionQueue.RemoveAt(0);
+
+	ATCFSquadActor* SpawnedSquad = nullptr;
+	SpawnProductionQueueItem(CompletedItem, SpawnedSquad);
+}
+
+bool UTCFBuildingProductionComponent::SpawnProductionQueueItem(
+	const FTCFProductionQueueItem& QueueItem,
+	ATCFSquadActor*& OutSquad)
+{
+	OutSquad = nullptr;
+
+	if (!QueueItem.IsValid())
+	{
+		return false;
+	}
+
+	return TrySpawnProducedSquad(
+		QueueItem.ProductionOption,
+		QueueItem.RequestingPlayerState,
+		OutSquad);
+}
+
+float UTCFBuildingProductionComponent::GetProductionRateMultiplier(
+	const FTCFProductionQueueItem& QueueItem) const
+{
+	return 1.0f;
 }
 
 UTCFProductionCatalogDefinition* UTCFBuildingProductionComponent::GetProductionCatalog() const

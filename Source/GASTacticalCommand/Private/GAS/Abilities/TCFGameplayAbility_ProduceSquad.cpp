@@ -105,8 +105,7 @@ void UTCFGameplayAbility_ProduceSquad::ActivateAbility(
 		return;
 	}
 
-	ATCFSquadActor* SpawnedSquad = nullptr;
-	if (!ProductionComponent->ExecutePendingProduction(SpawnedSquad))
+	if (!ProductionComponent->EnqueuePendingProduction())
 	{
 		ProductionComponent->RefundPendingProductionCost();
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);

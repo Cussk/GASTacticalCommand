@@ -15,6 +15,7 @@
 #include "Actors/TCFCapturePointActor.h"
 #include "Actors/TCFResourceNodeActor.h"
 #include "Components/TCFAffiliationComponent.h"
+#include "Components/TCFBuildingProductionComponent.h"
 #include "Components/TCFCapturePointComponent.h"
 #include "Components/TCFPlayerResourceBankComponent.h"
 #include "Components/TCFRTSHoverContextComponent.h"
@@ -22,12 +23,14 @@
 #include "Components/TCFSquadBuildCommandComponent.h"
 #include "Components/TCFSquadGatherCommandComponent.h"
 #include "Data/TCFBuildingDefinition.h"
+#include "Data/TCFProductionOptionDefinition.h"
 #include "GAS/TCFBuildingAttributeSet.h"
 #include "Player/TCFPlayerState.h"
 #include "Subsystems/TCFRelationshipSubsystem.h"
 #include "Subsystems/TCFSquadQuerySubsystem.h"
 #include "Types/TCFAffiliationTypes.h"
 #include "Types/TCFCaptureTypes.h"
+#include "Types/TCFProductionTypes.h"
 #include "UI/TCFDebugHUDWidget.h"
 
 void UTCFDebugSubsystem::RegisterPlayerController(APlayerController* PlayerController, float InRefreshInterval)
@@ -788,6 +791,43 @@ void UTCFDebugSubsystem::FillBuildingSnapshot(const ATCFBuildingActor& Building,
 		BuildingSnapshot.Health = AttributeSet->GetHealth();
 		BuildingSnapshot.MaxHealth = AttributeSet->GetMaxHealth();
 		BuildingSnapshot.Defense = AttributeSet->GetDefense();
+	}
+	
+	const UTCFBuildingProductionComponent* ProductionComponent = Building.GetProductionComponent();
+	BuildingSnapshot.bHasProductionComponent = ProductionComponent != nullptr;
+
+	if (ProductionComponent)
+	{
+		BuildingSnapshot.ProductionQueueCount = ProductionComponent->GetProductionQueueCount();
+		BuildingSnapshot.MaxProductionQueueSize = ProductionComponent->GetMaxQueueSize();
+
+		FTCFProductionQueueItem ActiveItem;
+		if (ProductionComponent->TryGetActiveProductionItem(ActiveItem) && ActiveItem.ProductionOption)
+		{
+			BuildingSnapshot.ActiveProductionName = ActiveItem.ProductionOption->GetSafeDisplayName().ToString();
+			BuildingSnapshot.ActiveProductionCompletedWork = ActiveItem.CompletedProductionWork;
+			BuildingSnapshot.ActiveProductionRequiredWork = ActiveItem.RequiredProductionWork;
+			BuildingSnapshot.ActiveProductionProgressAlpha = ActiveItem.GetProgressAlpha();
+		}
+
+		TArray<FTCFProductionQueueItem> QueueItems;
+		ProductionComponent->GetProductionQueue(QueueItems);
+
+		for (int32 Index = 0; Index < QueueItems.Num(); ++Index)
+		{
+			const FTCFProductionQueueItem& QueueItem = QueueItems[Index];
+			const FString OptionName = QueueItem.ProductionOption
+				? QueueItem.ProductionOption->GetSafeDisplayName().ToString()
+				: TEXT("Invalid");
+
+			BuildingSnapshot.ProductionQueueLines.Add(FString::Printf(
+				TEXT("%d: %s | %.1f / %.1f (%.0f%%)"),
+				Index,
+				*OptionName,
+				QueueItem.CompletedProductionWork,
+				QueueItem.RequiredProductionWork,
+				QueueItem.GetProgressAlpha() * 100.0f));
+		}
 	}
 }
 

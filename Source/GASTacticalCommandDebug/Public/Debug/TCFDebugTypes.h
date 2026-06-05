@@ -189,6 +189,30 @@ struct FTCFDebugBuildingSnapshot
 	
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
 	FString Source;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	bool bHasProductionComponent = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 ProductionQueueCount = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	int32 MaxProductionQueueSize = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	FString ActiveProductionName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float ActiveProductionCompletedWork = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float ActiveProductionRequiredWork = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	float ActiveProductionProgressAlpha = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Debug")
+	TArray<FString> ProductionQueueLines;
 };
 
 USTRUCT(BlueprintType)

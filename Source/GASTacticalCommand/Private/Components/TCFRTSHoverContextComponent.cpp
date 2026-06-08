@@ -303,7 +303,7 @@ void UTCFRTSHoverContextComponent::CreateCursorWidget()
 	}
 
 	CursorWidget->InitializeCursorWidget(this);
-	CursorWidget->AddToViewport(20);
+	CursorWidget->AddToViewport(1000);
 
 	PlayerController->CurrentMouseCursor = EMouseCursor::None;
 }

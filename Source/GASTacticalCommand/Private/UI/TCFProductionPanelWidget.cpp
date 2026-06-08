@@ -85,6 +85,8 @@ void UTCFProductionPanelWidget::SetObservedBuilding(ATCFBuildingActor* Building)
 
 	BindProductionComponent(ObservedProductionComponent);
 	RefreshPanelData();
+	
+	BP_OnObservedBuildingChanged();
 }
 
 void UTCFProductionPanelWidget::BindProductionComponent(

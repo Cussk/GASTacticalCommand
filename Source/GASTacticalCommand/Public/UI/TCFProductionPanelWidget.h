@@ -67,6 +67,9 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Production")
 	void BP_OnProductionPanelDataChanged();
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Production")
+	void BP_OnObservedBuildingChanged();
 
 private:
 	UPROPERTY()

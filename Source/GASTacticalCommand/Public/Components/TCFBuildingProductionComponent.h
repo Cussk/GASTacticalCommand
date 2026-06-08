@@ -23,6 +23,18 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	UTCFProductionOptionDefinition*,
 	ProductionOption);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
+	FOnTCFProductionQueueChanged,
+	UTCFBuildingProductionComponent*,
+	ProductionComponent);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+	FOnTCFProductionProgressChanged,
+	UTCFBuildingProductionComponent*,
+	ProductionComponent,
+	float,
+	ActiveProgressAlpha);
+
 UCLASS(ClassGroup = (TCF), meta = (BlueprintSpawnableComponent))
 class GASTACTICALCOMMAND_API UTCFBuildingProductionComponent : public UActorComponent
 {
@@ -78,7 +90,7 @@ public:
 	int32 GetProductionQueueCount() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Production|Queue")
-	int32 GetMaxQueueSize() const;
+	int32 GetEffectiveMaxQueueSize() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Production|Queue")
 	void GetProductionQueue(TArray<FTCFProductionQueueItem>& OutQueue) const;
@@ -91,6 +103,12 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "TCF|Production")
 	FOnTCFProducedSquadSpawned OnProducedSquadSpawned;
+	
+	UPROPERTY(BlueprintAssignable, Category = "TCF|Production")
+	FOnTCFProductionQueueChanged OnProductionQueueChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "TCF|Production")
+	FOnTCFProductionProgressChanged OnProductionProgressChanged;
 
 protected:
 	virtual void BeginPlay() override;
@@ -107,6 +125,10 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Production|Queue", meta = (ClampMin = "1"))
 	int32 MaxQueueSize = 5;
+	
+	// Modify from research and faction bonuses later
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Production|Queue", meta = (ClampMin = "1"))
+	int32 BonusQueueSize = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TCF|Production|Queue", meta = (ClampMin = "0.05"))
 	float ProductionUpdateInterval = 0.25f;

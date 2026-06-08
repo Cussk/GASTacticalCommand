@@ -187,6 +187,7 @@ bool UTCFBuildingProductionComponent::EnqueuePendingProduction()
 	QueueItem.RequiredProductionWork = ProductionOption->GetSafeProductionTime();
 
 	ProductionQueue.Add(QueueItem);
+	OnProductionQueueChanged.Broadcast(this);
 	StartProductionTimerIfNeeded();
 
 	return true;
@@ -194,7 +195,8 @@ bool UTCFBuildingProductionComponent::EnqueuePendingProduction()
 
 bool UTCFBuildingProductionComponent::HasProductionQueueSpace() const
 {
-	return MaxQueueSize <= 0 || ProductionQueue.Num() < MaxQueueSize;
+	const int32 EffectiveMaxQueueSize = GetEffectiveMaxQueueSize();
+	return EffectiveMaxQueueSize <= 0 || ProductionQueue.Num() < EffectiveMaxQueueSize;
 }
 
 bool UTCFBuildingProductionComponent::HasQueuedProduction() const
@@ -207,9 +209,9 @@ int32 UTCFBuildingProductionComponent::GetProductionQueueCount() const
 	return ProductionQueue.Num();
 }
 
-int32 UTCFBuildingProductionComponent::GetMaxQueueSize() const
+int32 UTCFBuildingProductionComponent::GetEffectiveMaxQueueSize() const
 {
-	return MaxQueueSize;
+	return MaxQueueSize + BonusQueueSize;
 }
 
 void UTCFBuildingProductionComponent::GetProductionQueue(
@@ -404,6 +406,7 @@ void UTCFBuildingProductionComponent::AdvanceActiveProduction(float DeltaSeconds
 	if (!ActiveItem.IsValid())
 	{
 		ProductionQueue.RemoveAt(0);
+		OnProductionQueueChanged.Broadcast(this);
 		return;
 	}
 
@@ -414,6 +417,8 @@ void UTCFBuildingProductionComponent::AdvanceActiveProduction(float DeltaSeconds
 	{
 		CompleteActiveProduction();
 	}
+	
+	OnProductionProgressChanged.Broadcast(this, ActiveItem.GetProgressAlpha());
 }
 
 void UTCFBuildingProductionComponent::CompleteActiveProduction()
@@ -425,6 +430,7 @@ void UTCFBuildingProductionComponent::CompleteActiveProduction()
 
 	const FTCFProductionQueueItem CompletedItem = ProductionQueue[0];
 	ProductionQueue.RemoveAt(0);
+	OnProductionQueueChanged.Broadcast(this);
 
 	ATCFSquadActor* SpawnedSquad = nullptr;
 	SpawnProductionQueueItem(CompletedItem, SpawnedSquad);

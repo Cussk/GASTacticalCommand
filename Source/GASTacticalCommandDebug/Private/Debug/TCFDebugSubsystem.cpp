@@ -799,7 +799,7 @@ void UTCFDebugSubsystem::FillBuildingSnapshot(const ATCFBuildingActor& Building,
 	if (ProductionComponent)
 	{
 		BuildingSnapshot.ProductionQueueCount = ProductionComponent->GetProductionQueueCount();
-		BuildingSnapshot.MaxProductionQueueSize = ProductionComponent->GetMaxQueueSize();
+		BuildingSnapshot.MaxProductionQueueSize = ProductionComponent->GetEffectiveMaxQueueSize();
 
 		FTCFProductionQueueItem ActiveItem;
 		if (ProductionComponent->TryGetActiveProductionItem(ActiveItem) && ActiveItem.ProductionOption)

@@ -29,9 +29,10 @@ class GASTACTICALCOMMAND_API UTCFResourceUIDefinition : public UPrimaryDataAsset
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "TCF|Resources|UI")
-	bool TryGetResourceViewData(
-		FGameplayTag ResourceTag,
-		FTCFResourceUIViewData& OutViewData) const;
+	bool TryGetResourceViewData(FGameplayTag ResourceTag, FTCFResourceUIViewData& OutViewData) const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Resources|UI")
+	void GetAllResourceViewData(TArray<FTCFResourceUIViewData>& OutResourceViewData) const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Resources|UI")
 	FText GetResourceDisplayName(FGameplayTag ResourceTag) const;

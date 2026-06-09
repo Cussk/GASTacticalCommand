@@ -28,6 +28,11 @@ bool UTCFProductionOptionButtonWidget::NotifyProductionOptionClicked()
 	{
 		return false;
 	}
+	
+	if (OptionTooltipWidget)
+	{
+		OptionTooltipWidget->SetOptionViewData(ViewData);
+	}
 
 	OnProductionOptionButtonClicked.Broadcast(this, ViewData.ProductionOption);
 	return true;

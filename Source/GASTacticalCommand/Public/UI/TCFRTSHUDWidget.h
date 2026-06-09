@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "TCFRTSHUDWidget.generated.h"
 
+class UTCFResourcePanelWidget;
 class UTCFPlayerUISubsystem;
 class UTCFResourceUIDefinition;
 class UTCFTooltipWidget;
@@ -49,6 +50,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip", meta = (BindWidgetOptional))
 	TObjectPtr<UCanvasPanel> TooltipLayer;
 	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Resources|UI", meta = (BindWidgetOptional))
+	TObjectPtr<UTCFResourcePanelWidget> ResourcePanel;
+	
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|HUD", meta = (BindWidgetOptional))
 	TObjectPtr<UTCFProductionPanelWidget> ProductionPanel;
 
@@ -85,6 +89,8 @@ private:
 	
 	UFUNCTION()
 	void HandleProductionPanelDataChanged();
+	
+	void InitializeChildPanels();
 
 	void ShowPendingTooltip();
 	void ShowTooltipNow(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget);

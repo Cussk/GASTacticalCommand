@@ -6,21 +6,14 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Widget.h"
 #include "UI/TCFProductionPanelWidget.h"
+#include "UI/TCFResourcePanelWidget.h"
 #include "UI/TCFTooltipWidget.h"
 
 void UTCFRTSHUDWidget::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	if (ProductionPanel)
-	{
-		ProductionPanel->SetOwningRTSHUD(this);
-		
-		ProductionPanel->OnProductionPanelDataChanged.AddDynamic(
-			this,
-			&UTCFRTSHUDWidget::HandleProductionPanelDataChanged);
-	}
-
+	InitializeChildPanels();
 	RefreshHUDPanelVisibility();
 }
 
@@ -234,6 +227,8 @@ void UTCFRTSHUDWidget::SetPlayerUISubsystem(
 	UTCFPlayerUISubsystem* InPlayerUISubsystem)
 {
 	PlayerUISubsystem = InPlayerUISubsystem;
+	
+	InitializeChildPanels();
 }
 
 UTCFPlayerUISubsystem* UTCFRTSHUDWidget::GetPlayerUISubsystem() const
@@ -270,5 +265,22 @@ void UTCFRTSHUDWidget::RefreshHUDPanelVisibility()
 void UTCFRTSHUDWidget::HandleProductionPanelDataChanged()
 {
 	RefreshHUDPanelVisibility();
+}
+
+void UTCFRTSHUDWidget::InitializeChildPanels()
+{
+	if (ResourcePanel)
+	{
+		ResourcePanel->SetPlayerUISubsystem(PlayerUISubsystem);
+	}
+	
+	if (ProductionPanel)
+	{
+		ProductionPanel->SetOwningRTSHUD(this);
+		
+		ProductionPanel->OnProductionPanelDataChanged.AddUniqueDynamic(
+			this,
+			&UTCFRTSHUDWidget::HandleProductionPanelDataChanged);
+	}
 }
 

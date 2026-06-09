@@ -21,6 +21,11 @@ bool UTCFResourceUIDefinition::TryGetResourceViewData(FGameplayTag ResourceTag, 
 	return false;
 }
 
+void UTCFResourceUIDefinition::GetAllResourceViewData(TArray<FTCFResourceUIViewData>& OutResourceViewData) const
+{
+	OutResourceViewData = ResourceViewData;
+}
+
 FText UTCFResourceUIDefinition::GetResourceDisplayName(FGameplayTag ResourceTag) const
 {
 	FTCFResourceUIViewData ViewData;

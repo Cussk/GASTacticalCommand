@@ -16,6 +16,7 @@
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFRTSOrderTargetingComponent.h"
 #include "Player/TCFRTSCameraPawn.h"
+#include "Subsystems/TCFPlayerUISubsystem.h"
 #include "UI/TCFRTSHUDWidget.h"
 
 ATCFPlayerController::ATCFPlayerController()
@@ -34,56 +35,6 @@ ATCFPlayerController::ATCFPlayerController()
 	RTSBuildingPlacementComponent = CreateDefaultSubobject<UTCFRTSBuildingPlacementComponent>(TEXT("RTSBuildingPlacementComponent"));
 }
 
-UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const
-{
-	return PlayerSelectionComponent;
-}
-
-UTCFRTSSelectionBoxComponent* ATCFPlayerController::GetRTSSelectionBoxComponent() const
-{
-	return RTSSelectionBoxComponent;
-}
-
-UTCFPlayerMovementCommandComponent* ATCFPlayerController::GetPlayerMovementCommandComponent() const
-{
-	return PlayerMovementCommandComponent;
-}
-
-UTCFPlayerOrderSubmissionComponent* ATCFPlayerController::GetPlayerOrderComponent() const
-{
-	return PlayerOrderComponent;
-}
-
-UTCFRTSHoverContextComponent* ATCFPlayerController::GetRTSHoverContextComponent() const
-{
-	return RTSHoverContextComponent;
-}
-
-UTCFRTSCommandRouterComponent* ATCFPlayerController::GetRTSCommandRouterComponent() const
-{
-	return RTSCommandRouterComponent;
-}
-
-UTCFRTSOrderTargetingComponent* ATCFPlayerController::GetRTSOrderTargetingComponent() const
-{
-	return RTSOrderTargetingComponent;
-}
-
-UTCFRTSBuildingPlacementComponent* ATCFPlayerController::GetRTSBuildingPlacementComponent() const
-{
-	return RTSBuildingPlacementComponent;
-}
-
-void ATCFPlayerController::SetRTSHUDWidget(UTCFRTSHUDWidget* InHUDWidget)
-{
-	RTSHUDWidget = InHUDWidget;
-}
-
-bool ATCFPlayerController::IsCursorOverBlockingUI() const
-{
-	return RTSHUDWidget && RTSHUDWidget->IsMouseOverBlockingUI();
-}
-
 void ATCFPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -98,6 +49,7 @@ void ATCFPlayerController::BeginPlay()
 	SetInputMode(InputMode);
 
 	AddRTSInputMappingContext();
+	InitializePlayerUI();
 }
 
 void ATCFPlayerController::SetupInputComponent()
@@ -146,6 +98,85 @@ void ATCFPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(CancelOrderAction, ETriggerEvent::Started, this, &ATCFPlayerController::HandleCancelActionStarted);
 	}
+}
+
+UTCFPlayerSelectionComponent* ATCFPlayerController::GetPlayerSelectionComponent() const
+{
+	return PlayerSelectionComponent;
+}
+
+UTCFRTSSelectionBoxComponent* ATCFPlayerController::GetRTSSelectionBoxComponent() const
+{
+	return RTSSelectionBoxComponent;
+}
+
+UTCFPlayerMovementCommandComponent* ATCFPlayerController::GetPlayerMovementCommandComponent() const
+{
+	return PlayerMovementCommandComponent;
+}
+
+UTCFPlayerOrderSubmissionComponent* ATCFPlayerController::GetPlayerOrderComponent() const
+{
+	return PlayerOrderComponent;
+}
+
+UTCFRTSHoverContextComponent* ATCFPlayerController::GetRTSHoverContextComponent() const
+{
+	return RTSHoverContextComponent;
+}
+
+UTCFRTSCommandRouterComponent* ATCFPlayerController::GetRTSCommandRouterComponent() const
+{
+	return RTSCommandRouterComponent;
+}
+
+UTCFRTSOrderTargetingComponent* ATCFPlayerController::GetRTSOrderTargetingComponent() const
+{
+	return RTSOrderTargetingComponent;
+}
+
+UTCFRTSBuildingPlacementComponent* ATCFPlayerController::GetRTSBuildingPlacementComponent() const
+{
+	return RTSBuildingPlacementComponent;
+}
+
+UTCFPlayerUISubsystem* ATCFPlayerController::GetPlayerUISubsystem() const
+{
+	const ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	return LocalPlayer
+		? LocalPlayer->GetSubsystem<UTCFPlayerUISubsystem>()
+		: nullptr;
+}
+
+void ATCFPlayerController::InitializePlayerUI()
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	UTCFPlayerUISubsystem* PlayerUISubsystem = GetPlayerUISubsystem();
+	if (!PlayerUISubsystem)
+	{
+		return;
+	}
+
+	PlayerUISubsystem->SetResourceUIDefinition(ResourceUIDefinition);
+	PlayerUISubsystem->CreateRTSHUD(this, RTSHUDWidgetClass);
+}
+
+void ATCFPlayerController::SetRTSHUDWidget(UTCFRTSHUDWidget* InHUDWidget)
+{
+	if (UTCFPlayerUISubsystem* PlayerUISubsystem = GetPlayerUISubsystem())
+	{
+		PlayerUISubsystem->RegisterRTSHUD(InHUDWidget);
+	}
+}
+
+bool ATCFPlayerController::IsCursorOverBlockingUI() const
+{
+	const UTCFPlayerUISubsystem* PlayerUISubsystem = GetPlayerUISubsystem();
+	return PlayerUISubsystem && PlayerUISubsystem->IsCursorOverBlockingUI();
 }
 
 void ATCFPlayerController::AddRTSInputMappingContext() const

@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TCFPlayerController.generated.h"
 
+class UTCFResourceUIDefinition;
 class UTCFRTSHUDWidget;
 class UTCFRTSBuildingPlacementComponent;
 class UTCFRTSOrderTargetingComponent;
@@ -52,6 +53,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Building Placement")
 	UTCFRTSBuildingPlacementComponent* GetRTSBuildingPlacementComponent() const;
 	
+	UFUNCTION(BlueprintPure, Category = "TCF|Player UI")
+	UTCFPlayerUISubsystem* GetPlayerUISubsystem() const;
+
 	UFUNCTION(BlueprintCallable, Category = "TCF|UI")
 	void SetRTSHUDWidget(UTCFRTSHUDWidget* InHUDWidget);
 
@@ -109,15 +113,20 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Input")
 	TObjectPtr<UInputAction> CancelOrderAction;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|UI")
+	TSubclassOf<UTCFRTSHUDWidget> RTSHUDWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|UI")
+	TObjectPtr<UTCFResourceUIDefinition> ResourceUIDefinition;
 
 private:	
 	UPROPERTY()
 	ATCFRTSCameraPawn* CameraPawn;
 	
-	UPROPERTY()
-	TObjectPtr<UTCFRTSHUDWidget> RTSHUDWidget;
-	
 	bool bAppendSelectionInputActive = false;
+	
+	void InitializePlayerUI();
 
 	void AddRTSInputMappingContext() const;
 	bool TryGetRTSCameraPawn();

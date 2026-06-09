@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "TCFRTSHUDWidget.generated.h"
 
+class UTCFPlayerUISubsystem;
 class UTCFResourceUIDefinition;
 class UTCFTooltipWidget;
 class UTCFProductionPanelWidget;
@@ -19,6 +20,12 @@ class GASTACTICALCOMMAND_API UTCFRTSHUDWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI")
+	void SetPlayerUISubsystem(UTCFPlayerUISubsystem* InPlayerUISubsystem);
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Player UI")
+	UTCFPlayerUISubsystem* GetPlayerUISubsystem() const;
+	
 	UFUNCTION(BlueprintPure, Category = "TCF|HUD")
 	UTCFProductionPanelWidget* GetProductionPanel() const;
 
@@ -33,10 +40,6 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|HUD")
 	bool IsMouseOverBlockingUI() const;
-	
-	// Will be moved to PlayerUI subsystem later
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Resources|UI")
-	TObjectPtr<UTCFResourceUIDefinition> ResourceUIDefinition;
 
 protected:
 	virtual void NativeOnInitialized() override;
@@ -62,6 +65,9 @@ protected:
 	FVector2D TooltipCursorOffset = FVector2D(8.0f, 82.5f);
 
 private:	
+	UPROPERTY()
+	TObjectPtr<UTCFPlayerUISubsystem> PlayerUISubsystem;
+	
 	UPROPERTY()
 	TObjectPtr<UTCFTooltipWidget> ActiveTooltipWidget;
 

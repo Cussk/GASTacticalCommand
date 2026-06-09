@@ -230,6 +230,17 @@ void UTCFRTSHUDWidget::UpdateActiveTooltipPosition() const
 	}
 }
 
+void UTCFRTSHUDWidget::SetPlayerUISubsystem(
+	UTCFPlayerUISubsystem* InPlayerUISubsystem)
+{
+	PlayerUISubsystem = InPlayerUISubsystem;
+}
+
+UTCFPlayerUISubsystem* UTCFRTSHUDWidget::GetPlayerUISubsystem() const
+{
+	return PlayerUISubsystem;
+}
+
 UTCFProductionPanelWidget* UTCFRTSHUDWidget::GetProductionPanel() const
 {
 	return ProductionPanel;

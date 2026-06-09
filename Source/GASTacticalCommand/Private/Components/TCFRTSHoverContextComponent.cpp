@@ -9,6 +9,7 @@
 #include "Actors/TCFSquadActor.h"
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "Player/TCFPlayerController.h"
 #include "Subsystems/TCFRelationshipSubsystem.h"
 #include "UI/TCFRTSCursorWidget.h"
 
@@ -26,7 +27,7 @@ void UTCFRTSHoverContextComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerController = Cast<APlayerController>(GetOwner());
+	TCFPlayerController = Cast<ATCFPlayerController>(GetOwner());
 
 	SelectionComponent = GetOwner()
 		? GetOwner()->FindComponentByClass<UTCFPlayerSelectionComponent>()
@@ -83,8 +84,13 @@ void UTCFRTSHoverContextComponent::RefreshHoverContext()
 {
 	FHitResult HitResult;
 	FTCFRTSHoverContext NewHoverContext;
-
-	if (TraceHover(HitResult))
+	
+	if (TCFPlayerController && TCFPlayerController->IsCursorOverBlockingUI())
+	{
+		NewHoverContext.CursorState = ETCFRTSCursorState::Default;
+		NewHoverContext.TargetType = ETCFRTSHoverTargetType::None;
+	}
+	else if (TraceHover(HitResult))
 	{
 		NewHoverContext = BuildHoverContextFromHit(HitResult);
 	}
@@ -106,12 +112,12 @@ void UTCFRTSHoverContextComponent::RefreshHoverContext()
 
 bool UTCFRTSHoverContextComponent::TraceHover(FHitResult& OutHitResult) const
 {
-	if (!PlayerController)
+	if (!TCFPlayerController)
 	{
 		return false;
 	}
 
-	return PlayerController->GetHitResultUnderCursor(
+	return TCFPlayerController->GetHitResultUnderCursor(
 		HoverTraceChannel,
 		bTraceComplex,
 		OutHitResult);
@@ -290,12 +296,12 @@ bool UTCFRTSHoverContextComponent::AreHoverContextsEquivalent(
 
 void UTCFRTSHoverContextComponent::CreateCursorWidget()
 {
-	if (CursorWidget || !CursorWidgetClass || !PlayerController)
+	if (CursorWidget || !CursorWidgetClass || !TCFPlayerController)
 	{
 		return;
 	}
 
-	CursorWidget = CreateWidget<UTCFRTSCursorWidget>(PlayerController, CursorWidgetClass);
+	CursorWidget = CreateWidget<UTCFRTSCursorWidget>(TCFPlayerController, CursorWidgetClass);
 	if (!CursorWidget)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("RTS cursor widget class is not assigned."));
@@ -305,6 +311,6 @@ void UTCFRTSHoverContextComponent::CreateCursorWidget()
 	CursorWidget->InitializeCursorWidget(this);
 	CursorWidget->AddToViewport(1000);
 
-	PlayerController->CurrentMouseCursor = EMouseCursor::None;
+	TCFPlayerController->CurrentMouseCursor = EMouseCursor::None;
 }
 

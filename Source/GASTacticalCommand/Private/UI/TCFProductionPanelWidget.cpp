@@ -11,6 +11,7 @@
 #include "Player/TCFPlayerState.h"
 #include "UI/TCFProductionOptionButtonWidget.h"
 #include "UI/TCFProductionQueueSlotWidget.h"
+#include "UI/TCFRTSHUDWidget.h"
 
 void UTCFProductionPanelWidget::NativeOnInitialized()
 {
@@ -120,6 +121,11 @@ void UTCFProductionPanelWidget::UnbindProductionComponent()
 	}
 
 	ObservedProductionComponent = nullptr;
+}
+
+void UTCFProductionPanelWidget::SetOwningRTSHUD(UTCFRTSHUDWidget* InHUD)
+{
+	OwningRTSHUD = InHUD;
 }
 
 void UTCFProductionPanelWidget::RefreshPanelData()
@@ -441,6 +447,14 @@ UTCFProductionOptionButtonWidget* UTCFProductionPanelWidget::CreateOptionButtonW
 	NewButton->OnProductionOptionButtonClicked.AddDynamic(
 		this,
 		&UTCFProductionPanelWidget::HandleProductionOptionButtonClicked);
+	
+	NewButton->OnTooltipRequested.AddDynamic(
+		this,
+		&UTCFProductionPanelWidget::HandleTooltipRequested);
+
+	NewButton->OnTooltipCleared.AddDynamic(
+		this,
+		&UTCFProductionPanelWidget::HandleTooltipCleared);
 
 	ProductionOptionsContainer->AddChild(NewButton);
 	NewButton->ReleaseToPool();
@@ -463,6 +477,14 @@ UTCFProductionQueueSlotWidget* UTCFProductionPanelWidget::CreateQueueSlotWidget(
 	{
 		return nullptr;
 	}
+	
+	NewSlot->OnTooltipRequested.AddDynamic(
+		this,
+		&UTCFProductionPanelWidget::HandleTooltipRequested);
+
+	NewSlot->OnTooltipCleared.AddDynamic(
+		this,
+		&UTCFProductionPanelWidget::HandleTooltipCleared);
 
 	ProductionQueueContainer->AddChild(NewSlot);
 	NewSlot->ReleaseToPool();
@@ -502,6 +524,22 @@ void UTCFProductionPanelWidget::UnbindPooledWidgetDelegates()
 				this,
 				&UTCFProductionPanelWidget::HandleProductionOptionButtonClicked);
 		}
+	}
+}
+
+void UTCFProductionPanelWidget::HandleTooltipRequested(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget)
+{
+	if (OwningRTSHUD)
+	{
+		OwningRTSHUD->RequestTooltip(SourceWidget, TCFTooltipWidget);
+	}
+}
+
+void UTCFProductionPanelWidget::HandleTooltipCleared(UTCFTooltipSourceWidget* SourceWidget)
+{
+	if (OwningRTSHUD)
+	{
+		OwningRTSHUD->ClearTooltip(SourceWidget);
 	}
 }
 

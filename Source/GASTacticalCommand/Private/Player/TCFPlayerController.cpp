@@ -16,6 +16,7 @@
 #include "Components/TCFRTSHoverContextComponent.h"
 #include "Components/TCFRTSOrderTargetingComponent.h"
 #include "Player/TCFRTSCameraPawn.h"
+#include "UI/TCFRTSHUDWidget.h"
 
 ATCFPlayerController::ATCFPlayerController()
 {
@@ -71,6 +72,16 @@ UTCFRTSOrderTargetingComponent* ATCFPlayerController::GetRTSOrderTargetingCompon
 UTCFRTSBuildingPlacementComponent* ATCFPlayerController::GetRTSBuildingPlacementComponent() const
 {
 	return RTSBuildingPlacementComponent;
+}
+
+void ATCFPlayerController::SetRTSHUDWidget(UTCFRTSHUDWidget* InHUDWidget)
+{
+	RTSHUDWidget = InHUDWidget;
+}
+
+bool ATCFPlayerController::IsCursorOverBlockingUI() const
+{
+	return RTSHUDWidget && RTSHUDWidget->IsMouseOverBlockingUI();
 }
 
 void ATCFPlayerController::BeginPlay()
@@ -172,6 +183,11 @@ bool ATCFPlayerController::TryGetRTSCameraPawn()
 
 void ATCFPlayerController::HandleSelectStarted(const FInputActionValue& Value)
 {
+	if (IsCursorOverBlockingUI())
+	{
+		return;
+	}
+	
 	if (RTSBuildingPlacementComponent && RTSBuildingPlacementComponent->IsPlacingBuilding())
 	{
 		return;
@@ -184,7 +200,7 @@ void ATCFPlayerController::HandleSelectStarted(const FInputActionValue& Value)
 }
 
 void ATCFPlayerController::HandleSelectCompleted(const FInputActionValue& Value)
-{
+{	
 	if (RTSBuildingPlacementComponent && RTSBuildingPlacementComponent->IsPlacingBuilding())
 	{
 		return;
@@ -198,6 +214,11 @@ void ATCFPlayerController::HandleSelectCompleted(const FInputActionValue& Value)
 
 void ATCFPlayerController::HandleCommandStarted(const FInputActionValue& Value)
 {
+	if (IsCursorOverBlockingUI())
+	{
+		return;
+	}
+	
 	if (RTSBuildingPlacementComponent && RTSBuildingPlacementComponent->IsPlacingBuilding())
 	{
 		RTSBuildingPlacementComponent->ConfirmBuildingPlacement();

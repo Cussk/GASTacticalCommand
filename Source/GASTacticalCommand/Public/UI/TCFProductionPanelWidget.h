@@ -8,6 +8,9 @@
 #include "Types/TCFProductionUIViewTypes.h"
 #include "TCFProductionPanelWidget.generated.h"
 
+class UTCFRTSHUDWidget;
+class UTCFTooltipWidget;
+class UTCFTooltipSourceWidget;
 class ATCFBuildingActor;
 class ATCFPlayerState;
 class UPanelWidget;
@@ -25,6 +28,8 @@ class GASTACTICALCOMMAND_API UTCFProductionPanelWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	void SetOwningRTSHUD(UTCFRTSHUDWidget* InHUD);
+	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
 	void RefreshPanelData();
 
@@ -72,6 +77,9 @@ protected:
 	void BP_OnObservedBuildingChanged();
 
 private:
+	UPROPERTY()
+	TObjectPtr<UTCFRTSHUDWidget> OwningRTSHUD;
+	
 	UPROPERTY()
 	TObjectPtr<UTCFPlayerSelectionComponent> ObservedSelectionComponent;
 
@@ -131,6 +139,12 @@ private:
 	void ReleaseQueueSlotsFromIndex(int32 FirstIndexToRelease);
 
 	void UnbindPooledWidgetDelegates();
+
+	UFUNCTION()
+	void HandleTooltipRequested(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget);
+
+	UFUNCTION()
+	void HandleTooltipCleared(UTCFTooltipSourceWidget* SourceWidget);
 
 	ATCFPlayerState* ResolveRequestingPlayerState() const;
 };

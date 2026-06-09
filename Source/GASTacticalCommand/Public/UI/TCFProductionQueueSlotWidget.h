@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/TCFPooledWidget.h"
+#include "UI/TCFTooltipSourceWidget.h"
 #include "Types/TCFProductionUIViewTypes.h"
 #include "TCFProductionQueueSlotWidget.generated.h"
 
 class UTCFProductionQueueTooltipWidget;
 
 UCLASS(Abstract)
-class GASTACTICALCOMMAND_API UTCFProductionQueueSlotWidget : public UTCFPooledWidget
+class GASTACTICALCOMMAND_API UTCFProductionQueueSlotWidget : public UTCFTooltipSourceWidget
 {
 	GENERATED_BODY()
 
@@ -43,6 +43,7 @@ protected:
 	void BP_OnQueueSlotDataChanged();
 
 	virtual void NativeOnReleasedToPool() override;
+	virtual UTCFTooltipWidget* GetTooltipWidgetForSource() override;	
 
 private:
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Production", meta = (AllowPrivateAccess = true))
@@ -57,6 +58,6 @@ private:
 	UPROPERTY()
 	TObjectPtr<UTCFProductionQueueTooltipWidget> QueueTooltipWidget;
 
-	void RefreshTooltip();
-	void ClearTooltip();
+	UTCFProductionQueueTooltipWidget* GetOrCreateQueueTooltipWidget();
+	void ClearTooltipData();
 };

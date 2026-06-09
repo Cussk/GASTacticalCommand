@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TCFPlayerController.generated.h"
 
+class UTCFRTSHUDWidget;
 class UTCFRTSBuildingPlacementComponent;
 class UTCFRTSOrderTargetingComponent;
 class UTCFRTSCommandRouterComponent;
@@ -50,6 +51,12 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Building Placement")
 	UTCFRTSBuildingPlacementComponent* GetRTSBuildingPlacementComponent() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|UI")
+	void SetRTSHUDWidget(UTCFRTSHUDWidget* InHUDWidget);
+
+	UFUNCTION(BlueprintPure, Category = "TCF|UI")
+	bool IsCursorOverBlockingUI() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -106,6 +113,9 @@ protected:
 private:	
 	UPROPERTY()
 	ATCFRTSCameraPawn* CameraPawn;
+	
+	UPROPERTY()
+	TObjectPtr<UTCFRTSHUDWidget> RTSHUDWidget;
 	
 	bool bAppendSelectionInputActive = false;
 

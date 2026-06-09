@@ -7,6 +7,7 @@
 #include "Types/TCFRTSControlTypes.h"
 #include "TCFRTSHoverContextComponent.generated.h"
 
+class ATCFPlayerController;
 class APlayerController;
 class ATCFSquadActor;
 class UTCFPlayerSelectionComponent;
@@ -63,7 +64,7 @@ protected:
 
 private:
 	UPROPERTY()
-	TObjectPtr<APlayerController> PlayerController;
+	TObjectPtr<ATCFPlayerController> TCFPlayerController;
 
 	UPROPERTY()
 	TObjectPtr<UTCFPlayerSelectionComponent> SelectionComponent;

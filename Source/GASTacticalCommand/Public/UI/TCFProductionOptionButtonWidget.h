@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/TCFPooledWidget.h"
+#include "UI/TCFTooltipSourceWidget.h"
 #include "Types/TCFProductionUIViewTypes.h"
 #include "TCFProductionOptionButtonWidget.generated.h"
 
@@ -19,7 +19,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	ProductionOption);
 
 UCLASS(Abstract)
-class GASTACTICALCOMMAND_API UTCFProductionOptionButtonWidget : public UTCFPooledWidget
+class GASTACTICALCOMMAND_API UTCFProductionOptionButtonWidget : public UTCFTooltipSourceWidget
 {
 	GENERATED_BODY()
 
@@ -47,6 +47,9 @@ protected:
 	void BP_OnOptionViewDataChanged();
 
 	virtual void NativeOnReleasedToPool() override;
+	
+	virtual UTCFTooltipWidget* GetTooltipWidgetForSource() override;
+	
 
 private:
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Production", meta = (AllowPrivateAccess = true))
@@ -55,6 +58,6 @@ private:
 	UPROPERTY()
 	TObjectPtr<UTCFProductionOptionTooltipWidget> OptionTooltipWidget;
 
-	void RefreshTooltip();
-	void ClearTooltip();
+	UTCFProductionOptionTooltipWidget* GetOrCreateOptionTooltipWidget();
+	void ClearTooltipData() const;
 };

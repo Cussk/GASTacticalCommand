@@ -9,8 +9,6 @@ void UTCFProductionOptionButtonWidget::SetOptionViewData(
 {
 	ViewData = InViewData;
 
-	RefreshTooltip();
-
 	BP_OnOptionViewDataChanged();
 }
 
@@ -39,17 +37,20 @@ void UTCFProductionOptionButtonWidget::NativeOnReleasedToPool()
 {
 	Super::NativeOnReleasedToPool();
 
-	ClearTooltip();
-
+	ClearTooltipData();
 	ViewData = FTCFProductionOptionViewData();
 }
 
-void UTCFProductionOptionButtonWidget::RefreshTooltip()
+UTCFTooltipWidget* UTCFProductionOptionButtonWidget::GetTooltipWidgetForSource()
+{
+	return GetOrCreateOptionTooltipWidget();
+}
+
+UTCFProductionOptionTooltipWidget* UTCFProductionOptionButtonWidget::GetOrCreateOptionTooltipWidget()
 {
 	if (!OptionTooltipWidgetClass)
 	{
-		ClearTooltip();
-		return;
+		return nullptr;
 	}
 
 	if (!OptionTooltipWidget)
@@ -59,22 +60,18 @@ void UTCFProductionOptionButtonWidget::RefreshTooltip()
 			OptionTooltipWidgetClass);
 	}
 
-	if (!OptionTooltipWidget)
+	if (OptionTooltipWidget)
 	{
-		ClearTooltip();
-		return;
+		OptionTooltipWidget->SetOptionViewData(ViewData);
 	}
 
-	OptionTooltipWidget->SetOptionViewData(ViewData);
-	SetToolTip(OptionTooltipWidget);
+	return OptionTooltipWidget;
 }
 
-void UTCFProductionOptionButtonWidget::ClearTooltip()
+void UTCFProductionOptionButtonWidget::ClearTooltipData() const
 {
 	if (OptionTooltipWidget)
 	{
 		OptionTooltipWidget->ClearOptionViewData();
 	}
-
-	SetToolTip(nullptr);
 }

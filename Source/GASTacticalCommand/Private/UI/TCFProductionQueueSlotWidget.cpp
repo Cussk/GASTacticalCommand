@@ -12,8 +12,6 @@ void UTCFProductionQueueSlotWidget::SetQueueItemViewData(
 	SlotIndex = InSlotIndex;
 	bHasQueueItem = true;
 
-	RefreshTooltip();
-
 	BP_OnQueueSlotDataChanged();
 }
 
@@ -51,12 +49,21 @@ float UTCFProductionQueueSlotWidget::GetRemainingProgressAlpha() const
 	return 1.0f - FMath::Clamp(ViewData.ProgressAlpha, 0.0f, 1.0f);
 }
 
-void UTCFProductionQueueSlotWidget::RefreshTooltip()
+UTCFTooltipWidget* UTCFProductionQueueSlotWidget::GetTooltipWidgetForSource()
 {
-	if (!bHasQueueItem || !QueueTooltipWidgetClass)
+	if (!bHasQueueItem)
 	{
-		ClearTooltip();
-		return;
+		return nullptr;
+	}
+
+	return GetOrCreateQueueTooltipWidget();
+}
+
+UTCFProductionQueueTooltipWidget* UTCFProductionQueueSlotWidget::GetOrCreateQueueTooltipWidget()
+{
+	if (!QueueTooltipWidgetClass)
+	{
+		return nullptr;
 	}
 
 	if (!QueueTooltipWidget)
@@ -66,31 +73,27 @@ void UTCFProductionQueueSlotWidget::RefreshTooltip()
 			QueueTooltipWidgetClass);
 	}
 
-	if (!QueueTooltipWidget)
+	if (QueueTooltipWidget)
 	{
-		ClearTooltip();
-		return;
+		QueueTooltipWidget->SetQueueItemViewData(ViewData);
 	}
 
-	QueueTooltipWidget->SetQueueItemViewData(ViewData);
-	SetToolTip(QueueTooltipWidget);
+	return QueueTooltipWidget;
 }
 
-void UTCFProductionQueueSlotWidget::ClearTooltip()
+void UTCFProductionQueueSlotWidget::ClearTooltipData()
 {
 	if (QueueTooltipWidget)
 	{
 		QueueTooltipWidget->ClearQueueItemViewData();
 	}
-
-	SetToolTip(nullptr);
 }
 
 void UTCFProductionQueueSlotWidget::NativeOnReleasedToPool()
 {
 	Super::NativeOnReleasedToPool();
 
-	ClearTooltip();
+	ClearTooltipData();
 
 	ViewData = FTCFProductionQueueItemViewData();
 	bHasQueueItem = false;

@@ -8,6 +8,15 @@
 
 class UTCFProductionOptionDefinition;
 
+UENUM(BlueprintType)
+enum class ETCFProductionOptionAvailability : uint8
+{
+	Available,
+	QueueFull,
+	InsufficientResources,
+	Unavailable
+};
+
 USTRUCT(BlueprintType)
 struct FTCFProductionOptionViewData
 {
@@ -39,6 +48,9 @@ struct FTCFProductionOptionViewData
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Production")
 	FText DisabledReason;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Production")
+	ETCFProductionOptionAvailability Availability = ETCFProductionOptionAvailability::Unavailable;
 };
 
 USTRUCT(BlueprintType)

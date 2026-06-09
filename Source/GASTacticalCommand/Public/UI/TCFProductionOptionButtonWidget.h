@@ -9,6 +9,7 @@
 
 class UTCFProductionOptionDefinition;
 class UTCFProductionOptionButtonWidget;
+class UTCFProductionOptionTooltipWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FOnTCFProductionOptionButtonClicked,
@@ -39,6 +40,9 @@ public:
 	FOnTCFProductionOptionButtonClicked OnProductionOptionButtonClicked;
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Production|Tooltip")
+	TSubclassOf<UTCFProductionOptionTooltipWidget> OptionTooltipWidgetClass;
+	
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Production")
 	void BP_OnOptionViewDataChanged();
 
@@ -47,4 +51,10 @@ protected:
 private:
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Production", meta = (AllowPrivateAccess = true))
 	FTCFProductionOptionViewData ViewData;
+	
+	UPROPERTY()
+	TObjectPtr<UTCFProductionOptionTooltipWidget> OptionTooltipWidget;
+
+	void RefreshTooltip();
+	void ClearTooltip();
 };

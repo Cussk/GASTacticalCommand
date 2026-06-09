@@ -253,20 +253,26 @@ void UTCFProductionPanelWidget::RebuildProductionOptions()
 
 		if (!bHasQueueSpace)
 		{
+			ViewData.Availability = ETCFProductionOptionAvailability::QueueFull;
 			ViewData.DisabledReason = FText::FromString(TEXT("Queue full"));
 		}
 		else if (!ViewData.bCanAfford)
 		{
+			ViewData.Availability = ETCFProductionOptionAvailability::InsufficientResources;
 			ViewData.DisabledReason = FText::FromString(TEXT("Insufficient resources"));
 		}
 		else if (!bCanUseOption)
 		{
+			ViewData.Availability = ETCFProductionOptionAvailability::Unavailable;
 			ViewData.DisabledReason = FText::FromString(TEXT("Unavailable"));
 		}
 		else
 		{
+			ViewData.Availability = ETCFProductionOptionAvailability::Available;
 			ViewData.DisabledReason = FText::GetEmpty();
 		}
+
+		ViewData.bCanRequest = ViewData.Availability == ETCFProductionOptionAvailability::Available;
 
 		CachedProductionOptions.Add(ViewData);
 	}

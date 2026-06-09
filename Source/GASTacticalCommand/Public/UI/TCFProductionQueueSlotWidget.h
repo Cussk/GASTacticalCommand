@@ -7,6 +7,8 @@
 #include "Types/TCFProductionUIViewTypes.h"
 #include "TCFProductionQueueSlotWidget.generated.h"
 
+class UTCFProductionQueueTooltipWidget;
+
 UCLASS(Abstract)
 class GASTACTICALCOMMAND_API UTCFProductionQueueSlotWidget : public UTCFPooledWidget
 {
@@ -29,8 +31,14 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Production")
 	int32 GetSlotIndex() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Production")
+	float GetRemainingProgressAlpha() const;
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Production|Tooltip")
+	TSubclassOf<UTCFProductionQueueTooltipWidget> QueueTooltipWidgetClass;
+	
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Production")
 	void BP_OnQueueSlotDataChanged();
 
@@ -45,4 +53,10 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Production", meta = (AllowPrivateAccess = true))
 	int32 SlotIndex = INDEX_NONE;
+	
+	UPROPERTY()
+	TObjectPtr<UTCFProductionQueueTooltipWidget> QueueTooltipWidget;
+
+	void RefreshTooltip();
+	void ClearTooltip();
 };

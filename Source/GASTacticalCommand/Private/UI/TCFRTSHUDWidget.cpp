@@ -45,14 +45,14 @@ void UTCFRTSHUDWidget::RefreshHUDPanelVisibility()
 	{
 		ProductionPanelHost->SetVisibility(
 			bShowProductionPanel
-				? ESlateVisibility::SelfHitTestInvisible
+				? ESlateVisibility::Visible
 				: ESlateVisibility::Collapsed);
 	}
 	else if (ProductionPanel)
 	{
 		ProductionPanel->SetVisibility(
 			bShowProductionPanel
-				? ESlateVisibility::SelfHitTestInvisible
+				? ESlateVisibility::Visible
 				: ESlateVisibility::Collapsed);
 	}
 }

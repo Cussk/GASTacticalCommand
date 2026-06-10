@@ -79,6 +79,11 @@ UTCFRTSHUDWidget* UTCFPlayerUISubsystem::GetRTSHUD() const
 	return RTSHUDWidget;
 }
 
+UTCFProductionPanelWidget* UTCFPlayerUISubsystem::GetProductionPanel() const
+{
+	return RTSHUDWidget ? RTSHUDWidget->GetProductionPanel() : nullptr;
+}
+
 bool UTCFPlayerUISubsystem::HasRTSHUD() const
 {
 	return RTSHUDWidget != nullptr;

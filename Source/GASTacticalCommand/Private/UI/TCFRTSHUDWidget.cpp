@@ -276,8 +276,8 @@ void UTCFRTSHUDWidget::InitializeChildPanels()
 	
 	if (ProductionPanel)
 	{
-		ProductionPanel->SetOwningRTSHUD(this);
-		
+		ProductionPanel->SetPlayerUISubsystem(PlayerUISubsystem);
+
 		ProductionPanel->OnProductionPanelDataChanged.AddUniqueDynamic(
 			this,
 			&UTCFRTSHUDWidget::HandleProductionPanelDataChanged);

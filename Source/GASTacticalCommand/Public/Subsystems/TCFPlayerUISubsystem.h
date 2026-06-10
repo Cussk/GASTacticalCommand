@@ -6,6 +6,7 @@
 #include "Subsystems/LocalPlayerSubsystem.h"
 #include "TCFPlayerUISubsystem.generated.h"
 
+class UTCFProductionPanelWidget;
 class APlayerController;
 class UTCFResourceUIDefinition;
 class UTCFRTSHUDWidget;
@@ -31,6 +32,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Player UI")
 	UTCFRTSHUDWidget* GetRTSHUD() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Player UI|Panels")
+	UTCFProductionPanelWidget* GetProductionPanel() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Player UI")
 	bool HasRTSHUD() const;

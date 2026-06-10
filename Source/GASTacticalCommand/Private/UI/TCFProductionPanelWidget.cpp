@@ -9,6 +9,7 @@
 #include "Components/TCFPlayerSelectionComponent.h"
 #include "Data/TCFProductionOptionDefinition.h"
 #include "Player/TCFPlayerState.h"
+#include "Subsystems/TCFPlayerUISubsystem.h"
 #include "UI/TCFProductionOptionButtonWidget.h"
 #include "UI/TCFProductionQueueSlotWidget.h"
 #include "UI/TCFRTSHUDWidget.h"
@@ -123,9 +124,20 @@ void UTCFProductionPanelWidget::UnbindProductionComponent()
 	ObservedProductionComponent = nullptr;
 }
 
-void UTCFProductionPanelWidget::SetOwningRTSHUD(UTCFRTSHUDWidget* InHUD)
+void UTCFProductionPanelWidget::SetPlayerUISubsystem(
+	UTCFPlayerUISubsystem* InPlayerUISubsystem)
 {
-	OwningRTSHUD = InHUD;
+	PlayerUISubsystem = InPlayerUISubsystem;
+}
+
+UTCFPlayerUISubsystem* UTCFProductionPanelWidget::GetPlayerUISubsystem() const
+{
+	return PlayerUISubsystem;
+}
+
+UTCFResourceUIDefinition* UTCFProductionPanelWidget::GetResourceUIDefinition() const
+{
+	return PlayerUISubsystem ? PlayerUISubsystem->GetResourceUIDefinition() : nullptr;
 }
 
 void UTCFProductionPanelWidget::RefreshPanelData()
@@ -527,19 +539,22 @@ void UTCFProductionPanelWidget::UnbindPooledWidgetDelegates()
 	}
 }
 
-void UTCFProductionPanelWidget::HandleTooltipRequested(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget)
+void UTCFProductionPanelWidget::HandleTooltipRequested(
+	UTCFTooltipSourceWidget* SourceWidget,
+	UTCFTooltipWidget* TCFTooltipWidget)
 {
-	if (OwningRTSHUD)
+	if (PlayerUISubsystem)
 	{
-		OwningRTSHUD->RequestTooltip(SourceWidget, TCFTooltipWidget);
+		PlayerUISubsystem->RequestTooltip(SourceWidget, TCFTooltipWidget);
 	}
 }
 
-void UTCFProductionPanelWidget::HandleTooltipCleared(UTCFTooltipSourceWidget* SourceWidget)
+void UTCFProductionPanelWidget::HandleTooltipCleared(
+	UTCFTooltipSourceWidget* SourceWidget)
 {
-	if (OwningRTSHUD)
+	if (PlayerUISubsystem)
 	{
-		OwningRTSHUD->ClearTooltip(SourceWidget);
+		PlayerUISubsystem->ClearTooltip(SourceWidget);
 	}
 }
 

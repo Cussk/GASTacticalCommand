@@ -8,6 +8,8 @@
 #include "Types/TCFProductionUIViewTypes.h"
 #include "TCFProductionPanelWidget.generated.h"
 
+class UTCFResourceUIDefinition;
+class UTCFPlayerUISubsystem;
 class UTCFRTSHUDWidget;
 class UTCFTooltipWidget;
 class UTCFTooltipSourceWidget;
@@ -28,7 +30,14 @@ class GASTACTICALCOMMAND_API UTCFProductionPanelWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetOwningRTSHUD(UTCFRTSHUDWidget* InHUD);
+	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI")
+	void SetPlayerUISubsystem(UTCFPlayerUISubsystem* InPlayerUISubsystem);
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Player UI")
+	UTCFPlayerUISubsystem* GetPlayerUISubsystem() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Resources|UI")
+	UTCFResourceUIDefinition* GetResourceUIDefinition() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
 	void RefreshPanelData();
@@ -78,7 +87,7 @@ protected:
 
 private:
 	UPROPERTY()
-	TObjectPtr<UTCFRTSHUDWidget> OwningRTSHUD;
+	TObjectPtr<UTCFPlayerUISubsystem> PlayerUISubsystem;
 	
 	UPROPERTY()
 	TObjectPtr<UTCFPlayerSelectionComponent> ObservedSelectionComponent;

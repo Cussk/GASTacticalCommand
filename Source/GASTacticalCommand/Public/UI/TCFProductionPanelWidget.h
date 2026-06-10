@@ -10,7 +10,6 @@
 
 class UTCFResourceUIDefinition;
 class UTCFPlayerUISubsystem;
-class UTCFRTSHUDWidget;
 class UTCFTooltipWidget;
 class UTCFTooltipSourceWidget;
 class ATCFBuildingActor;

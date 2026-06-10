@@ -6,6 +6,8 @@
 #include "Subsystems/LocalPlayerSubsystem.h"
 #include "TCFPlayerUISubsystem.generated.h"
 
+class UWidget;
+class UTCFWorkerPanelWidget;
 class UTCFProductionPanelWidget;
 class APlayerController;
 class UTCFResourceUIDefinition;
@@ -35,6 +37,9 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "TCF|Player UI|Panels")
 	UTCFProductionPanelWidget* GetProductionPanel() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Player UI|Panels")
+	UTCFWorkerPanelWidget* GetWorkerPanel() const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Player UI")
 	bool HasRTSHUD() const;
@@ -50,9 +55,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Tooltip")
 	void ClearTooltip(UTCFTooltipSourceWidget* SourceWidget);
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Input")
+	void RegisterGameplayInputBlocker(UWidget* Widget);
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Input")
+	void UnregisterGameplayInputBlocker(UWidget* Widget);
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Player UI")
 	bool IsCursorOverBlockingUI() const;
+	
 
 private:
 	UPROPERTY()
@@ -60,4 +72,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UTCFResourceUIDefinition> ResourceUIDefinition;
+	
+	UPROPERTY()
+	TArray<TObjectPtr<UWidget>> GameplayInputBlockers;
+	
+	bool IsScreenPositionOverWidget(const UWidget* Widget, const FVector2D& ScreenPosition) const;
 };

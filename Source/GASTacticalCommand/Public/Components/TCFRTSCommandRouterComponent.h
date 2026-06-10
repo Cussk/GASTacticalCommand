@@ -25,6 +25,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Command")
 	bool ExecutePrimaryCommand();
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Command")
+	void StopSelectedCommands();
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|RTS Command|Build")
+	bool StartSelectedBuildCommandsForBuilding(ATCFBuildingActor* Building) const;
 
 	UFUNCTION(BlueprintPure, Category = "TCF|RTS Command")
 	const FTCFRTSCommandIntent& GetLastCommandIntent() const;

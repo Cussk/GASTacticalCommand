@@ -12,7 +12,6 @@
 #include "Subsystems/TCFPlayerUISubsystem.h"
 #include "UI/TCFProductionOptionButtonWidget.h"
 #include "UI/TCFProductionQueueSlotWidget.h"
-#include "UI/TCFRTSHUDWidget.h"
 
 void UTCFProductionPanelWidget::NativeOnInitialized()
 {

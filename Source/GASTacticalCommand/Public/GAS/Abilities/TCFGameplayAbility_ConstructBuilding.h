@@ -6,6 +6,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "TCFGameplayAbility_ConstructBuilding.generated.h"
 
+class ATCFPlayerController;
 class ATCFBuildingActor;
 class UTCFPlayerConstructionComponent;
 
@@ -53,4 +54,11 @@ private:
 
 	UTCFPlayerConstructionComponent* ResolveConstructionComponent(
 		const FGameplayAbilityActorInfo* ActorInfo) const;
+
+	ATCFPlayerController* ResolvePlayerController(
+		const FGameplayAbilityActorInfo* ActorInfo) const;
+
+	void StartSelectedWorkersBuildingPlacedBuilding(
+		const FGameplayAbilityActorInfo* ActorInfo,
+		ATCFBuildingActor* PlacedBuilding) const;
 };

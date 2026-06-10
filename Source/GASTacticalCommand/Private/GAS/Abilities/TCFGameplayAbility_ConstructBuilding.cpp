@@ -5,9 +5,10 @@
 #include "Actors/TCFBuildingActor.h"
 #include "Components/TCFPlayerConstructionComponent.h"
 #include "Components/TCFPlayerResourceBankComponent.h"
-#include "Data/TCFBuildingDefinition.h"
+#include "Components/TCFRTSCommandRouterComponent.h"
 #include "Data/TCFConstructionOptionDefinition.h"
 #include "GameFramework/Actor.h"
+#include "Player/TCFPlayerController.h"
 #include "Player/TCFPlayerState.h"
 #include "Types/TCFBuildingConstructionTypes.h"
 
@@ -139,6 +140,8 @@ void UTCFGameplayAbility_ConstructBuilding::ActivateAbility(
 		return;
 	}
 
+	StartSelectedWorkersBuildingPlacedBuilding(ActorInfo, PlacedBuilding);
+
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
@@ -162,8 +165,7 @@ void UTCFGameplayAbility_ConstructBuilding::EndAbility(
 		bWasCancelled);
 }
 
-UTCFPlayerConstructionComponent* UTCFGameplayAbility_ConstructBuilding::ResolveConstructionComponent(
-	const FGameplayAbilityActorInfo* ActorInfo) const
+UTCFPlayerConstructionComponent* UTCFGameplayAbility_ConstructBuilding::ResolveConstructionComponent(const FGameplayAbilityActorInfo* ActorInfo) const
 {
 	if (!ActorInfo || !ActorInfo->OwnerActor.IsValid())
 	{
@@ -174,4 +176,43 @@ UTCFPlayerConstructionComponent* UTCFGameplayAbility_ConstructBuilding::ResolveC
 	return TCFPlayerState
 		? TCFPlayerState->GetPlayerConstructionComponent()
 		: nullptr;
+}
+
+ATCFPlayerController* UTCFGameplayAbility_ConstructBuilding::ResolvePlayerController(const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	if (!ActorInfo || !ActorInfo->OwnerActor.IsValid())
+	{
+		return nullptr;
+	}
+
+	const ATCFPlayerState* TCFPlayerState = Cast<ATCFPlayerState>(ActorInfo->OwnerActor.Get());
+	if (!TCFPlayerState)
+	{
+		return nullptr;
+	}
+
+	return Cast<ATCFPlayerController>(TCFPlayerState->GetOwner());
+}
+
+void UTCFGameplayAbility_ConstructBuilding::StartSelectedWorkersBuildingPlacedBuilding(const FGameplayAbilityActorInfo* ActorInfo, ATCFBuildingActor* PlacedBuilding) const
+{
+	if (!IsValid(PlacedBuilding) || !PlacedBuilding->CanReceiveConstructionWork())
+	{
+		return;
+	}
+
+	const ATCFPlayerController* PlayerController = ResolvePlayerController(ActorInfo);
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	UTCFRTSCommandRouterComponent* CommandRouterComponent = PlayerController->GetRTSCommandRouterComponent();
+
+	if (!CommandRouterComponent)
+	{
+		return;
+	}
+
+	CommandRouterComponent->StartSelectedBuildCommandsForBuilding(PlacedBuilding);
 }

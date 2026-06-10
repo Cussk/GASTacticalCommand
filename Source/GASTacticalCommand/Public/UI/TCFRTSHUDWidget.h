@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "TCFRTSHUDWidget.generated.h"
 
+class UTCFWorkerPanelWidget;
 class UTCFResourcePanelWidget;
 class UTCFPlayerUISubsystem;
 class UTCFResourceUIDefinition;
@@ -29,6 +30,9 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "TCF|HUD")
 	UTCFProductionPanelWidget* GetProductionPanel() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|HUD")
+	UTCFWorkerPanelWidget* GetWorkerPanel() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|HUD")
 	void RefreshHUDPanelVisibility();
@@ -38,9 +42,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Tooltip")
 	void ClearTooltip(UTCFTooltipSourceWidget* SourceWidget);
-
-	UFUNCTION(BlueprintPure, Category = "TCF|HUD")
-	bool IsMouseOverBlockingUI() const;
 
 protected:
 	virtual void NativeOnInitialized() override;
@@ -55,6 +56,9 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|HUD", meta = (BindWidgetOptional))
 	TObjectPtr<UTCFProductionPanelWidget> ProductionPanel;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Worker", meta = (BindWidgetOptional))
+	TObjectPtr<UTCFWorkerPanelWidget> WorkerPanel;
 
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|HUD", meta = (BindWidgetOptional))
 	TObjectPtr<UWidget> ProductionPanelHost;
@@ -91,11 +95,11 @@ private:
 	void HandleProductionPanelDataChanged();
 	
 	void InitializeChildPanels();
+	void RegisterGameplayInputBlockers() const;
 
 	void ShowPendingTooltip();
 	void ShowTooltipNow(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget);
 
 	void HideActiveTooltip();
 	void UpdateActiveTooltipPosition() const;
-	bool IsScreenPositionOverWidget(const UWidget* Widget, const FVector2D& ScreenPosition) const;
 };

@@ -5,9 +5,11 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Widget.h"
+#include "Subsystems/TCFPlayerUISubsystem.h"
 #include "UI/TCFProductionPanelWidget.h"
 #include "UI/TCFResourcePanelWidget.h"
 #include "UI/TCFTooltipWidget.h"
+#include "UI/TCFWorkerPanelWidget.h"
 
 void UTCFRTSHUDWidget::NativeOnInitialized()
 {
@@ -27,37 +29,6 @@ void UTCFRTSHUDWidget::NativeDestruct()
 	}
 
 	Super::NativeDestruct();
-}
-
-bool UTCFRTSHUDWidget::IsMouseOverBlockingUI() const
-{
-	const APlayerController* PlayerController = GetOwningPlayer();
-	if (!PlayerController)
-	{
-		return false;
-	}
-
-	float MouseX = 0.0f;
-	float MouseY = 0.0f;
-	if (!PlayerController->GetMousePosition(MouseX, MouseY))
-	{
-		return false;
-	}
-
-	const FVector2D ScreenPosition(MouseX, MouseY);
-
-	return IsScreenPositionOverWidget(ProductionPanelHost, ScreenPosition)
-		|| IsScreenPositionOverWidget(ActiveTooltipWidget, ScreenPosition);
-}
-
-bool UTCFRTSHUDWidget::IsScreenPositionOverWidget(const UWidget* Widget, const FVector2D& ScreenPosition) const
-{
-	if (!Widget || !Widget->IsVisible())
-	{
-		return false;
-	}
-
-	return Widget->GetCachedGeometry().IsUnderLocation(ScreenPosition);
 }
 
 void UTCFRTSHUDWidget::RequestTooltip(
@@ -229,6 +200,7 @@ void UTCFRTSHUDWidget::SetPlayerUISubsystem(
 	PlayerUISubsystem = InPlayerUISubsystem;
 	
 	InitializeChildPanels();
+	RegisterGameplayInputBlockers();
 }
 
 UTCFPlayerUISubsystem* UTCFRTSHUDWidget::GetPlayerUISubsystem() const
@@ -239,6 +211,11 @@ UTCFPlayerUISubsystem* UTCFRTSHUDWidget::GetPlayerUISubsystem() const
 UTCFProductionPanelWidget* UTCFRTSHUDWidget::GetProductionPanel() const
 {
 	return ProductionPanel;
+}
+
+UTCFWorkerPanelWidget* UTCFRTSHUDWidget::GetWorkerPanel() const
+{
+	return WorkerPanel;
 }
 
 void UTCFRTSHUDWidget::RefreshHUDPanelVisibility()
@@ -281,6 +258,29 @@ void UTCFRTSHUDWidget::InitializeChildPanels()
 		ProductionPanel->OnProductionPanelDataChanged.AddUniqueDynamic(
 			this,
 			&UTCFRTSHUDWidget::HandleProductionPanelDataChanged);
+	}
+	
+	if (WorkerPanel)
+	{
+		WorkerPanel->SetPlayerUISubsystem(PlayerUISubsystem);
+	}
+}
+
+void UTCFRTSHUDWidget::RegisterGameplayInputBlockers() const
+{
+	if (ProductionPanelHost)
+	{
+		PlayerUISubsystem->RegisterGameplayInputBlocker(ProductionPanelHost);
+	}
+
+	if (ResourcePanel)
+	{
+		PlayerUISubsystem->RegisterGameplayInputBlocker(ResourcePanel);
+	}
+
+	if (WorkerPanel)
+	{
+		PlayerUISubsystem->RegisterGameplayInputBlocker(WorkerPanel);
 	}
 }
 

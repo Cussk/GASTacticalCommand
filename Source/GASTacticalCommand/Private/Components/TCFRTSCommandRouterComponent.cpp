@@ -54,6 +54,50 @@ bool UTCFRTSCommandRouterComponent::ExecutePrimaryCommand()
 	return LastCommandIntent.bWasExecuted;
 }
 
+void UTCFRTSCommandRouterComponent::StopSelectedCommands()
+{
+	StopSelectedSquadAttackCommands();
+	StopSelectedSquadGatherCommands();
+	StopSelectedSquadBuildCommands();
+}
+
+bool UTCFRTSCommandRouterComponent::StartSelectedBuildCommandsForBuilding(
+	ATCFBuildingActor* Building) const
+{
+	if (!SelectionComponent || !IsValid(Building) || !Building->CanReceiveConstructionWork())
+	{
+		return false;
+	}
+
+	TArray<ATCFSquadActor*> SelectedSquads;
+	SelectionComponent->GetSelectedSquads(SelectedSquads);
+
+	if (SelectedSquads.IsEmpty())
+	{
+		return false;
+	}
+
+	StopSelectedSquadAttackCommands();
+	StopSelectedSquadGatherCommands();
+
+	bool bStartedAnyBuildCommand = false;
+
+	for (ATCFSquadActor* SelectedSquad : SelectedSquads)
+	{
+		if (!IsValid(SelectedSquad))
+		{
+			continue;
+		}
+
+		if (UTCFSquadBuildCommandComponent* BuildCommandComponent = SelectedSquad->GetBuildCommandComponent())
+		{
+			bStartedAnyBuildCommand |= BuildCommandComponent->StartBuildCommand(Building);
+		}
+	}
+
+	return bStartedAnyBuildCommand;
+}
+
 const FTCFRTSCommandIntent& UTCFRTSCommandRouterComponent::GetLastCommandIntent() const
 {
 	return LastCommandIntent;
@@ -217,13 +261,8 @@ bool UTCFRTSCommandRouterComponent::ExecuteGatherResourceIntent(const FTCFRTSCom
 bool UTCFRTSCommandRouterComponent::ExecuteBuildTargetIntent(
 	const FTCFRTSCommandIntent& CommandIntent) const
 {
-	if (!SelectionComponent || !IsValid(CommandIntent.TargetActor))
-	{
-		return false;
-	}
-
 	ATCFBuildingActor* Building = Cast<ATCFBuildingActor>(CommandIntent.TargetActor);
-	if (!Building || !Building->CanReceiveConstructionWork())
+	if (!Building)
 	{
 		return false;
 	}
@@ -234,30 +273,7 @@ bool UTCFRTSCommandRouterComponent::ExecuteBuildTargetIntent(
 		return false;
 	}
 
-	TArray<ATCFSquadActor*> SelectedSquads;
-	SelectionComponent->GetSelectedSquads(SelectedSquads);
-
-	if (SelectedSquads.IsEmpty())
-	{
-		return false;
-	}
-
-	bool bStartedAnyBuildCommand = false;
-
-	for (ATCFSquadActor* SelectedSquad : SelectedSquads)
-	{
-		if (!IsValid(SelectedSquad))
-		{
-			continue;
-		}
-
-		if (UTCFSquadBuildCommandComponent* BuildCommandComponent = SelectedSquad->GetBuildCommandComponent())
-		{
-			bStartedAnyBuildCommand |= BuildCommandComponent->StartBuildCommand(Building);
-		}
-	}
-
-	return bStartedAnyBuildCommand;
+	return StartSelectedBuildCommandsForBuilding(Building);
 }
 
 void UTCFRTSCommandRouterComponent::StopSelectedSquadAttackCommands() const

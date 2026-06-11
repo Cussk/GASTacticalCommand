@@ -21,12 +21,7 @@ void UTCFRTSHUDWidget::NativeOnInitialized()
 
 void UTCFRTSHUDWidget::NativeDestruct()
 {
-	if (ProductionPanel)
-	{
-		ProductionPanel->OnProductionPanelDataChanged.RemoveDynamic(
-			this,
-			&UTCFRTSHUDWidget::HandleProductionPanelDataChanged);
-	}
+	UninitializeChildPanels();
 
 	Super::NativeDestruct();
 }
@@ -222,15 +217,8 @@ void UTCFRTSHUDWidget::RefreshHUDPanelVisibility()
 {
 	const bool bShowProductionPanel =
 		ProductionPanel && ProductionPanel->HasObservedProductionBuilding();
-
-	if (ProductionPanelHost)
-	{
-		ProductionPanelHost->SetVisibility(
-			bShowProductionPanel
-				? ESlateVisibility::Visible
-				: ESlateVisibility::Collapsed);
-	}
-	else if (ProductionPanel)
+	
+	if (ProductionPanel)
 	{
 		ProductionPanel->SetVisibility(
 			bShowProductionPanel
@@ -266,11 +254,33 @@ void UTCFRTSHUDWidget::InitializeChildPanels()
 	}
 }
 
+void UTCFRTSHUDWidget::UninitializeChildPanels()
+{
+	if (ProductionPanel)
+	{
+		ProductionPanel->OnProductionPanelDataChanged.RemoveDynamic(
+			this,
+			&UTCFRTSHUDWidget::HandleProductionPanelDataChanged);
+		
+		PlayerUISubsystem->UnregisterGameplayInputBlocker(ProductionPanel);
+	}
+
+	if (ResourcePanel)
+	{
+		PlayerUISubsystem->UnregisterGameplayInputBlocker(ResourcePanel);
+	}
+
+	if (WorkerPanel)
+	{
+		PlayerUISubsystem->UnregisterGameplayInputBlocker(WorkerPanel);
+	}
+}
+
 void UTCFRTSHUDWidget::RegisterGameplayInputBlockers() const
 {
-	if (ProductionPanelHost)
+	if (ProductionPanel)
 	{
-		PlayerUISubsystem->RegisterGameplayInputBlocker(ProductionPanelHost);
+		PlayerUISubsystem->RegisterGameplayInputBlocker(ProductionPanel);
 	}
 
 	if (ResourcePanel)

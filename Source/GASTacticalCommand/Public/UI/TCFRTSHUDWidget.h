@@ -60,9 +60,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Worker", meta = (BindWidgetOptional))
 	TObjectPtr<UTCFWorkerPanelWidget> WorkerPanel;
 
-	UPROPERTY(BlueprintReadOnly, Category = "TCF|HUD", meta = (BindWidgetOptional))
-	TObjectPtr<UWidget> ProductionPanelHost;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Tooltip")
 	float TooltipShowDelaySeconds = 1.0f;
 
@@ -95,6 +92,7 @@ private:
 	void HandleProductionPanelDataChanged();
 	
 	void InitializeChildPanels();
+	void UninitializeChildPanels();
 	void RegisterGameplayInputBlockers() const;
 
 	void ShowPendingTooltip();

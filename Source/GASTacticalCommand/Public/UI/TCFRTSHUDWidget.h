@@ -61,7 +61,7 @@ protected:
 	TObjectPtr<UTCFWorkerPanelWidget> WorkerPanel;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Tooltip")
-	float TooltipShowDelaySeconds = 1.0f;
+	float TooltipShowDelaySeconds = .75f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Tooltip")
 	float TooltipResetGraceSeconds = 0.2f;

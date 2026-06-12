@@ -7,6 +7,7 @@
 #include "Types/TCFProductionUIViewTypes.h"
 #include "TCFProductionQueueSlotWidget.generated.h"
 
+class UProgressBar;
 class UTCFProductionQueueTooltipWidget;
 
 UCLASS(Abstract)
@@ -22,6 +23,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
 	void SetEmptyQueueSlot(int32 InSlotIndex);
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
+	void SetProgressBarStyle(const FProgressBarStyle& InStyle);
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Production")
+	const FProgressBarStyle& GetProgressBarStyle();
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Production")
 	const FTCFProductionQueueItemViewData& GetQueueItemViewData() const;
@@ -36,8 +43,14 @@ public:
 	float GetRemainingProgressAlpha() const;
 
 protected:
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Production|Widgets", meta = (BindWidgetOptional))
+	TObjectPtr<UProgressBar> QueueProgressBar;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Production|Tooltip")
 	TSubclassOf<UTCFProductionQueueTooltipWidget> QueueTooltipWidgetClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Production")
+	TObjectPtr<UTexture2D> EmptySlotIcon;
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Production")
 	void BP_OnQueueSlotDataChanged();

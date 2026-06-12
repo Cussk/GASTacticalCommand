@@ -2,6 +2,7 @@
 
 #include "UI/TCFProductionQueueSlotWidget.h"
 
+#include "Components/ProgressBar.h"
 #include "UI/TCFProductionQueueTooltipWidget.h"
 
 void UTCFProductionQueueSlotWidget::SetQueueItemViewData(
@@ -22,6 +23,16 @@ void UTCFProductionQueueSlotWidget::SetEmptyQueueSlot(int32 InSlotIndex)
 	bHasQueueItem = false;
 
 	BP_OnQueueSlotDataChanged();
+}
+
+void UTCFProductionQueueSlotWidget::SetProgressBarStyle(const FProgressBarStyle& InStyle)
+{
+	QueueProgressBar->SetWidgetStyle(InStyle);
+}
+
+const FProgressBarStyle& UTCFProductionQueueSlotWidget::GetProgressBarStyle()
+{
+	return QueueProgressBar->GetWidgetStyle();
 }
 
 const FTCFProductionQueueItemViewData& UTCFProductionQueueSlotWidget::GetQueueItemViewData() const

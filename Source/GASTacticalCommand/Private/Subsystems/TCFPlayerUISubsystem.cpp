@@ -5,6 +5,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Data/TCFResourceUIDefinition.h"
 #include "GameFramework/PlayerController.h"
+#include "UI/TCFBuildPanelWidget.h"
 #include "UI/TCFRTSHUDWidget.h"
 
 void UTCFPlayerUISubsystem::Deinitialize()
@@ -89,6 +90,11 @@ UTCFWorkerPanelWidget* UTCFPlayerUISubsystem::GetWorkerPanel() const
 	return RTSHUDWidget ? RTSHUDWidget->GetWorkerPanel(): nullptr;
 }
 
+UTCFBuildPanelWidget* UTCFPlayerUISubsystem::GetBuildPanel() const
+{
+	return RTSHUDWidget ? RTSHUDWidget->GetBuildPanel() : nullptr;
+}
+
 bool UTCFPlayerUISubsystem::HasRTSHUD() const
 {
 	return RTSHUDWidget != nullptr;
@@ -120,6 +126,22 @@ void UTCFPlayerUISubsystem::ClearTooltip(UTCFTooltipSourceWidget* SourceWidget)
 	if (RTSHUDWidget)
 	{
 		RTSHUDWidget->ClearTooltip(SourceWidget);
+	}
+}
+
+void UTCFPlayerUISubsystem::OpenBuildPanel()
+{
+	if (UTCFBuildPanelWidget* BuildPanel = GetBuildPanel())
+	{
+		BuildPanel->OpenBuildPanel();
+	}
+}
+
+void UTCFPlayerUISubsystem::CloseBuildPanel()
+{
+	if (UTCFBuildPanelWidget* BuildPanel = GetBuildPanel())
+	{
+		BuildPanel->CloseBuildPanel();
 	}
 }
 

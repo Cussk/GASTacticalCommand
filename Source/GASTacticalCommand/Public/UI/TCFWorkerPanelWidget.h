@@ -12,6 +12,8 @@ class ATCFSquadActor;
 class UTCFPlayerSelectionComponent;
 class UTCFPlayerUISubsystem;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTCFWorkerPanelDataChanged);
+
 UCLASS(Abstract)
 class GASTACTICALCOMMAND_API UTCFWorkerPanelWidget : public UUserWidget
 {
@@ -44,6 +46,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Worker")
 	bool HasOnlySelectedWorkers() const;
+	
+	UPROPERTY(BlueprintAssignable, Category = "TCF|Worker")
+	FOnTCFWorkerPanelDataChanged OnWorkerPanelDataChanged;
 
 protected:
 	virtual void NativeOnInitialized() override;
@@ -54,9 +59,6 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Worker")
 	void BP_OnWorkerPanelDataChanged();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Worker")
-	void BP_OnBuildMenuRequested();
 
 private:
 	UPROPERTY()

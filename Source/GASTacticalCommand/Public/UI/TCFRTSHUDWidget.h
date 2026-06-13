@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "TCFRTSHUDWidget.generated.h"
 
+class UTCFBuildPanelWidget;
 class UTCFWorkerPanelWidget;
 class UTCFResourcePanelWidget;
 class UTCFPlayerUISubsystem;
@@ -33,6 +34,9 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "TCF|HUD")
 	UTCFWorkerPanelWidget* GetWorkerPanel() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|HUD")
+	UTCFBuildPanelWidget* GetBuildPanel() const;
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|HUD")
 	void RefreshHUDPanelVisibility();
@@ -59,6 +63,9 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Worker", meta = (BindWidgetOptional))
 	TObjectPtr<UTCFWorkerPanelWidget> WorkerPanel;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Build", meta = (BindWidgetOptional))
+	TObjectPtr<UTCFBuildPanelWidget> BuildPanel;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Tooltip")
 	float TooltipShowDelaySeconds = .75f;
@@ -90,6 +97,14 @@ private:
 	
 	UFUNCTION()
 	void HandleProductionPanelDataChanged();
+	
+	UFUNCTION()
+	void HandleWorkerPanelDataChanged();
+
+	UFUNCTION()
+	void HandleBuildPanelVisibilityChanged();
+
+	void SetPanelVisibility(UWidget* PanelWidget, bool bShouldShow) const;
 	
 	void InitializeChildPanels();
 	void UninitializeChildPanels();

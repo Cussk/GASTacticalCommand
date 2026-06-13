@@ -6,6 +6,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Widget.h"
 #include "Subsystems/TCFPlayerUISubsystem.h"
+#include "UI/TCFBuildPanelWidget.h"
 #include "UI/TCFProductionPanelWidget.h"
 #include "UI/TCFResourcePanelWidget.h"
 #include "UI/TCFTooltipWidget.h"
@@ -213,23 +214,42 @@ UTCFWorkerPanelWidget* UTCFRTSHUDWidget::GetWorkerPanel() const
 	return WorkerPanel;
 }
 
+UTCFBuildPanelWidget* UTCFRTSHUDWidget::GetBuildPanel() const
+{
+	return BuildPanel;
+}
+
 void UTCFRTSHUDWidget::RefreshHUDPanelVisibility()
 {
-	const bool bShowProductionPanel =
-		ProductionPanel && ProductionPanel->HasObservedProductionBuilding();
-	
-	if (ProductionPanel)
-	{
-		ProductionPanel->SetVisibility(
-			bShowProductionPanel
-				? ESlateVisibility::Visible
-				: ESlateVisibility::Collapsed);
-	}
+	SetPanelVisibility(ResourcePanel, ResourcePanel != nullptr);
+	SetPanelVisibility(ProductionPanel,ProductionPanel && ProductionPanel->HasObservedProductionBuilding());
+	SetPanelVisibility(WorkerPanel,WorkerPanel && WorkerPanel->HasSelectedWorkers());
+	SetPanelVisibility(BuildPanel,BuildPanel && BuildPanel->IsBuildPanelOpen());
 }
 
 void UTCFRTSHUDWidget::HandleProductionPanelDataChanged()
 {
 	RefreshHUDPanelVisibility();
+}
+
+void UTCFRTSHUDWidget::HandleWorkerPanelDataChanged()
+{
+	RefreshHUDPanelVisibility();
+}
+
+void UTCFRTSHUDWidget::HandleBuildPanelVisibilityChanged()
+{
+	RefreshHUDPanelVisibility();
+}
+
+void UTCFRTSHUDWidget::SetPanelVisibility(UWidget* PanelWidget, const bool bShouldShow) const
+{
+	if (!PanelWidget)
+	{
+		return;
+	}
+
+	PanelWidget->SetVisibility(bShouldShow ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 }
 
 void UTCFRTSHUDWidget::InitializeChildPanels()
@@ -251,11 +271,29 @@ void UTCFRTSHUDWidget::InitializeChildPanels()
 	if (WorkerPanel)
 	{
 		WorkerPanel->SetPlayerUISubsystem(PlayerUISubsystem);
+		
+		WorkerPanel->OnWorkerPanelDataChanged.AddUniqueDynamic(
+			this,
+			&UTCFRTSHUDWidget::HandleWorkerPanelDataChanged);
+	}
+	
+	if (BuildPanel)
+	{
+		BuildPanel->SetPlayerUISubsystem(PlayerUISubsystem);
+		
+		BuildPanel->OnBuildPanelVisibilityChanged.AddUniqueDynamic(
+			this,
+			&UTCFRTSHUDWidget::HandleBuildPanelVisibilityChanged);
 	}
 }
 
 void UTCFRTSHUDWidget::UninitializeChildPanels()
 {
+	if (ResourcePanel)
+	{
+		PlayerUISubsystem->UnregisterGameplayInputBlocker(ResourcePanel);
+	}
+	
 	if (ProductionPanel)
 	{
 		ProductionPanel->OnProductionPanelDataChanged.RemoveDynamic(
@@ -265,14 +303,22 @@ void UTCFRTSHUDWidget::UninitializeChildPanels()
 		PlayerUISubsystem->UnregisterGameplayInputBlocker(ProductionPanel);
 	}
 
-	if (ResourcePanel)
-	{
-		PlayerUISubsystem->UnregisterGameplayInputBlocker(ResourcePanel);
+	if (WorkerPanel)
+	{		
+		WorkerPanel->OnWorkerPanelDataChanged.RemoveDynamic(
+			this,
+			&UTCFRTSHUDWidget::HandleWorkerPanelDataChanged);
+		
+		PlayerUISubsystem->UnregisterGameplayInputBlocker(WorkerPanel);
 	}
 
-	if (WorkerPanel)
+	if (BuildPanel)
 	{
-		PlayerUISubsystem->UnregisterGameplayInputBlocker(WorkerPanel);
+		BuildPanel->OnBuildPanelVisibilityChanged.RemoveDynamic(
+			this,
+			&UTCFRTSHUDWidget::HandleBuildPanelVisibilityChanged);
+		
+		PlayerUISubsystem->UnregisterGameplayInputBlocker(BuildPanel);
 	}
 }
 
@@ -291,6 +337,11 @@ void UTCFRTSHUDWidget::RegisterGameplayInputBlockers() const
 	if (WorkerPanel)
 	{
 		PlayerUISubsystem->RegisterGameplayInputBlocker(WorkerPanel);
+	}
+	
+	if (BuildPanel)
+	{
+		PlayerUISubsystem->RegisterGameplayInputBlocker(BuildPanel);
 	}
 }
 

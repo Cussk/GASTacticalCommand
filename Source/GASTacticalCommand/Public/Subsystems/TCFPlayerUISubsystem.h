@@ -7,6 +7,7 @@
 #include "TCFPlayerUISubsystem.generated.h"
 
 class UWidget;
+class UTCFBuildPanelWidget;
 class UTCFWorkerPanelWidget;
 class UTCFProductionPanelWidget;
 class APlayerController;
@@ -41,6 +42,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TCF|Player UI|Panels")
 	UTCFWorkerPanelWidget* GetWorkerPanel() const;
 
+	UFUNCTION(BlueprintPure, Category = "TCF|Player UI|Panels")
+	UTCFBuildPanelWidget* GetBuildPanel() const;
+
 	UFUNCTION(BlueprintPure, Category = "TCF|Player UI")
 	bool HasRTSHUD() const;
 
@@ -55,6 +59,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Tooltip")
 	void ClearTooltip(UTCFTooltipSourceWidget* SourceWidget);
+	
+	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Panels")
+	void OpenBuildPanel();
+
+	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Panels")
+	void CloseBuildPanel();
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Input")
 	void RegisterGameplayInputBlocker(UWidget* Widget);

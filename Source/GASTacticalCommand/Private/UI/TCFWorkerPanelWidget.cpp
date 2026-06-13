@@ -74,22 +74,18 @@ void UTCFWorkerPanelWidget::RefreshWorkerPanel()
 
 	bHasSelectedWorkers = SelectedWorkerCount > 0;
 
-	SetVisibility(
-		bHasSelectedWorkers
-			? ESlateVisibility::SelfHitTestInvisible
-			: ESlateVisibility::Collapsed);
-
+	OnWorkerPanelDataChanged.Broadcast();
 	BP_OnWorkerPanelDataChanged();
 }
 
 void UTCFWorkerPanelWidget::RequestBuildMenu()
 {
-	if (!bHasSelectedWorkers)
+	if (!bHasSelectedWorkers || !PlayerUISubsystem)
 	{
 		return;
 	}
 
-	BP_OnBuildMenuRequested();
+	PlayerUISubsystem->OpenBuildPanel();
 }
 
 void UTCFWorkerPanelWidget::RequestStopCommands()
@@ -136,8 +132,7 @@ void UTCFWorkerPanelWidget::HandleSelectionCountChanged(int32 SelectedCount)
 	RefreshWorkerPanel();
 }
 
-void UTCFWorkerPanelWidget::HandlePrimarySelectedSquadChanged(
-	ATCFSquadActor* SelectedSquad)
+void UTCFWorkerPanelWidget::HandlePrimarySelectedSquadChanged(ATCFSquadActor* SelectedSquad)
 {
 	RefreshWorkerPanel();
 }

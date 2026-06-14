@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Types/TCFProductionUIViewTypes.h"
+#include "Types/TCFUIViewTypes.h"
 #include "UI/TCFTooltipWidget.h"
 #include "TCFProductionOptionTooltipWidget.generated.h"
 

@@ -15,6 +15,7 @@ class UTCFResourceUIDefinition;
 class UTCFRTSHUDWidget;
 class UTCFTooltipSourceWidget;
 class UTCFTooltipWidget;
+class UTCFConstructionOptionDefinition;
 
 UCLASS()
 class GASTACTICALCOMMAND_API UTCFPlayerUISubsystem : public ULocalPlayerSubsystem
@@ -75,7 +76,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TCF|Player UI")
 	bool IsCursorOverBlockingUI() const;
 	
-
+	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Build")
+	bool StartConstructionPlacement(UTCFConstructionOptionDefinition* ConstructionOption);
+	
 private:
 	UPROPERTY()
 	TObjectPtr<UTCFRTSHUDWidget> RTSHUDWidget;
@@ -87,4 +90,6 @@ private:
 	TArray<TObjectPtr<UWidget>> GameplayInputBlockers;
 	
 	bool IsScreenPositionOverWidget(const UWidget* Widget, const FVector2D& ScreenPosition) const;
+	
+	APlayerController* GetOwningPlayerController() const;
 };

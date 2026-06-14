@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UI/TCFTooltipSourceWidget.h"
-#include "Types/TCFProductionUIViewTypes.h"
+#include "Types/TCFUIViewTypes.h"
 #include "TCFProductionQueueSlotWidget.generated.h"
 
 class UProgressBar;

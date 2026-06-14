@@ -3,8 +3,10 @@
 #include "Subsystems/TCFPlayerUISubsystem.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Components/TCFRTSBuildingPlacementComponent.h"
 #include "Data/TCFResourceUIDefinition.h"
 #include "GameFramework/PlayerController.h"
+#include "Player/TCFPlayerController.h"
 #include "UI/TCFBuildPanelWidget.h"
 #include "UI/TCFRTSHUDWidget.h"
 
@@ -188,6 +190,33 @@ bool UTCFPlayerUISubsystem::IsCursorOverBlockingUI() const
 	return false;
 }
 
+bool UTCFPlayerUISubsystem::StartConstructionPlacement(
+	UTCFConstructionOptionDefinition* ConstructionOption)
+{
+	if (!ConstructionOption)
+	{
+		return false;
+	}
+
+	ATCFPlayerController* PlayerController =
+		Cast<ATCFPlayerController>(GetOwningPlayerController());
+
+	if (!PlayerController)
+	{
+		return false;
+	}
+
+	UTCFRTSBuildingPlacementComponent* PlacementComponent =
+		PlayerController->GetRTSBuildingPlacementComponent();
+
+	if (!PlacementComponent)
+	{
+		return false;
+	}
+
+	return PlacementComponent->BeginBuildingPlacement(ConstructionOption);
+}
+
 bool UTCFPlayerUISubsystem::IsScreenPositionOverWidget(const UWidget* Widget, const FVector2D& ScreenPosition) const
 {
 	if (!IsValid(Widget))
@@ -202,4 +231,12 @@ bool UTCFPlayerUISubsystem::IsScreenPositionOverWidget(const UWidget* Widget, co
 	}
 
 	return Widget->GetCachedGeometry().IsUnderLocation(ScreenPosition);
+}
+
+APlayerController* UTCFPlayerUISubsystem::GetOwningPlayerController() const
+{
+	const ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	return LocalPlayer
+		? LocalPlayer->GetPlayerController(GetWorld())
+		: nullptr;
 }

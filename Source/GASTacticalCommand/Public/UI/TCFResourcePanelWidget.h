@@ -9,6 +9,8 @@
 
 class ATCFPlayerState;
 class UPanelWidget;
+class UTCFTooltipSourceWidget;
+class UTCFTooltipWidget;
 class UTCFPlayerResourceBankComponent;
 class UTCFPlayerUISubsystem;
 class UTCFResourceAmountWidget;
@@ -75,4 +77,13 @@ private:
 	void ReleaseResourceAmountWidgetsFromIndex(int32 FirstIndexToRelease);
 
 	UTCFResourceAmountWidget* CreateResourceAmountWidget() const;
+	
+	UFUNCTION()
+	void HandleTooltipRequested(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget);
+
+	UFUNCTION()
+	void HandleTooltipCleared(UTCFTooltipSourceWidget* SourceWidget);
+
+	void BindResourceAmountWidget(UTCFResourceAmountWidget* ResourceWidget) const;
+	void UnbindResourceAmountWidget(UTCFResourceAmountWidget* ResourceWidget);
 };

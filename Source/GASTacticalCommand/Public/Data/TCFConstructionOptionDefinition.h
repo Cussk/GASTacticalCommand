@@ -16,7 +16,7 @@ class GASTACTICALCOMMAND_API UTCFConstructionOptionDefinition : public UPrimaryD
 {
 	GENERATED_BODY()
 
-public:
+public:	
 	UFUNCTION(BlueprintPure, Category = "TCF|Construction")
 	UTCFBuildingDefinition* GetBuildingDefinition() const;
 
@@ -25,6 +25,12 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TCF|Construction")
 	FText GetSafeDisplayName() const;
+	
+	UFUNCTION(BlueprintPure, Category = "TCF|Construction")
+	FText GetDescription() const;
+
+	UFUNCTION(BlueprintPure, Category = "TCF|Construction")
+	float GetRequiredConstructionWork() const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Construction")
 	TObjectPtr<UTCFBuildingDefinition> BuildingDefinition;

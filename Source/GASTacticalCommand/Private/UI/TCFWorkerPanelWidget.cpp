@@ -8,6 +8,10 @@
 #include "Player/TCFPlayerController.h"
 #include "Subsystems/TCFPlayerUISubsystem.h"
 #include "TCFGameplayTags.h"
+#include "UI/TCFIconActionButtonWidget.h"
+
+const FName UTCFWorkerPanelWidget::BuildActionId(TEXT("Build"));
+const FName UTCFWorkerPanelWidget::StopActionId(TEXT("Stop"));
 
 void UTCFWorkerPanelWidget::NativeOnInitialized()
 {
@@ -19,12 +23,17 @@ void UTCFWorkerPanelWidget::NativeOnInitialized()
 	}
 
 	BindSelectionComponent();
+	BindActionButton(BuildActionButton);
+	BindActionButton(StopActionButton);
+	RefreshActionButtons();
 	RefreshWorkerPanel();
 }
 
 void UTCFWorkerPanelWidget::NativeDestruct()
 {
 	UnbindSelectionComponent();
+	UnbindActionButton(BuildActionButton);
+	UnbindActionButton(StopActionButton);
 
 	PlayerUISubsystem = nullptr;
 
@@ -74,6 +83,7 @@ void UTCFWorkerPanelWidget::RefreshWorkerPanel()
 
 	bHasSelectedWorkers = SelectedWorkerCount > 0;
 
+	RefreshActionButtons();
 	OnWorkerPanelDataChanged.Broadcast();
 	BP_OnWorkerPanelDataChanged();
 }
@@ -198,4 +208,133 @@ bool UTCFWorkerPanelWidget::IsWorkerSquad(const ATCFSquadActor* Squad) const
 
 	const FGameplayTag SquadRoleTag = Squad->GetRoleTag();
 	return SquadRoleTag.IsValid() && SquadRoleTag.MatchesTagExact(WorkerRoleTag);
+}
+
+void UTCFWorkerPanelWidget::RefreshActionButtons() const
+{
+	if (BuildActionButton)
+	{
+		BuildActionButton->SetActionViewData(BuildBuildActionViewData());
+	}
+
+	if (StopActionButton)
+	{
+		StopActionButton->SetActionViewData(BuildStopActionViewData());
+	}
+}
+
+FTCFActionButtonViewData UTCFWorkerPanelWidget::BuildBuildActionViewData() const
+{
+	FTCFActionButtonViewData ViewData;
+	ViewData.ActionId = BuildActionId;
+	ViewData.DisplayName = FText::FromString(TEXT("Build"));
+	ViewData.Description = FText::FromString(
+		TEXT("Open the construction menu for selected workers."));
+
+	ViewData.bCanExecute = bHasSelectedWorkers;
+	ViewData.Availability = ViewData.bCanExecute
+		? ETCFActionAvailability::Available
+		: ETCFActionAvailability::Unavailable;
+
+	ViewData.DisabledReason = ViewData.bCanExecute
+		? FText::GetEmpty()
+		: FText::FromString(TEXT("Select at least one worker."));
+	
+	ViewData.Icon = BuildButtonIcon;
+
+	return ViewData;
+}
+
+FTCFActionButtonViewData UTCFWorkerPanelWidget::BuildStopActionViewData() const
+{
+	FTCFActionButtonViewData ViewData;
+	ViewData.ActionId = StopActionId;
+	ViewData.DisplayName = FText::FromString(TEXT("Stop"));
+	ViewData.Description = FText::FromString(
+		TEXT("Stop selected squads' current attack, gather, and build commands."));
+
+	ViewData.bCanExecute = bHasSelectedWorkers || SelectedNonWorkerCount > 0;
+	ViewData.Availability = ViewData.bCanExecute
+		? ETCFActionAvailability::Available
+		: ETCFActionAvailability::Unavailable;
+
+	ViewData.DisabledReason = ViewData.bCanExecute
+		? FText::GetEmpty()
+		: FText::FromString(TEXT("No selected units."));
+	
+	ViewData.Icon = StopButtonIcon;
+
+	return ViewData;
+}
+
+void UTCFWorkerPanelWidget::BindActionButton(
+	UTCFIconActionButtonWidget* ActionButton)
+{
+	if (!ActionButton)
+	{
+		return;
+	}
+
+	ActionButton->OnActionClicked.AddUniqueDynamic(
+		this,
+		&UTCFWorkerPanelWidget::HandleWorkerActionClicked);
+
+	ActionButton->OnTooltipRequested.AddUniqueDynamic(
+		this,
+		&UTCFWorkerPanelWidget::HandleTooltipRequested);
+
+	ActionButton->OnTooltipCleared.AddUniqueDynamic(
+		this,
+		&UTCFWorkerPanelWidget::HandleTooltipCleared);
+}
+
+void UTCFWorkerPanelWidget::UnbindActionButton(
+	UTCFIconActionButtonWidget* ActionButton)
+{
+	if (!ActionButton)
+	{
+		return;
+	}
+
+	ActionButton->OnActionClicked.RemoveDynamic(
+		this,
+		&UTCFWorkerPanelWidget::HandleWorkerActionClicked);
+
+	ActionButton->OnTooltipRequested.RemoveDynamic(
+		this,
+		&UTCFWorkerPanelWidget::HandleTooltipRequested);
+
+	ActionButton->OnTooltipCleared.RemoveDynamic(
+		this,
+		&UTCFWorkerPanelWidget::HandleTooltipCleared);
+}
+
+void UTCFWorkerPanelWidget::HandleWorkerActionClicked(FName ActionId)
+{
+	if (ActionId == BuildActionId)
+	{
+		RequestBuildMenu();
+		return;
+	}
+
+	if (ActionId == StopActionId)
+	{
+		RequestStopCommands();
+	}
+}
+
+void UTCFWorkerPanelWidget::HandleTooltipRequested(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget)
+{
+	if (PlayerUISubsystem)
+	{
+		PlayerUISubsystem->RequestTooltip(SourceWidget, TCFTooltipWidget);
+	}
+}
+
+void UTCFWorkerPanelWidget::HandleTooltipCleared(UTCFTooltipSourceWidget* SourceWidget)
+{
+	if (PlayerUISubsystem)
+	{
+		PlayerUISubsystem->ClearTooltip(SourceWidget);
+	}
 }

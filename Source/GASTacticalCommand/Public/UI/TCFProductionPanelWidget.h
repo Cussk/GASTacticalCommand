@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Types/TCFProductionTypes.h"
-#include "Types/TCFProductionUIViewTypes.h"
+#include "Types/TCFUIViewTypes.h"
 #include "TCFProductionPanelWidget.generated.h"
 
 class UTCFResourceUIDefinition;

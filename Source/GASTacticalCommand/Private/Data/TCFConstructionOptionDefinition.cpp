@@ -29,3 +29,19 @@ FText UTCFConstructionOptionDefinition::GetSafeDisplayName() const
 
 	return BuildingDefinition ? BuildingDefinition->DisplayName : FText::GetEmpty();
 }
+
+FText UTCFConstructionOptionDefinition::GetDescription() const
+{
+	if (!Description.IsEmpty())
+	{
+		return Description;
+	}
+
+	return BuildingDefinition ? BuildingDefinition->Description : FText::GetEmpty();
+}
+
+float UTCFConstructionOptionDefinition::GetRequiredConstructionWork() const
+{
+	return BuildingDefinition ? BuildingDefinition->GetSafeRequiredConstructionWork() : 0.0f;
+}
+

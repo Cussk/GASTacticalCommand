@@ -4,9 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Types/TCFUIViewTypes.h"
 #include "TCFBuildPanelWidget.generated.h"
 
 class UPanelWidget;
+class ATCFPlayerState;
+class UTCFTooltipSourceWidget;
+class UTCFTooltipWidget;
 class UTCFBuildOptionButtonWidget;
 class UTCFCommanderBuildCatalogDefinition;
 class UTCFConstructionOptionDefinition;
@@ -72,6 +76,24 @@ private:
 
 	UFUNCTION()
 	void HandleBuildOptionClicked(UTCFConstructionOptionDefinition* ConstructionOption);
+	
+	UFUNCTION()
+	void HandleTooltipRequested(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget);
+
+	UFUNCTION()
+	void HandleTooltipCleared(UTCFTooltipSourceWidget* SourceWidget);
+
+	FTCFBuildOptionViewData BuildOptionViewData(UTCFConstructionOptionDefinition* ConstructionOption) const;
+
+	ETCFActionAvailability ResolveBuildOptionAvailability(const FTCFBuildOptionViewData& ViewData, FText& OutDisabledReason) const;
+
+	ATCFPlayerState* ResolvePlayerState() const;
+	bool CanAffordCost(const TArray<FTCFResourceAmount>& Cost) const;
+	bool PlayerSatisfiesRequiredTags(const FGameplayTagContainer& RequiredTags) const;
+	bool PlayerHasBlockedTags(const FGameplayTagContainer& BlockedTags) const;
+
+	void BindBuildOptionButton(UTCFBuildOptionButtonWidget* OptionButton);
+	void UnbindBuildOptionButton(UTCFBuildOptionButtonWidget* OptionButton);
 
 	UTCFBuildOptionButtonWidget* CreateBuildOptionButton();
 	void ReleaseBuildOptionButtons();

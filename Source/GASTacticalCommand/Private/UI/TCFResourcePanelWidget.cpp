@@ -219,6 +219,7 @@ UTCFResourceAmountWidget* UTCFResourcePanelWidget::CreateResourceAmountWidget() 
 
 	ResourceListContainer->AddChild(NewWidget);
 	NewWidget->ClearResourceAmountData();
+	BindResourceAmountWidget(NewWidget);
 
 	return NewWidget;
 }
@@ -230,11 +231,61 @@ void UTCFResourcePanelWidget::ReleaseResourceAmountWidgetsFromIndex(int32 FirstI
 		if (UTCFResourceAmountWidget* ResourceWidget = ResourceAmountWidgets[Index])
 		{
 			ResourceWidget->ClearResourceAmountData();
+			UnbindResourceAmountWidget(ResourceWidget);
 		}
 	}
 
 	if (FirstIndexToRelease <= 0)
 	{
 		ResourceAmountWidgetsByTag.Reset();
+	}
+}
+
+void UTCFResourcePanelWidget::BindResourceAmountWidget(UTCFResourceAmountWidget* ResourceWidget) const
+{
+	if (!ResourceWidget)
+	{
+		return;
+	}
+
+	ResourceWidget->OnTooltipRequested.AddUniqueDynamic(
+		this,
+		&UTCFResourcePanelWidget::HandleTooltipRequested);
+
+	ResourceWidget->OnTooltipCleared.AddUniqueDynamic(
+		this,
+		&UTCFResourcePanelWidget::HandleTooltipCleared);
+}
+
+void UTCFResourcePanelWidget::UnbindResourceAmountWidget(
+	UTCFResourceAmountWidget* ResourceWidget)
+{
+	if (!ResourceWidget)
+	{
+		return;
+	}
+
+	ResourceWidget->OnTooltipRequested.RemoveDynamic(
+		this,
+		&UTCFResourcePanelWidget::HandleTooltipRequested);
+
+	ResourceWidget->OnTooltipCleared.RemoveDynamic(
+		this,
+		&UTCFResourcePanelWidget::HandleTooltipCleared);
+}
+
+void UTCFResourcePanelWidget::HandleTooltipRequested(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget)
+{
+	if (PlayerUISubsystem)
+	{
+		PlayerUISubsystem->RequestTooltip(SourceWidget, TCFTooltipWidget);
+	}
+}
+
+void UTCFResourcePanelWidget::HandleTooltipCleared(UTCFTooltipSourceWidget* SourceWidget)
+{
+	if (PlayerUISubsystem)
+	{
+		PlayerUISubsystem->ClearTooltip(SourceWidget);
 	}
 }

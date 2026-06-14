@@ -5,9 +5,13 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "GameplayTagContainer.h"
+#include "Types/TCFUIViewTypes.h"
 #include "TCFWorkerPanelWidget.generated.h"
 
 class ATCFPlayerController;
+class UTCFIconActionButtonWidget;
+class UTCFTooltipSourceWidget;
+class UTCFTooltipWidget;
 class ATCFSquadActor;
 class UTCFPlayerSelectionComponent;
 class UTCFPlayerUISubsystem;
@@ -53,14 +57,29 @@ public:
 protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeDestruct() override;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Worker", meta = (BindWidgetOptional))
+	TObjectPtr<UTCFIconActionButtonWidget> BuildActionButton;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Worker", meta = (BindWidgetOptional))
+	TObjectPtr<UTCFIconActionButtonWidget> StopActionButton;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Worker")
 	FGameplayTag WorkerRoleTag;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Worker")
+	TObjectPtr<UTexture2D>BuildButtonIcon;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Worker")
+	TObjectPtr<UTexture2D>StopButtonIcon;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Worker")
 	void BP_OnWorkerPanelDataChanged();
 
 private:
+	static const FName BuildActionId;
+	static const FName StopActionId;
+	
 	UPROPERTY()
 	TObjectPtr<UTCFPlayerUISubsystem> PlayerUISubsystem;
 
@@ -89,4 +108,20 @@ private:
 	UTCFPlayerSelectionComponent* ResolveSelectionComponent() const;
 
 	bool IsWorkerSquad(const ATCFSquadActor* Squad) const;
+
+	UFUNCTION()
+	void HandleWorkerActionClicked(FName ActionId);
+
+	UFUNCTION()
+	void HandleTooltipRequested(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget);
+
+	UFUNCTION()
+	void HandleTooltipCleared(UTCFTooltipSourceWidget* SourceWidget);
+
+	void BindActionButton(UTCFIconActionButtonWidget* ActionButton);
+	void UnbindActionButton(UTCFIconActionButtonWidget* ActionButton);
+
+	void RefreshActionButtons() const;
+	FTCFActionButtonViewData BuildBuildActionViewData() const;
+	FTCFActionButtonViewData BuildStopActionViewData() const;
 };

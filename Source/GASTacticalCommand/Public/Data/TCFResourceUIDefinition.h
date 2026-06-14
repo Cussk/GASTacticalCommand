@@ -17,6 +17,9 @@ struct FTCFResourceUIViewData
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Resources")
 	FText DisplayName;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Resources")
+	FText Description;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Resources")
 	FSlateBrush IconBrush;

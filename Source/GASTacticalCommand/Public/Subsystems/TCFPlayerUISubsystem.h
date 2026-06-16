@@ -62,8 +62,8 @@ public:
 	void ClearTooltip(UTCFTooltipSourceWidget* SourceWidget);
 	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Panels")
-	void OpenBuildPanel();
-
+	void ToggleBuildPanel();
+	
 	UFUNCTION(BlueprintCallable, Category = "TCF|Player UI|Panels")
 	void CloseBuildPanel();
 	

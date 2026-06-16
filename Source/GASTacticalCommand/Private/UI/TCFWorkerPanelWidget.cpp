@@ -82,6 +82,11 @@ void UTCFWorkerPanelWidget::RefreshWorkerPanel()
 	}
 
 	bHasSelectedWorkers = SelectedWorkerCount > 0;
+	
+	if (!bHasSelectedWorkers && PlayerUISubsystem)
+	{
+		PlayerUISubsystem->CloseBuildPanel();
+	}
 
 	RefreshActionButtons();
 	OnWorkerPanelDataChanged.Broadcast();
@@ -95,7 +100,7 @@ void UTCFWorkerPanelWidget::RequestBuildMenu()
 		return;
 	}
 
-	PlayerUISubsystem->OpenBuildPanel();
+	PlayerUISubsystem->ToggleBuildPanel();
 }
 
 void UTCFWorkerPanelWidget::RequestStopCommands()

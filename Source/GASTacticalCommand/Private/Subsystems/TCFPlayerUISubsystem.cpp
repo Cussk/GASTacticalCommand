@@ -131,11 +131,11 @@ void UTCFPlayerUISubsystem::ClearTooltip(UTCFTooltipSourceWidget* SourceWidget)
 	}
 }
 
-void UTCFPlayerUISubsystem::OpenBuildPanel()
+void UTCFPlayerUISubsystem::ToggleBuildPanel()
 {
 	if (UTCFBuildPanelWidget* BuildPanel = GetBuildPanel())
 	{
-		BuildPanel->OpenBuildPanel();
+		BuildPanel->ToggleBuildPanel();
 	}
 }
 

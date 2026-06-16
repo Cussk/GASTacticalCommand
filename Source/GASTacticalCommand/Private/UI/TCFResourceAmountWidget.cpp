@@ -17,7 +17,7 @@ void UTCFResourceAmountWidget::SetResourceAmountData(
 		ResourceTooltipWidget->SetResourceTooltipViewData(BuildResourceTooltipViewData());
 	}
 
-	SetVisibility(bHasResourceData ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	SetVisibility(bHasResourceData ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 
 	BP_OnResourceAmountDataChanged();
 }

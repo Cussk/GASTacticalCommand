@@ -19,6 +19,7 @@ void UTCFBuildOptionButtonWidget::SetBuildOptionViewData(
 		BuildOptionTooltipWidget->SetBuildOptionViewData(ViewData);
 	}
 
+	BP_OnAcquiredFromPool();
 	BP_OnBuildOptionViewDataChanged();
 }
 

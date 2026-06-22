@@ -2,7 +2,7 @@
 
 #include "UI/TCFResourceAmountWidget.h"
 
-#include "UI/TCFResourceTooltipWidget.h"
+#include "UI/TCFStandardTooltipWidget.h"
 
 void UTCFResourceAmountWidget::SetResourceAmountData(
 	const FTCFResourceUIViewData& InResourceViewData,
@@ -11,10 +11,10 @@ void UTCFResourceAmountWidget::SetResourceAmountData(
 	ResourceViewData = InResourceViewData;
 	ResourceAmount = FMath::Max(0, InAmount);
 	bHasResourceData = ResourceViewData.ResourceTag.IsValid();
-	
+
 	if (ResourceTooltipWidget)
 	{
-		ResourceTooltipWidget->SetResourceTooltipViewData(BuildResourceTooltipViewData());
+		ResourceTooltipWidget->SetTooltipViewData(BuildTooltipViewData());
 	}
 
 	SetVisibility(bHasResourceData ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
@@ -60,19 +60,19 @@ UTCFTooltipWidget* UTCFResourceAmountWidget::GetTooltipWidgetForSource()
 	return GetOrCreateResourceTooltipWidget();
 }
 
-FTCFResourceTooltipViewData UTCFResourceAmountWidget::BuildResourceTooltipViewData() const
+FTCFTooltipViewData UTCFResourceAmountWidget::BuildTooltipViewData() const
 {
-	FTCFResourceTooltipViewData TooltipViewData;
-	TooltipViewData.ResourceTag = ResourceViewData.ResourceTag;
-	TooltipViewData.DisplayName = ResourceViewData.DisplayName;
-	TooltipViewData.Description = ResourceViewData.Description;
-	TooltipViewData.IconBrush = ResourceViewData.IconBrush;
-	TooltipViewData.CurrentAmount = ResourceAmount;
+	FTCFTooltipViewData TooltipData;
+	TooltipData.Title = ResourceViewData.DisplayName;
+	TooltipData.Description = ResourceViewData.Description;
+	TooltipData.Icon = ResourceViewData.Icon;
+	TooltipData.ResourceAmount = ResourceAmount;
+	TooltipData.bHasResourceAmount = bHasResourceData;
 
-	return TooltipViewData;
+	return TooltipData;
 }
 
-UTCFResourceTooltipWidget* UTCFResourceAmountWidget::GetOrCreateResourceTooltipWidget()
+UTCFStandardTooltipWidget* UTCFResourceAmountWidget::GetOrCreateResourceTooltipWidget()
 {
 	if (!ResourceTooltipWidgetClass || !bHasResourceData)
 	{
@@ -81,14 +81,14 @@ UTCFResourceTooltipWidget* UTCFResourceAmountWidget::GetOrCreateResourceTooltipW
 
 	if (!ResourceTooltipWidget)
 	{
-		ResourceTooltipWidget = CreateWidget<UTCFResourceTooltipWidget>(
+		ResourceTooltipWidget = CreateWidget<UTCFStandardTooltipWidget>(
 			GetOwningPlayer(),
 			ResourceTooltipWidgetClass);
 	}
 
 	if (ResourceTooltipWidget)
 	{
-		ResourceTooltipWidget->SetResourceTooltipViewData(BuildResourceTooltipViewData());
+		ResourceTooltipWidget->SetTooltipViewData(BuildTooltipViewData());
 	}
 
 	return ResourceTooltipWidget;
@@ -98,6 +98,6 @@ void UTCFResourceAmountWidget::ClearTooltipData() const
 {
 	if (ResourceTooltipWidget)
 	{
-		ResourceTooltipWidget->ClearResourceTooltipViewData();
+		ResourceTooltipWidget->ClearTooltipViewData();
 	}
 }

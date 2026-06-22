@@ -31,6 +31,60 @@ enum class ETCFActionAvailability : uint8
 };
 
 USTRUCT(BlueprintType)
+struct FTCFTooltipViewData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip")
+	FText Title;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip")
+	FText Description;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip")
+	TObjectPtr<UTexture2D> Icon = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip")
+	TArray<FTCFResourceAmount> Cost;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip")
+	FText DisabledReason;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip")
+	ETCFActionAvailability Availability = ETCFActionAvailability::Available;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip")
+	bool bCanExecute = true;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip|Production")
+	float ProductionTime = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip|Construction")
+	float RequiredConstructionWork = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip|Construction")
+	float CurrentConstructionWork = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip|Construction")
+	float ConstructionProgressAlpha = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip|Resources")
+	int32 ResourceAmount = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip|State")
+	bool bHasCost = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip|State")
+	bool bHasProductionTime = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip|State")
+	bool bHasConstructionWork = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip|State")
+	bool bHasResourceAmount = false;
+};
+
+USTRUCT(BlueprintType)
 struct FTCFActionButtonViewData
 {
 	GENERATED_BODY()

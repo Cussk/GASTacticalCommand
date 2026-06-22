@@ -8,7 +8,7 @@
 #include "TCFIconActionButtonWidget.generated.h"
 
 class UButton;
-class UTCFActionTooltipWidget;
+class UTCFStandardTooltipWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
 	FOnTCFIconActionClicked,
@@ -42,7 +42,7 @@ protected:
 	TObjectPtr<UButton> ActionButton;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Tooltip")
-	TSubclassOf<UTCFActionTooltipWidget> ActionTooltipWidgetClass;
+	TSubclassOf<UTCFStandardTooltipWidget> ActionTooltipWidgetClass;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Action")
 	void BP_OnActionViewDataChanged();
@@ -52,11 +52,12 @@ private:
 	FTCFActionButtonViewData ViewData;
 
 	UPROPERTY()
-	TObjectPtr<UTCFActionTooltipWidget> ActionTooltipWidget;
+	TObjectPtr<UTCFStandardTooltipWidget> ActionTooltipWidget;
 
 	UFUNCTION()
 	void HandleButtonClicked();
 
-	UTCFActionTooltipWidget* GetOrCreateActionTooltipWidget();
+	UTCFStandardTooltipWidget* GetOrCreateActionTooltipWidget();
+	FTCFTooltipViewData BuildTooltipViewData() const;
 	void ClearTooltipData() const;
 };

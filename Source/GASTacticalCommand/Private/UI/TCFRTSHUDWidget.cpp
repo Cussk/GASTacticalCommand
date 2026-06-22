@@ -120,6 +120,8 @@ void UTCFRTSHUDWidget::ShowTooltipNow(
 	{
 		ActiveTooltipWidget->RemoveFromParent();
 	}
+	
+	TCFTooltipWidget->SetRenderOpacity(0.0f);
 
 	ActiveTooltipSource = SourceWidget;
 	ActiveTooltipWidget = TCFTooltipWidget;
@@ -136,7 +138,11 @@ void UTCFRTSHUDWidget::ShowTooltipNow(
 	}
 
 	TCFTooltipWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+	
+	TCFTooltipWidget->ForceLayoutPrepass();
 	UpdateActiveTooltipPosition();
+	
+	TCFTooltipWidget->SetRenderOpacity(1.0f);
 }
 
 void UTCFRTSHUDWidget::HideActiveTooltip()

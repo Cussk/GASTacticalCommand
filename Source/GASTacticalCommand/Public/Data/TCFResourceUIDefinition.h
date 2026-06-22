@@ -23,6 +23,9 @@ struct FTCFResourceUIViewData
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Resources")
 	FSlateBrush IconBrush;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Resources")
+	TObjectPtr<UTexture2D> Icon;
 };
 
 UCLASS(BlueprintType)

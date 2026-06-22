@@ -3,7 +3,7 @@
 #include "UI/TCFIconActionButtonWidget.h"
 
 #include "Components/Button.h"
-#include "UI/TCFActionTooltipWidget.h"
+#include "UI/TCFStandardTooltipWidget.h"
 
 void UTCFIconActionButtonWidget::NativeOnInitialized()
 {
@@ -33,7 +33,7 @@ void UTCFIconActionButtonWidget::SetActionViewData(
 
 	if (ActionTooltipWidget)
 	{
-		ActionTooltipWidget->SetActionViewData(ViewData);
+		ActionTooltipWidget->SetTooltipViewData(BuildTooltipViewData());
 	}
 
 	BP_OnActionViewDataChanged();
@@ -64,7 +64,7 @@ UTCFTooltipWidget* UTCFIconActionButtonWidget::GetTooltipWidgetForSource()
 	return GetOrCreateActionTooltipWidget();
 }
 
-UTCFActionTooltipWidget* UTCFIconActionButtonWidget::GetOrCreateActionTooltipWidget()
+UTCFStandardTooltipWidget* UTCFIconActionButtonWidget::GetOrCreateActionTooltipWidget()
 {
 	if (!ActionTooltipWidgetClass)
 	{
@@ -73,23 +73,36 @@ UTCFActionTooltipWidget* UTCFIconActionButtonWidget::GetOrCreateActionTooltipWid
 
 	if (!ActionTooltipWidget)
 	{
-		ActionTooltipWidget = CreateWidget<UTCFActionTooltipWidget>(
+		ActionTooltipWidget = CreateWidget<UTCFStandardTooltipWidget>(
 			GetOwningPlayer(),
 			ActionTooltipWidgetClass);
 	}
 
 	if (ActionTooltipWidget)
 	{
-		ActionTooltipWidget->SetActionViewData(ViewData);
+		ActionTooltipWidget->SetTooltipViewData(BuildTooltipViewData());
 	}
 
 	return ActionTooltipWidget;
+}
+
+FTCFTooltipViewData UTCFIconActionButtonWidget::BuildTooltipViewData() const
+{
+	FTCFTooltipViewData TooltipData;
+	TooltipData.Title = ViewData.DisplayName;
+	TooltipData.Description = ViewData.Description;
+	TooltipData.Icon = ViewData.Icon;
+	TooltipData.DisabledReason = ViewData.DisabledReason;
+	TooltipData.Availability = ViewData.Availability;
+	TooltipData.bCanExecute = ViewData.bCanExecute;
+
+	return TooltipData;
 }
 
 void UTCFIconActionButtonWidget::ClearTooltipData() const
 {
 	if (ActionTooltipWidget)
 	{
-		ActionTooltipWidget->ClearActionViewData();
+		ActionTooltipWidget->ClearTooltipViewData();
 	}
 }

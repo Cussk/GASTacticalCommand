@@ -7,7 +7,7 @@
 #include "UI/TCFTooltipSourceWidget.h"
 #include "TCFBuildOptionButtonWidget.generated.h"
 
-class UTCFBuildOptionTooltipWidget;
+class UTCFStandardTooltipWidget;
 class UTCFConstructionOptionDefinition;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
@@ -41,7 +41,7 @@ protected:
 	virtual UTCFTooltipWidget* GetTooltipWidgetForSource() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Tooltip")
-	TSubclassOf<UTCFBuildOptionTooltipWidget> BuildOptionTooltipWidgetClass;
+	TSubclassOf<UTCFStandardTooltipWidget> BuildOptionTooltipWidgetClass;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Build")
 	void BP_OnBuildOptionViewDataChanged();
@@ -51,8 +51,9 @@ private:
 	FTCFBuildOptionViewData ViewData;
 
 	UPROPERTY()
-	TObjectPtr<UTCFBuildOptionTooltipWidget> BuildOptionTooltipWidget;
+	TObjectPtr<UTCFStandardTooltipWidget> BuildOptionTooltipWidget;
 
-	UTCFBuildOptionTooltipWidget* GetOrCreateBuildOptionTooltipWidget();
+	UTCFStandardTooltipWidget* GetOrCreateBuildOptionTooltipWidget();
+	FTCFTooltipViewData BuildTooltipViewData() const;
 	void ClearTooltipData() const;
 };

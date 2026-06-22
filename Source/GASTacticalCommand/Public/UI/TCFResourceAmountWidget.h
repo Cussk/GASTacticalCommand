@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "TCFTooltipSourceWidget.h"
-#include "Blueprint/UserWidget.h"
 #include "Data/TCFResourceUIDefinition.h"
 #include "Types/TCFUIViewTypes.h"
 #include "TCFResourceAmountWidget.generated.h"
 
-class UTCFResourceTooltipWidget;
+class UTCFStandardTooltipWidget;
 
 UCLASS(Abstract)
 class GASTACTICALCOMMAND_API UTCFResourceAmountWidget : public UTCFTooltipSourceWidget
@@ -41,7 +40,7 @@ protected:
 	virtual UTCFTooltipWidget* GetTooltipWidgetForSource() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TCF|Tooltip")
-	TSubclassOf<UTCFResourceTooltipWidget> ResourceTooltipWidgetClass;
+	TSubclassOf<UTCFStandardTooltipWidget> ResourceTooltipWidgetClass;
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Resources|UI")
 	void BP_OnResourceAmountDataChanged();
@@ -57,9 +56,9 @@ private:
 	bool bHasResourceData = false;
 	
 	UPROPERTY()
-	TObjectPtr<UTCFResourceTooltipWidget> ResourceTooltipWidget;
+	TObjectPtr<UTCFStandardTooltipWidget> ResourceTooltipWidget;
 
-	FTCFResourceTooltipViewData BuildResourceTooltipViewData() const;
-	UTCFResourceTooltipWidget* GetOrCreateResourceTooltipWidget();
+	FTCFTooltipViewData BuildTooltipViewData() const;
+	UTCFStandardTooltipWidget* GetOrCreateResourceTooltipWidget();
 	void ClearTooltipData() const;
 };

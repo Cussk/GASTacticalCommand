@@ -2,8 +2,7 @@
 
 #include "UI/TCFBuildOptionButtonWidget.h"
 
-#include "Data/TCFConstructionOptionDefinition.h"
-#include "UI/TCFBuildOptionTooltipWidget.h"
+#include "UI/TCFStandardTooltipWidget.h"
 
 void UTCFBuildOptionButtonWidget::SetBuildOptionViewData(
 	const FTCFBuildOptionViewData& InViewData)
@@ -16,7 +15,7 @@ void UTCFBuildOptionButtonWidget::SetBuildOptionViewData(
 
 	if (BuildOptionTooltipWidget)
 	{
-		BuildOptionTooltipWidget->SetBuildOptionViewData(ViewData);
+		BuildOptionTooltipWidget->SetTooltipViewData(BuildTooltipViewData());
 	}
 
 	BP_OnAcquiredFromPool();
@@ -57,7 +56,7 @@ UTCFTooltipWidget* UTCFBuildOptionButtonWidget::GetTooltipWidgetForSource()
 	return GetOrCreateBuildOptionTooltipWidget();
 }
 
-UTCFBuildOptionTooltipWidget* UTCFBuildOptionButtonWidget::GetOrCreateBuildOptionTooltipWidget()
+UTCFStandardTooltipWidget* UTCFBuildOptionButtonWidget::GetOrCreateBuildOptionTooltipWidget()
 {
 	if (!BuildOptionTooltipWidgetClass)
 	{
@@ -66,23 +65,40 @@ UTCFBuildOptionTooltipWidget* UTCFBuildOptionButtonWidget::GetOrCreateBuildOptio
 
 	if (!BuildOptionTooltipWidget)
 	{
-		BuildOptionTooltipWidget = CreateWidget<UTCFBuildOptionTooltipWidget>(
+		BuildOptionTooltipWidget = CreateWidget<UTCFStandardTooltipWidget>(
 			GetOwningPlayer(),
 			BuildOptionTooltipWidgetClass);
 	}
 
 	if (BuildOptionTooltipWidget)
 	{
-		BuildOptionTooltipWidget->SetBuildOptionViewData(ViewData);
+		BuildOptionTooltipWidget->SetTooltipViewData(BuildTooltipViewData());
 	}
 
 	return BuildOptionTooltipWidget;
+}
+
+FTCFTooltipViewData UTCFBuildOptionButtonWidget::BuildTooltipViewData() const
+{
+	FTCFTooltipViewData TooltipData;
+	TooltipData.Title = ViewData.DisplayName;
+	TooltipData.Description = ViewData.Description;
+	TooltipData.Icon = ViewData.Icon;
+	TooltipData.Cost = ViewData.Cost;
+	TooltipData.DisabledReason = ViewData.DisabledReason;
+	TooltipData.Availability = ViewData.Availability;
+	TooltipData.bCanExecute = ViewData.bCanRequest;
+	TooltipData.RequiredConstructionWork = ViewData.RequiredConstructionWork;
+	TooltipData.bHasCost = !ViewData.Cost.IsEmpty();
+	TooltipData.bHasConstructionWork = ViewData.RequiredConstructionWork > 0.0f;
+
+	return TooltipData;
 }
 
 void UTCFBuildOptionButtonWidget::ClearTooltipData() const
 {
 	if (BuildOptionTooltipWidget)
 	{
-		BuildOptionTooltipWidget->ClearBuildOptionViewData();
+		BuildOptionTooltipWidget->ClearTooltipViewData();
 	}
 }

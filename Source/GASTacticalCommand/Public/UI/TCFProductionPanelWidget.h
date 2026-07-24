@@ -141,7 +141,7 @@ private:
 	void EnsureQueueSlotPoolSize(int32 RequiredCount);
 
 	UTCFProductionOptionButtonWidget* CreateOptionButtonWidget();
-	UTCFProductionQueueSlotWidget* CreateQueueSlotWidget() const;
+	UTCFProductionQueueSlotWidget* CreateQueueSlotWidget();
 
 	void ReleaseOptionButtonsFromIndex(int32 FirstIndexToRelease);
 	void ReleaseQueueSlotsFromIndex(int32 FirstIndexToRelease);

@@ -473,7 +473,7 @@ UTCFProductionOptionButtonWidget* UTCFProductionPanelWidget::CreateOptionButtonW
 	return NewButton;
 }
 
-UTCFProductionQueueSlotWidget* UTCFProductionPanelWidget::CreateQueueSlotWidget() const
+UTCFProductionQueueSlotWidget* UTCFProductionPanelWidget::CreateQueueSlotWidget()
 {
 	if (!ProductionQueueContainer || !ProductionQueueSlotWidgetClass)
 	{

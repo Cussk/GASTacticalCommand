@@ -201,7 +201,7 @@ void UTCFResourcePanelWidget::EnsureResourceAmountWidgetCount(int32 RequiredCoun
 	}
 }
 
-UTCFResourceAmountWidget* UTCFResourcePanelWidget::CreateResourceAmountWidget() const
+UTCFResourceAmountWidget* UTCFResourcePanelWidget::CreateResourceAmountWidget()
 {
 	if (!ResourceListContainer || !ResourceAmountWidgetClass)
 	{
@@ -241,7 +241,7 @@ void UTCFResourcePanelWidget::ReleaseResourceAmountWidgetsFromIndex(int32 FirstI
 	}
 }
 
-void UTCFResourcePanelWidget::BindResourceAmountWidget(UTCFResourceAmountWidget* ResourceWidget) const
+void UTCFResourcePanelWidget::BindResourceAmountWidget(UTCFResourceAmountWidget* ResourceWidget)
 {
 	if (!ResourceWidget)
 	{

@@ -76,7 +76,7 @@ private:
 	void EnsureResourceAmountWidgetCount(int32 RequiredCount);
 	void ReleaseResourceAmountWidgetsFromIndex(int32 FirstIndexToRelease);
 
-	UTCFResourceAmountWidget* CreateResourceAmountWidget() const;
+	UTCFResourceAmountWidget* CreateResourceAmountWidget();
 	
 	UFUNCTION()
 	void HandleTooltipRequested(UTCFTooltipSourceWidget* SourceWidget, UTCFTooltipWidget* TCFTooltipWidget);
@@ -84,6 +84,6 @@ private:
 	UFUNCTION()
 	void HandleTooltipCleared(UTCFTooltipSourceWidget* SourceWidget);
 
-	void BindResourceAmountWidget(UTCFResourceAmountWidget* ResourceWidget) const;
+	void BindResourceAmountWidget(UTCFResourceAmountWidget* ResourceWidget);
 	void UnbindResourceAmountWidget(UTCFResourceAmountWidget* ResourceWidget);
 };

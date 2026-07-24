@@ -25,8 +25,15 @@ public:
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Tooltip")
 	void BP_OnTooltipViewDataChanged();
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "TCF|Tooltip")
+	void BP_OnTooltipViewDataReadyForDetails();
 
 private:
 	UPROPERTY(BlueprintReadOnly, Category = "TCF|Tooltip", meta = (AllowPrivateAccess = true))
 	FTCFTooltipViewData ViewData;
+	
+	FTimerHandle DeferredDetailRevealTimerHandle;
+
+	void HandleDeferredDetailReveal();
 };

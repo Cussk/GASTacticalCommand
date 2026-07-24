@@ -2,6 +2,8 @@
 
 #include "UI/TCFStandardTooltipWidget.h"
 
+#include "TimerManager.h"
+
 void UTCFStandardTooltipWidget::SetTooltipViewData(
 	const FTCFTooltipViewData& InViewData)
 {
@@ -11,6 +13,16 @@ void UTCFStandardTooltipWidget::SetTooltipViewData(
 	NotifyTooltipDataChanged();
 
 	BP_OnTooltipViewDataChanged();
+
+	if (const UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			DeferredDetailRevealTimerHandle,
+			this,
+			&UTCFStandardTooltipWidget::HandleDeferredDetailReveal,
+			0.025f,
+			false);
+	}
 }
 
 void UTCFStandardTooltipWidget::ClearTooltipViewData()
@@ -21,9 +33,19 @@ void UTCFStandardTooltipWidget::ClearTooltipViewData()
 	NotifyTooltipDataChanged();
 
 	BP_OnTooltipViewDataChanged();
+	
+	if (const UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(DeferredDetailRevealTimerHandle);
+	}
 }
 
 const FTCFTooltipViewData& UTCFStandardTooltipWidget::GetTooltipViewData() const
 {
 	return ViewData;
+}
+
+void UTCFStandardTooltipWidget::HandleDeferredDetailReveal()
+{
+	BP_OnTooltipViewDataReadyForDetails();
 }
